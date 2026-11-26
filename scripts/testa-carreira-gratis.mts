@@ -1,9 +1,12 @@
 // 🔒 trava da CARREIRA GRÁTIS ATÉ A TEMPORADA 50 (27/10). Confere a régua pura e que a tela e o motor leem a MESMA função
 // (regra de ouro contra botão mudo). Uso: npm run carreira-gratis
 import { readFileSync } from 'node:fs'
+import {carreiraSemLimite} from '../src/escalacao/carreira-regras'
 import { travaCarreiraGratis, CARREIRA_GRATIS_ATE, marcaGratis, limiteGratis } from '../src/escalacao/carreira-gratis.ts'
 let falhas = 0
 const ok = (c: boolean, m: string) => { if (!c) { falhas++; console.log('❌', m) } else console.log('✅', m) }
+ok(carreiraSemLimite({onlineMode:'cpu',sport:'futebol',careerDivision:'V'}),'carreira tradicional de futebol fica fora do limite antigo')
+ok(!carreiraSemLimite({onlineMode:'cpu',sport:'basquete',careerDivision:'V'}),'basquete conserva sua regra própria')
 ok(CARREIRA_GRATIS_ATE === 50, 'o limite é a temporada 50')
 ok(travaCarreiraGratis(50, false), 'sem plano na temporada 50: trava')
 ok(!travaCarreiraGratis(50, true), 'com plano na temporada 50: segue')
@@ -21,9 +24,9 @@ const store = readFileSync('src/escalacao/store.tsx', 'utf8'), telas = readFileS
 const adv = store.slice(store.indexOf("case 'CAREER_ADVANCE': {"), store.indexOf("case 'CAREER_ADVANCE': {") + 1500)
 ok(/travaCarreiraGratis\(s\.seasonNo, !!action\.pago, s\.careerGratisAte\)\) return s/.test(adv), 'o motor (CAREER_ADVANCE) recusa a virada com a mesma régua')
 ok(/s\.careerGratisAte = marcaGratis\(/.test(adv), 'o motor grava a marca dos +10 na virada')
-ok(/'careerGratisAte'\] as const/.test(store), 'carreira nova nasce sem a marca de outra (MARCAS_DE_MODO)')
+ok(store.slice(store.indexOf('export const MARCAS_DE_MODO'),store.indexOf('export const MARCAS_DE_MODO')+2500).includes("'careerGratisAte'"), 'carreira nova nasce sem a marca de outra (MARCAS_DE_MODO)')
 const despachos = [...telas.matchAll(/type: 'CAREER_ADVANCE'[^}]*\}/g)].map(m => m[0])
 ok(despachos.length > 0 && despachos.every(d => /pago: pagante/.test(d)), 'todo botão que vira a temporada manda se a conta tem plano')
 ok(/travaCarreiraGratis\(state\.seasonNo, pagante, state\.careerGratisAte\)/.test(telas), 'a tela da decisão lê a mesma régua')
 if (falhas) { console.log(`\n${falhas} falha(s)`); process.exit(1) }
-console.log('\nCarreira grátis até a 50: tudo certo.')
+console.log('\nRégua legada e liberação da carreira de futebol: tudo certo.')

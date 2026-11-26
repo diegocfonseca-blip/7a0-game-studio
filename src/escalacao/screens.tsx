@@ -68,6 +68,7 @@ import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, useTem2D, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
 import { travaCarreiraGratis, limiteGratis } from './carreira-gratis'
+import {carreiraSemLimite} from './carreira-regras'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoFixo } from './planos-regras'
 import { usePrecoMeu } from './precos-servidor' // 💳 13/11: a tela mostra o preço que o Pix cobra (pergunta ao banco)
 import { LojaButton } from './loja-clube'
@@ -12597,7 +12598,7 @@ function CareerEndPanel() {
   // plano ainda carregando, vale a tela de sempre (os direitos já chegam no login, bem antes do fim da temporada).
   const direitosC = useDireitos()
   const pagante = ehPagante(myApoioPerk()?.tier, direitosC) || (!!loggedEmail() && !direitosC)
-  const travadoGratis = state.onlineMode !== 'online' && !state.oficial && travaCarreiraGratis(state.seasonNo, pagante, state.careerGratisAte) // 🇧🇷 Oficial: sem limite de temporada
+  const travadoGratis = state.onlineMode !== 'online' && !carreiraSemLimite(state) && !state.oficial && travaCarreiraGratis(state.seasonNo, pagante, state.careerGratisAte) // 🇧🇷 Oficial: sem limite de temporada
   const ateGratis = limiteGratis(state.seasonNo, state.careerGratisAte)
   const div = state.careerDivision!
   const you = state.managers[state.youIdx]

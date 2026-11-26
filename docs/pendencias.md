@@ -2575,6 +2575,41 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
+## 🏆 RANKING GLOBAL SEPARADO POR MODO (26/11, Diego: *"Tem q separar. Msm e C a msm regra do tradicional"*) — ✅ PUBLICADO 26/11 (*"Sim"*)
+- Banco PARTE 1 ✅ aplicada (`20261126120000_ranking_por_modo.sql`): coluna `modo` na `esc_pyramid_rank_snap` (padrão 'tradicional'),
+  115 fotos / 20 carreiras do Oficial já marcadas, e as funções `esc_pyramid_rank_modo` · `_career_rank_modo` · `_my_rank_modo`. Sem efeito
+  pra ninguém ainda.
+- Jogo (branch): toda foto grava o `modo`; dentro de carreira do Brasil Oficial a aba Rank → Global mostra só o Oficial, com a MESMA regra
+  (sua carreira de agora no lugar da melhor + a linha fininha da melhor). Linha nova embaixo do título: "🇧🇷 Só carreiras do Brasil Oficial"
+  / "🛠️ Só carreiras da Tradicional".
+- ✅ PARTE 2 aplicada junto com a publicação (26/11): conferido — Tradicional 5.402 técnicos, Oficial 17. Era: aplicar a PARTE 2 (`20261126120100_ranking_por_modo_filtro.sql`) — remarca as fotos do Oficial gravadas pelo jogo antigo e
+  faz as funções de sempre (v1, v2, perfil) lerem só a Tradicional. O "📊 Ranking da carreira" do perfil passa a ser só da Tradicional.
+- ⚠️ Carreira do Oficial de quem só salva no aparelho e ainda está no jogo antigo pode gravar foto como 'tradicional' por até 3 dias depois
+  da publicação: rodar o `update` da parte 2 de novo depois desse prazo (lembrete agendado pra 29/11).
+- Reverter: `update esc_pyramid_rank_snap set modo = 'tradicional'` volta pro ranking único.
+
+## 🧭 3 CARREIRAS: POR QUE ALGUÉM JOGARIA A TRADICIONAL? — análise (26/11, esperando resposta do Diego)
+- Números (saves na NUVEM, últimos 8 dias; o aparelho não aparece): carreiras novas até a T3 = Tradicional 84 × Brasil Oficial 16,
+  mesmo com o Oficial aberto pra todos desde 18/11. Acima da T20: 55 × 1; acima da T100: 32 × 0. Em 14 dias: 357 contas × 17.
+- O que só a Tradicional tem: clube CRIADO pela pessoa (nome, presidente), começa do zero na Várzea, leilão de estreia com lendas de
+  todas as épocas no mesmo time, rivais = clubes de BATISMO da comunidade (é a vitrine do produto Batismo), carreira longa (T100+).
+- Proposta: dar a cada modo uma frase-identidade na escolha (Tradicional = "seu clube dos sonhos, do zero, com lendas de todas as
+  épocas" · Brasil Oficial = "assuma um clube real do Brasil" · Global = "clubes reais do mundo todo") e NÃO levar pros oficiais o que
+  é a alma da tradicional (clube próprio, estreia com lendas misturadas, rivais de batismo). Nada feito; mockup só se ele topar.
+
+## 📨 PROPOSTA DE CLUBE NO BRASIL OFICIAL — IDEIA (25/11, Diego ainda em dúvida; NÃO fazer sem ele mandar)
+- Ideia dele: ao SUBIR de divisão, chega convite pra ASSUMIR outro clube (largando o seu pra sempre) ou seguir com o seu.
+  D→C: piores da B ou melhores da C · C→B: piores da A ou melhores da B · aleatório pelo momento.
+- Proposta minha: passo no roteiro do fim de temporada só quando houver convite; assume o clube COMO ESTÁ (elenco, caixa, divisão,
+  mapa); o antigo vira bot; vão junto presidente, cartinhas, Agência e currículo. Elenco incompleto não é problema: o Oficial já
+  completa todo clube com jogador real (`reparaMinimoOficial`).
+- 🤔 Dúvida aberta: o ESTÁDIO (só o clube do usuário tem estádio construído; `stadiums` por mgrId). Opções: clube novo chega com
+  estádio pronto no tamanho da série dele, ou começa do zero. Mockup só depois que ele decidir.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 25/11 (nada novo; não avisado)
+- Só as 4 já conhecidas, sem piorar: Duarte FC × Lenda Fc07 (6 temp., 4×0) · Fuxfux22 × Muralha FC (5×0) · Éden FC × Fluminense (5×0) ·
+  bernardomatana × mixoliveira (5×0, perdedor 2 salas cheias). As fortes seguem esperando o OK do Diego pra ligar.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 22/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **Duarte FC** (Fundador nº102) × **Lenda Fc07** (tucad65, conta criada HOJE 22/11) — 6 temporadas só os dois, entre 17:17 e
   17:22 UTC (5 minutos), 4 ligas × 0; a Lenda Fc07 nunca jogou com mais ninguém. O Duarte é ativo de verdade (219 salas cheias em 30 dias).

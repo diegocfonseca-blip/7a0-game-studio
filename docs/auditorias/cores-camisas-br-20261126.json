@@ -1,0 +1,3199 @@
+{
+  "data": "2026-11-26",
+  "escopo": "camisas mostradas na apresentação de contratação da Central; nenhum atributo esportivo alterado",
+  "criterio": "famílias de cores aproximadas para camisas estilizadas; não são réplicas anuais nem HEX oficiais. Prioridade para arte própria e receitas clássicas existentes.",
+  "total_clubes": 228,
+  "paletas_novas": 186,
+  "receitas_preservadas": 42,
+  "escudos_oficiais_ausentes": [
+    "Penedense",
+    "Galícia",
+    "Maranguape",
+    "Desportiva Ferroviária",
+    "FC Pantanal",
+    "Chapada",
+    "Sinop",
+    "Castanhal",
+    "Atlético de Cajazeiras",
+    "Confiança-PB",
+    "Jaguar",
+    "Baré",
+    "Desportiva Aracaju",
+    "Guarany-SE",
+    "Capital-TO"
+  ],
+  "clubes": [
+    {
+      "nome": "Athletico-PR",
+      "uf": "PR",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/athletico-pr.webp",
+      "sha256_escudo": "414a29e3c06e1e77275e59d7810347caa5680634a817ef784106bc182ac599ed",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Atlético-MG",
+      "uf": "MG",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/atletico-mg.webp",
+      "sha256_escudo": "1bd690ca39f3fca61b5608c44221e9d8bb8ab2a39f24daafc3087ec045491873",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Bahia",
+      "uf": "BA",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/bahia.webp",
+      "sha256_escudo": "fd045ee94cab6408cc9df614ada0f382725744ac58b500d7fe1a659dfc2c629c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Botafogo",
+      "uf": "RJ",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/botafogo.webp",
+      "sha256_escudo": "8e4453353eaa09de0774ac35650a556e06164766c371a74f7010f0b5b95550c0",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Bragantino",
+      "uf": "SP",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/bragantino.webp",
+      "sha256_escudo": "b3ea5b08c06f3f5ceb186dfb04b6136b25a385b07d7592c386f74c3790f0ae79",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Chapecoense",
+      "uf": "SC",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/chapecoense.webp",
+      "sha256_escudo": "edf8ddcfff77eda98ab3bfab84daf16413617cc538b4be34e5c855ef0e843f46",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Corinthians",
+      "uf": "SP",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/corinthians.webp",
+      "sha256_escudo": "7fd285416c3a9e3b697bacbb1e1716aba89f4ae897462412d4c66ebaaabf7b9c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Coritiba",
+      "uf": "PR",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/coritiba.webp",
+      "sha256_escudo": "cd0ab023374b36c4fca943cd19594bfb695a118657b268b28de8fee9793a2128",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Cruzeiro",
+      "uf": "MG",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/cruzeiro.webp",
+      "sha256_escudo": "c0460ee5cc0f2092a4b4cb6bc53d7ff0d07b2a096ac350f082673cbbccd4b4f5",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Flamengo",
+      "uf": "RJ",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/flamengo.webp",
+      "sha256_escudo": "8bc94b0b91c6dd95540812b1d16c5f0a2cb45688dcb6ec48168e8f7abbfa37c7",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Fluminense",
+      "uf": "RJ",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/fluminense.webp",
+      "sha256_escudo": "4ed9b20abb6f39567a5103b4aeec58ebf005632053fa25cd8d6e1a3047090a2b",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Grêmio",
+      "uf": "RS",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/gremio.webp",
+      "sha256_escudo": "146d46e0a60aceffdb03bef10313293857793d2a15a557ac547c25682951fb1f",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Internacional",
+      "uf": "RS",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/internacional.webp",
+      "sha256_escudo": "14a627c4617b75c69b6d0b74fc003f5aa9c329de55a6324057c9b6d9c081210e",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Mirassol",
+      "uf": "SP",
+      "div": "A",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#087642"
+      ],
+      "escudo_existente": "escudos-clubes/mirassol.webp",
+      "sha256_escudo": "0768667bf0a966951bd49f8a8b3b02ae8152b607f61bb8fe0986617112ca1c9a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Palmeiras",
+      "uf": "SP",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/palmeiras.webp",
+      "sha256_escudo": "104bf12aa8ed8b487f8bdeea28ba8dc470ee7b49f0fad47f6157531bf1ce191e",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Remo",
+      "uf": "PA",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/remo.webp",
+      "sha256_escudo": "ad6e13d879f8f58d12ffbf3e7e63c420057a6bec32b80fffd311487f77be7439",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Santos",
+      "uf": "SP",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/santos.webp",
+      "sha256_escudo": "663fcfd0f18c7935ad19a030b9d72b222127d5adf9a2b9ee4de0b1d83d17d870",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "São Paulo",
+      "uf": "SP",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/sao-paulo.webp",
+      "sha256_escudo": "9e87e97c7018c06f4794ca25c774f0386d1fc65b5fa8e1f14fed6bec371ec53f",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Vasco",
+      "uf": "RJ",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/vasco.webp",
+      "sha256_escudo": "00f71068b02db04b28e70de3d71819919b7b92bc1eae742db354fc7fe1a12d74",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Vitória",
+      "uf": "BA",
+      "div": "A",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/vitoria.webp",
+      "sha256_escudo": "5b2a82da3c731e20578a9e3764430c1710e175ea181388b239d8bce3dd2b20b0",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "América-MG",
+      "uf": "MG",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/america-mg.webp",
+      "sha256_escudo": "d2547dd294cc1b81d547d94706a01ee43f67988cc8bc10811c0f73bde73fa1cb",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Athletic",
+      "uf": "MG",
+      "div": "B",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/athletic.webp",
+      "sha256_escudo": "d83a7143116d144f82499a97cf3db96bb67e9b40fc85b2b4e55cb339ba2ac473",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Atlético-GO",
+      "uf": "GO",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/atletico-go.webp",
+      "sha256_escudo": "11db8f0bec046fd4c1884f10637bea66a98b59ef199c9e31c26030bcac23d0c0",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Avaí",
+      "uf": "SC",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/avai.webp",
+      "sha256_escudo": "80013e9446a7d88d20c3051f1ad4ba868a8558fe73283f4f05d6bb39cdb9c1a4",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Botafogo-SP",
+      "uf": "SP",
+      "div": "B",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#c8102e",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/botafogo-sp.webp",
+      "sha256_escudo": "effcd9377dd62aea05eaa86b9d40b18bb4d7a7629ddf0d334a6f771a10fc8e38",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Ceará",
+      "uf": "CE",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/ceara.webp",
+      "sha256_escudo": "14b00f9769657df703f30b25fb520f217b1be547b0c9f910ec5bb383b84d8d0c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "CRB",
+      "uf": "AL",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/crb.webp",
+      "sha256_escudo": "86067c272f1e2bc496792504e2c550b2b6b3de2923b9628ff9287b7089f5c91c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Criciúma",
+      "uf": "SC",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/criciuma.webp",
+      "sha256_escudo": "0c7c3819586c62202dee0834ee043e01111dd9b177ca3a529c4e79c36004024e",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Cuiabá",
+      "uf": "MT",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/cuiaba.webp",
+      "sha256_escudo": "8243c9a0ddc970c5107581e4ca335e6ea7a4044272851b26a3acc299ff1eeb9b",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Fortaleza",
+      "uf": "CE",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/fortaleza.webp",
+      "sha256_escudo": "4f1a861bb8eebae45cc70d0213f44a0fdb365114ff1021313b69ac58751a052c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Goiás",
+      "uf": "GO",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/goias.webp",
+      "sha256_escudo": "19096d90104d678bdd575e43bd67246a537715dd03be8632683b5142e5862224",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Juventude",
+      "uf": "RS",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/juventude.webp",
+      "sha256_escudo": "55406e9a49a391544100615ff33a3bf0e55ac59e3b11e1cf07faddc81f2f0b9c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Londrina",
+      "uf": "PR",
+      "div": "B",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#78bce4",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/londrina.webp",
+      "sha256_escudo": "cdeaa447f26b9378386569be6e5a83cc500923070477387c7bbd80d955cddb81",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Náutico",
+      "uf": "PE",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/nautico.webp",
+      "sha256_escudo": "89439c255ebf58e3b561f6e29e19ded3ebb60e84c6c41b6b223c298c79cabebe",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Novorizontino",
+      "uf": "SP",
+      "div": "B",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/novorizontino.webp",
+      "sha256_escudo": "3b5c7b3a30c931ad2f1b7de798fc08af3214c34a050dec46a0ae1f91b053df20",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Operário-PR",
+      "uf": "PR",
+      "div": "B",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/operario-pr.webp",
+      "sha256_escudo": "1537699a76eb14090d4080d43cef046c46eb1fd5e8bcc430a8683fef0629742f",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Ponte Preta",
+      "uf": "SP",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/ponte-preta.webp",
+      "sha256_escudo": "70a2a8c1fa2a4cf10a076e17eb63e5a025620a732ca9cbac723f76eea5dad9b2",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "São Bernardo",
+      "uf": "SP",
+      "div": "B",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/sao-bernardo.webp",
+      "sha256_escudo": "652d5b034f67b2792b8eb84425dbbfc190af136efbae390ef88adccaba5a8d74",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Sport",
+      "uf": "PE",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/sport.webp",
+      "sha256_escudo": "633da721b426e2c24b9337763bcc1a165ded8c82a2216df361bf1b6b754bc397",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Vila Nova",
+      "uf": "GO",
+      "div": "B",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/vila-nova.webp",
+      "sha256_escudo": "682fb258a49218b145c1e1ef1bea0afead7eb25cb86631e5c0e6f9340b1d87a3",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Amazonas",
+      "uf": "AM",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/amazonas.webp",
+      "sha256_escudo": "5058822c68eab9ec81048d3f54ff02950172d4d0d7179d15a4e1d185d6e3cc12",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Anápolis",
+      "uf": "GO",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/anapolis.webp",
+      "sha256_escudo": "7660436de3ab643d2ff81cef2576ccb3321eaa7593019b24523c1bff3def7716",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Barra",
+      "uf": "SC",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/barra.webp",
+      "sha256_escudo": "27c4c7db40c5df9ab28f523662fbe52d1318929d44a422a0d52fa0e756fcd303",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Botafogo-PB",
+      "uf": "PB",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/botafogo-pb.webp",
+      "sha256_escudo": "9c2c5e50a04b44b4f1417e4438ac7d4006e976d2a882d20060c0e283e2e8387c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Brusque",
+      "uf": "SC",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#c8102e",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/brusque.webp",
+      "sha256_escudo": "8ab6ccc25d5c07457f7d6a15284ecd9096da7fa50d12f0fcd700e270d498ff33",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Caxias",
+      "uf": "RS",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#7a1f3d",
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/caxias.webp",
+      "sha256_escudo": "14e9c713faa685fad004168e2a4c959aabb1df0d76710c5cca928e07e24ca8dc",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Confiança",
+      "uf": "SE",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/confianca.webp",
+      "sha256_escudo": "f36b4d61aba633756f044a515017dc3c01c0334fc957381ac206de27452bd319",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Ferroviária",
+      "uf": "SP",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#7a1f3d",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/ferroviaria.webp",
+      "sha256_escudo": "0c19269645f4600ee1d77d860816e80d6d02685edc71d96d8ade496a5157c6b8",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Figueirense",
+      "uf": "SC",
+      "div": "C",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/figueirense.webp",
+      "sha256_escudo": "a44087d7c7fd48c30e0351bc08a72aef8b442c957edce92f6a31e13d7d2192db",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Floresta",
+      "uf": "CE",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/floresta.webp",
+      "sha256_escudo": "66f835d9a35461d7bb9407dc64e28cce01683a0a32f09008ef06c7c70f18b09c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Guarani",
+      "uf": "SP",
+      "div": "C",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/guarani.webp",
+      "sha256_escudo": "f535862bb80a809cc6a8f5bb49f1291c64544cf36dc4e77d9d82f5f84f99be04",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Inter de Limeira",
+      "uf": "SP",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/inter-de-limeira.webp",
+      "sha256_escudo": "7f5ab81e5f55eddea4aef02ce1231e5363a603f10140b7e8b0916ffc56bef70a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Itabaiana",
+      "uf": "SE",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/itabaiana.webp",
+      "sha256_escudo": "84bed024a2a39243dc84519f9f102ad50d279ade8a76b59cefec8ef56eba8cfd",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Ituano",
+      "uf": "SP",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/ituano.webp",
+      "sha256_escudo": "bb45170f052699518d6864fed6314cf3db5a4069757867c3e47f768af3e66676",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Maranhão",
+      "uf": "MA",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/maranhao.webp",
+      "sha256_escudo": "980c48c66dbba23fcef5204dce023a303abc033c635f1ba7f5020ef076d1e355",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Maringá",
+      "uf": "PR",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/maringa.webp",
+      "sha256_escudo": "01d43f81fb6aa980240c63353f49b50f142d50846f2587a59095f411ca5abbb6",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://maringafc.com.br/o-clube/simbolos/",
+        "https://mantosdofutebol.com.br/2026/01/camisas-maringa-fc-2026/"
+      ]
+    },
+    {
+      "nome": "Paysandu",
+      "uf": "PA",
+      "div": "C",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/paysandu.webp",
+      "sha256_escudo": "4e31765a1bd3c74764ffef0b64eed820feef589b2d5333e3af9ba19ed308dde8",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Santa Cruz",
+      "uf": "PE",
+      "div": "C",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/santa-cruz.webp",
+      "sha256_escudo": "a75a2e3f6248c19db3e6cd02831051597a8bdf7043dbfc75f4f1cc48c8c9c8d8",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Volta Redonda",
+      "uf": "RJ",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/volta-redonda.webp",
+      "sha256_escudo": "1edc4af5ab46a9d54d8f8fab6481587cb80c6b579add8a0bb8c04e81a9d1b4f7",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Ypiranga",
+      "uf": "RS",
+      "div": "C",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/ypiranga.webp",
+      "sha256_escudo": "75b04e8a1911f549bfe28781db92c99b5bacadfb92b9a53fbfe2078df57c14f5",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Galvez",
+      "uf": "AC",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/galvez.webp",
+      "sha256_escudo": "6a2eb86caeedf3ca94779cf6a8b4212f784edc25c79ffeeba175566860dd8c59",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Humaitá",
+      "uf": "AC",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#176cac",
+        "#087642"
+      ],
+      "escudo_existente": "escudos-clubes/humaita.webp",
+      "sha256_escudo": "4b4734d4cea62be0f4e256d842d4acb870f290d7b27c6d7accb2bb0c23b2214b",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Independência",
+      "uf": "AC",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/independencia.webp",
+      "sha256_escudo": "dcb1f271f564df9ca7ba16f71b88811085192f38e7cab8c5d87bbc321bfc5822",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Vasco-AC",
+      "uf": "AC",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/vasco-ac.webp",
+      "sha256_escudo": "db980fa7e1617539db0db28a9a2f0452cdac8b4bba27780d523977f9137a41ea",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "ASA",
+      "uf": "AL",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/asa.webp",
+      "sha256_escudo": "882518e43ca5604fb8a26e31934ceb31d78c468fd138c6a29b4ebea6ceabb7be",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Coruripe",
+      "uf": "AL",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/coruripe.webp",
+      "sha256_escudo": "572ab6fc37566fd36ce657edb83a7b41c67b82a6f9f465b6cd8bb7f903a00d20",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Cruzeiro-AL",
+      "uf": "AL",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/cruzeiro-al.webp",
+      "sha256_escudo": "05c1d0fec43373d8f78a19e7baab0a227303f0ecf6a6492107442528e0371e4d",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "CSA",
+      "uf": "AL",
+      "div": "D",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/csa.webp",
+      "sha256_escudo": "1e3747a461bfde31b5af98402295a01be07510a7cd14a12f1bc1f88c4905c184",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "CSE",
+      "uf": "AL",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/cse.webp",
+      "sha256_escudo": "3c1e4ade82a6ea12e32fcaae8ac4d490d5d8e3bf7db69a964e8f44aa990b1dc1",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Murici",
+      "uf": "AL",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/murici.webp",
+      "sha256_escudo": "9ec26a342daf8d5e651e84a4c89b8a89fc244c82302c4d19e9a3b38de39f0b34",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Penedense",
+      "uf": "AL",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://www.rsssf.org/colours/brazil.html"
+      ]
+    },
+    {
+      "nome": "Itacoatiara",
+      "uf": "AM",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#e97824",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/itacoatiara.webp",
+      "sha256_escudo": "9b9f8acf7c4cc6fa6a6dfb72b854bd35378d86160f6bcf4367e03aa5043ebf62",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Manauara",
+      "uf": "AM",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#e97824",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/manauara.webp",
+      "sha256_escudo": "4af4fef1f2c6576a34c81dbb786c71452f335a8cfbfc9a91eff0cd47f170ef0a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://www.acritica.com/esportes/manauara-ec-reforca-a-venda-das-camisas-oficiais-para-a-temporada-2026-1.393532"
+      ]
+    },
+    {
+      "nome": "Manaus",
+      "uf": "AM",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/manaus.webp",
+      "sha256_escudo": "f2354f243229ab544e32ceb963ba87dbaad66c05be5d74d1afcd02e114dba70a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Nacional-AM",
+      "uf": "AM",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/nacional-am.webp",
+      "sha256_escudo": "29e06840e647a0d8cb32d7e07d7fc20527b00ebb15fc690814d56b728084d98f",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Parintins",
+      "uf": "AM",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/parintins.webp",
+      "sha256_escudo": "8ec7d868c804470a098a461b12a96048ada165e86fa3e9a499c7be8a37ab01be",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Princesa do Solimões",
+      "uf": "AM",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/princesa-do-solimoes.webp",
+      "sha256_escudo": "a49f43fdbf693eeffd7c48a4aabcc424dc3da713f1a60f26e063b4ebc08512f3",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "São Raimundo-AM",
+      "uf": "AM",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/sao-raimundo-am.webp",
+      "sha256_escudo": "b90d2356704a06cd530bf8a51f3c5e6df62bdc2b043b518cde2c40e50d42bf35",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Independente-AP",
+      "uf": "AP",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/independente-ap.webp",
+      "sha256_escudo": "9d71550e29306944460ec32577b9df401bd2e1747a1a073bc3e679ce35367155",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Oratório",
+      "uf": "AP",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/oratorio.webp",
+      "sha256_escudo": "f069f4b53da19c39e612f999aca2ac00159741fe347e4633b3dcd5726e0ac7e5",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Trem",
+      "uf": "AP",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/trem.webp",
+      "sha256_escudo": "779679f5b3994d2a4e8d9357379fe1376bd12f873316a1576d62b082e0ec40c9",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Atlético-BA",
+      "uf": "BA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/atletico-ba.webp",
+      "sha256_escudo": "b05491cdecba9a952cdd245fa7c73b4ad1a5d8e0683cd1953b132b80d955f816",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Bahia de Feira",
+      "uf": "BA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/bahia-de-feira.webp",
+      "sha256_escudo": "45b65356f35724f72a61dcff9efb3fabdfdf48aea5caf8fae21a894a10dc0b39",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Barcelona de Ilhéus",
+      "uf": "BA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/barcelona-de-ilheus.webp",
+      "sha256_escudo": "3d4dc45373bb37f6127b40913f783ed01b0e51056cae3d65fb99dbbede9ea550",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Galícia",
+      "uf": "BA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://galiciaec.com.br/clube/simbolos/"
+      ]
+    },
+    {
+      "nome": "Jacuipense",
+      "uf": "BA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#7a1f3d",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/jacuipense.webp",
+      "sha256_escudo": "40655833b0443f498353ef373baab23f0eddf098a3327f8452d91e14954a8d16",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Jequié",
+      "uf": "BA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/jequie.webp",
+      "sha256_escudo": "44fd3582f563f1deff20cc62b8192391449276d51bea5e4d03639dc7bf1dc8cf",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Juazeirense",
+      "uf": "BA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#efcb24",
+        "#087642"
+      ],
+      "escudo_existente": "escudos-clubes/juazeirense.webp",
+      "sha256_escudo": "8058a85951a748e129d1791bd73f098ee3f59475a0ce27564494e8a2d35deea1",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Porto-BA",
+      "uf": "BA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#7a1f3d",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/porto-ba.webp",
+      "sha256_escudo": "d2c2ce8983f461cc985be18bc0e1da6db83b4fca5aa185eef9592d3b6a788613",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://onordestefc.blogspot.com/2026/05/parte-16-porto-sc-o-cacique-guerreiro.html"
+      ]
+    },
+    {
+      "nome": "Atlético-CE",
+      "uf": "CE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/atletico-ce.webp",
+      "sha256_escudo": "3a67f26c8303fdf55a663c58fdafa934d6340abcd4135211563dca68568b8e3d",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Ferroviário-CE",
+      "uf": "CE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#c8102e",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/ferroviario-ce.webp",
+      "sha256_escudo": "8d1e2368403677f1803d74c812dc5b149f6545613e3f37e164101685333eb6b9",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Horizonte",
+      "uf": "CE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/horizonte.webp",
+      "sha256_escudo": "058a2cb6200ccd851d056767b59aaea60f79cd4e98b1b63f00937237000a54a7",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Iguatu",
+      "uf": "CE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/iguatu.webp",
+      "sha256_escudo": "609be57d23325851a2da53fd8a65c47a6dd73faee90f58088da21f9bcb41743c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Maracanã-CE",
+      "uf": "CE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#78bce4",
+        "#f3f1ed",
+        "#176cac"
+      ],
+      "escudo_existente": "escudos-clubes/maracana-ce.webp",
+      "sha256_escudo": "3b355de97191af8e555ca9554d8b389a39ca1c3efd0caa2b8b1ee29d74d562a2",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Maranguape",
+      "uf": "CE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://www.rsssf.org/colours/brazil.html"
+      ]
+    },
+    {
+      "nome": "Quixadá",
+      "uf": "CE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#087642"
+      ],
+      "escudo_existente": "escudos-clubes/quixada.webp",
+      "sha256_escudo": "4bcdc7d57510455c7a2bffeb863222f5bb807efc11a8922b47a908569b5cde78",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Tirol",
+      "uf": "CE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/tirol.webp",
+      "sha256_escudo": "06a1ed46a40e2eec566bd49469e295d8be89d8de90da2f88e9b501f6d7fdd69b",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Brasiliense",
+      "uf": "DF",
+      "div": "D",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/brasiliense.webp",
+      "sha256_escudo": "fd87bf67563b1cda755b4283ed5725303e1099b00bbd915f645239c65c2c8d9a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Capital",
+      "uf": "DF",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#78bce4",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/capital.webp",
+      "sha256_escudo": "258f941ae62e188b47784369af122a28cb7172631f3924392573065166abf665",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Ceilândia",
+      "uf": "DF",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/ceilandia.webp",
+      "sha256_escudo": "339c2fbe660e0dcd79ce9b2079d098f8751f6acd028cabf211fde45fa39a6078",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Gama",
+      "uf": "DF",
+      "div": "D",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/gama.webp",
+      "sha256_escudo": "0b9f860ac559beec3cc867042d93a086371c6516d0af6e29836f44322b8eeaa4",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Desportiva Ferroviária",
+      "uf": "ES",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#7a1f3d",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://ge.globo.com/es/futebol/times/desportiva-ferroviaria/noticia/2025/12/27/desportiva-ferroviaria-revela-novas-camisas-para-a-temporada-2026-veja-fotos.ghtml"
+      ]
+    },
+    {
+      "nome": "Porto Vitória",
+      "uf": "ES",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/porto-vitoria.webp",
+      "sha256_escudo": "bc65059cf149a22b2b6fbf51cf27e22387ff6e71c7f0d532b9ab8281eba81813",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Real Noroeste",
+      "uf": "ES",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/real-noroeste.webp",
+      "sha256_escudo": "9e1e56001122805a7d56a6c09e202bafb8cf21392588fe3ad64b111c4e9c41cd",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Rio Branco-ES",
+      "uf": "ES",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/rio-branco-es.webp",
+      "sha256_escudo": "ad3989b8f8cd72c10fd7a41f6575287281753a9afae30cd237ebb7e6b3477035",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Vitória-ES",
+      "uf": "ES",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/vitoria-es.webp",
+      "sha256_escudo": "9263e216526d1b087f45dd3f38130fa67953d8d96e3b629560c430c8315d4d05",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "ABECAT",
+      "uf": "GO",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#e97824",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/abecat.webp",
+      "sha256_escudo": "ef6a1b7267ecf97738d341b06e94c0b70326ae8f5d327db988becf1be5d8620f",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://www.fgf.esp.br/pt/clubes/view.php?q=240"
+      ]
+    },
+    {
+      "nome": "Anapolina",
+      "uf": "GO",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/anapolina.webp",
+      "sha256_escudo": "c79c6b5e16fddea668d8857371456eb4e079e29c41de7cc12acc752352e1446c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Aparecidense",
+      "uf": "GO",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/aparecidense.webp",
+      "sha256_escudo": "b90fbf6da798a29c668c6155649e94d1d178456ba32a71cda00830fbaadc0855",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Centro Oeste",
+      "uf": "GO",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#18345d",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/centro-oeste.webp",
+      "sha256_escudo": "f530c2efa9ab34092ac0583eb27a56ebcc1980b4005186974302584cd5460d31",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://www.footballkitarchive.com/pt/camisa-titular-centro-oeste-fc-2023-447482/"
+      ]
+    },
+    {
+      "nome": "CRAC",
+      "uf": "GO",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#78bce4",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/crac.webp",
+      "sha256_escudo": "1de0f5210e413c57df611d06ea263f9c9bf6b2b7036f763562d6c15a6a1633c2",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Goiatuba",
+      "uf": "GO",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/goiatuba.webp",
+      "sha256_escudo": "6eda119fb21ec4198657c6e8ff4d104c729c83ed9202347eb9384e0ed4918364",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Inhumas",
+      "uf": "GO",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/inhumas.webp",
+      "sha256_escudo": "a8a658da5de86ece05ae2a0f4eb733026ce0426cee56565754365d2843778d44",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Jataiense",
+      "uf": "GO",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/jataiense.webp",
+      "sha256_escudo": "553d731ec28e8890731f94d3c584b3167ad15a50eacb94f1987b3837a19d7aa6",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "IAPE",
+      "uf": "MA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#efcb24",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/iape.webp",
+      "sha256_escudo": "8c0cdc6c8534d64d6408954f810e66c21eecf9e792911b059e71b695f2e2a3fa",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Imperatriz",
+      "uf": "MA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/imperatriz.webp",
+      "sha256_escudo": "93012138e6f15c968f2fbb14d61667fd037d62e8b4b974e6eab4b68ade0e749d",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "ITZ",
+      "uf": "MA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#171719",
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/itz.webp",
+      "sha256_escudo": "9364495f3c5ea0df646f198156edf38523b337605ff472ff2994f031d1514011",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Luminense",
+      "uf": "MA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/luminense.webp",
+      "sha256_escudo": "9f82b00be40a06809ea2caf4cfb9d84c54a40568f0ec7017502c4b613c322fc5",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Moto Club",
+      "uf": "MA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/moto-club.webp",
+      "sha256_escudo": "2b7fe5530e552d2400c3e619b6e71c694f9c115176275b87c469cbc0f6d63a27",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Sampaio Corrêa",
+      "uf": "MA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#c8102e",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/sampaio-correa.webp",
+      "sha256_escudo": "8667128e7b45146244ad24a93a724fb2169006fa8b24f3c59ffa312d3eb5ebb3",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://mantosdofutebol.com.br/2026/01/camisas-sampaio-correa-2026-tolledo-sports/"
+      ]
+    },
+    {
+      "nome": "Tuntum",
+      "uf": "MA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/tuntum.webp",
+      "sha256_escudo": "5573a80ec5eb2b76284eec5fcb6041a111f733841faa6439c606d1a63f1dea1b",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Betim",
+      "uf": "MG",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/betim.webp",
+      "sha256_escudo": "53fd4ff0e0aa5e77b6d23c20d756547fbd60504d2e1f7867a877ab2a47d67253",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Democrata-GV",
+      "uf": "MG",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/democrata-gv.webp",
+      "sha256_escudo": "7e9d8c577a332fc641406aa107e0b72ed41183977e6013487316f610f73c8d97",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Itabirito",
+      "uf": "MG",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#7a1f3d",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/itabirito.webp",
+      "sha256_escudo": "3d5413951b440592b0017f363b54cdc6a3f7e87221bf0d0e1749cdbb624d2b41",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://itabiritofc.com/",
+        "https://www.sounoticia.com.br/noticia/93504/geral/itabirito-fc-apresenta-seu-novo-uniforme-clube-vai-disputar-o-campeonato-mineiro-da-segunda-divisao-31052022"
+      ]
+    },
+    {
+      "nome": "North",
+      "uf": "MG",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#171719",
+        "#c9a343"
+      ],
+      "escudo_existente": "escudos-clubes/north.webp",
+      "sha256_escudo": "ceba4a5959b155798d4e736228d821be343b40697952aa3196e9d1f69bd35f11",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://northesporteclube.com.br/lancamento-oficial-north-esporte-clube/"
+      ]
+    },
+    {
+      "nome": "Pouso Alegre",
+      "uf": "MG",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/pouso-alegre.webp",
+      "sha256_escudo": "43323bf0692bf66879739f1a362faed6b63918dd2c584b13c6541cdf88f17cb9",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Tombense",
+      "uf": "MG",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/tombense.webp",
+      "sha256_escudo": "81cd0b816156ae94eace56fcdf1500855e2c71d80629f68ee570d6e639873ca5",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Uberlândia",
+      "uf": "MG",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/uberlandia.webp",
+      "sha256_escudo": "4e70afb4fca162f5aa02d6f667d18fec8ca6ba259b595cc2af52d6a9a8b055c1",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "URT",
+      "uf": "MG",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/urt.webp",
+      "sha256_escudo": "f66c6df696a684396df6048df0c35bcc7a6f871ed31707dd588ba5c4b931a83e",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "FC Pantanal",
+      "uf": "MS",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#171719",
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://fcpantanal.com.br/home/",
+        "https://www.footballkitarchive.com/pt/camisa-titular-fc-pantanal-saf-2025-344564/"
+      ]
+    },
+    {
+      "nome": "Ivinhema",
+      "uf": "MS",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/ivinhema.webp",
+      "sha256_escudo": "128533266228fef7e45a492bf1944e7c2989afd2424014633b1fef55ecc21099",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Operário-MS",
+      "uf": "MS",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/operario-ms.webp",
+      "sha256_escudo": "da2679964e126b62aa50ef88e57ee4b10b0ddb2116d879cf67cf533242a0eeaa",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Chapada",
+      "uf": "MT",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://ge.globo.com/google/amp/mt/futebol/noticia/2024/04/25/conheca-o-chapada-fc-novidade-da-segunda-divisao-do-mato-grossense.ghtml"
+      ]
+    },
+    {
+      "nome": "Luverdense",
+      "uf": "MT",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/luverdense.webp",
+      "sha256_escudo": "96512e2dc519563fe55e3ebffd9e5e5a407b775b8722446ed604a22604f95292",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Mixto",
+      "uf": "MT",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/mixto.webp",
+      "sha256_escudo": "4367d43c4b56bb1c316e18b456adda467044f46d293caf4af8d7fdcb48de5ee9",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Nova Mutum",
+      "uf": "MT",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/nova-mutum.webp",
+      "sha256_escudo": "a3037e6d9df58f2eca32d7604546cb334321518427c151a2642062d73da42a6b",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Operário VG",
+      "uf": "MT",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/operario-vg.webp",
+      "sha256_escudo": "b31a5606ad6af7084dfb68c44e6cea4136a73dd431bc4a59e17b81bf263a96a3",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Primavera-MT",
+      "uf": "MT",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#694197",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/primavera-mt.webp",
+      "sha256_escudo": "2710667172c1810140794ab3fe5158f5c0ffb7ddf28ee6a7f0e564a67857ef98",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://pt.wikipedia.org/wiki/Primavera_Atl%C3%A9tico_Clube"
+      ]
+    },
+    {
+      "nome": "Sinop",
+      "uf": "MT",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://www.rsssf.org/colours/brazil.html"
+      ]
+    },
+    {
+      "nome": "União Rondonópolis",
+      "uf": "MT",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/uniao-rondonopolis.webp",
+      "sha256_escudo": "b2fe700f1711f3cb5c39879b2ab76b51be30f033df139a7881c6673e63cd0126",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Várzea Grande",
+      "uf": "MT",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/varzea-grande.webp",
+      "sha256_escudo": "56995e6c0524b15b2fb920cf1eb03897a132744ed95472ab2f736fa5a086c9a1",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Amazônia",
+      "uf": "PA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/amazonia.webp",
+      "sha256_escudo": "f4aa41a9082e43a9d15d7b4de4ee55b177e9772e021a4de760f7859752bfc123",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Bragantino-PA",
+      "uf": "PA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/bragantino-pa.webp",
+      "sha256_escudo": "082ddee23ebf7807842227a096bbd61afc7cd46103953e6625d9863237311a55",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Cametá",
+      "uf": "PA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/cameta.webp",
+      "sha256_escudo": "a6c9824d5836c893d30d52bf6f28615bae6f81921e8b7d8566f888b92f26606a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Capitão Poço",
+      "uf": "PA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#e97824",
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/capitao-poco.webp",
+      "sha256_escudo": "7e7baedf8b6f1c898e133d17239a617b85711c7682c8f153eb2d71ee3fc36d69",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Castanhal",
+      "uf": "PA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#171719"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://www.rsssf.org/colours/brazil.html"
+      ]
+    },
+    {
+      "nome": "Santa Rosa",
+      "uf": "PA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#171719",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/santa-rosa.webp",
+      "sha256_escudo": "d93f2fb367b1769bd4544b4c4edb1a3c8b16716dd978ea20f04a97e0353e02ef",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "São Francisco-PA",
+      "uf": "PA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/sao-francisco-pa.webp",
+      "sha256_escudo": "6fb7607ac3deacd5e8b6895419f15451141c45f3c6e6b176d73aad93133f3525",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "São Raimundo-PA",
+      "uf": "PA",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/sao-raimundo-pa.webp",
+      "sha256_escudo": "0ba577027f324f785cb9dd9de7274c6186381d08f16a8e215f88142f422c41a0",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Tuna Luso",
+      "uf": "PA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#087642",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/tuna-luso.webp",
+      "sha256_escudo": "c9c2e57186623e18fbc5f533642eab18d154d37f46c2f80bd00ebe6b8aa5f3df",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Águia de Marabá",
+      "uf": "PA",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/aguia-de-maraba.webp",
+      "sha256_escudo": "8bc782e0bac1f188dc302ac15c2306c6190c1694a09ad3c69f9d4b6edc8be360",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Atlético de Cajazeiras",
+      "uf": "PB",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://www.rsssf.org/colours/brazil.html"
+      ]
+    },
+    {
+      "nome": "Campinense",
+      "uf": "PB",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/campinense.webp",
+      "sha256_escudo": "78d9d2534494ce47713dad2a09b9b6239292632b60690220815967d71268c4e8",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Confiança-PB",
+      "uf": "PB",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://ge.globo.com/pb/noticia/confianca-de-sape-apresenta-novos-uniformes-1-e-2-para-a-temporada-2020.ghtml"
+      ]
+    },
+    {
+      "nome": "Esporte de Patos",
+      "uf": "PB",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/esporte-de-patos.webp",
+      "sha256_escudo": "39a4aabc6229b5f33d51541b54ea6042b57605b6503a185df47188d8e7a998c4",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Nacional de Patos",
+      "uf": "PB",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/nacional-de-patos.webp",
+      "sha256_escudo": "d136e623e38a4580ff99ed8dbc86410210ebc59d044a5822ba9d5f0c3de317f8",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Pombal",
+      "uf": "PB",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/pombal.webp",
+      "sha256_escudo": "506d77474a299b01f88597deda51edc006989a537aba4601a968fe583ca656aa",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Serra Branca",
+      "uf": "PB",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#78bce4",
+        "#f3f1ed",
+        "#087642"
+      ],
+      "escudo_existente": "escudos-clubes/serra-branca.webp",
+      "sha256_escudo": "29c2f15d77367f2edd0f6da360f7ab6aa17d6be82c6cd56c2d8db810b356faae",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://www.footballkitarchive.com/pt/camisa-titular-serra-branca-ec-2026-464853/"
+      ]
+    },
+    {
+      "nome": "Sousa",
+      "uf": "PB",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/sousa.webp",
+      "sha256_escudo": "008b4ab8b7995460ef10443433afe066f026574c17f15cbe4497da37620a811a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Treze",
+      "uf": "PB",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/treze.webp",
+      "sha256_escudo": "81ce305b7f0a287cb0e888e99f35e7677b57ec08d09c57ba60074280fb42d4ee",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Central",
+      "uf": "PE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/central.webp",
+      "sha256_escudo": "3e13c460884e5b309b4d3513493a8897f23377b9dfcac6e611d0ac5c17a00029",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Decisão",
+      "uf": "PE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/decisao.webp",
+      "sha256_escudo": "fe1b2d0cd964c7989e24f805b12ee67a9f9dd99c8818d92548a62ebac64801d0",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Jaguar",
+      "uf": "PE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed",
+        "#c8102e"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://futpearquivo.blogspot.com/p/jaguar.html"
+      ]
+    },
+    {
+      "nome": "Maguary",
+      "uf": "PE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/maguary.webp",
+      "sha256_escudo": "327689a80406b9bea16c111bb17ae17431516111e6744b237e7e15ae609b1f88",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Retrô",
+      "uf": "PE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#18345d",
+        "#c9a343",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/retro.webp",
+      "sha256_escudo": "ca11484f9792251db6f10d4d99f35ca051a39064090b4086a938527fc9d237a4",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Vitória das Tabocas",
+      "uf": "PE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/vitoria-das-tabocas.webp",
+      "sha256_escudo": "eead4173d13facd68f7632cacd32656a80c8b87f861ca7d735f667b4dba612c5",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Altos",
+      "uf": "PI",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/altos.webp",
+      "sha256_escudo": "1043bfb3ab52bbc6fc41ab522a459d26b5516ed53b92f70a493708cc163374ae",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Fluminense-PI",
+      "uf": "PI",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/fluminense-pi.webp",
+      "sha256_escudo": "51e6a2dc615ae6091d5bf66d07a1bcd719380f7c3804782f53df06fa2eae99b6",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Parnahyba",
+      "uf": "PI",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/parnahyba.webp",
+      "sha256_escudo": "92678d48b3ff6a12d9d36297f1c6fc3caeda67a0b2237f5b57dda5fc17e0484a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Piauí",
+      "uf": "PI",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/piaui.webp",
+      "sha256_escudo": "b949a8f5734e2ba0fe27c80621009d8a4decad2ad1cd1e6d89e9271ef1cff6ef",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Andraus",
+      "uf": "PR",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#176cac",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/andraus.webp",
+      "sha256_escudo": "a3e7d46ccfa6ea46fa0eb24d4ce0e7acf3ccd3908406c672040ed1ca8b4d8729",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Azuriz",
+      "uf": "PR",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/azuriz.webp",
+      "sha256_escudo": "10d65241fd88bbc9f616ce21cc85a3fd9c875be62e34fd14b0ad4fed66d2f366",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Cascavel",
+      "uf": "PR",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/cascavel.webp",
+      "sha256_escudo": "e975ccf99f800eb5286a44e03bd57c5ede30fc0bf97846c568f497f116a2ca5c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Cianorte",
+      "uf": "PR",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/cianorte.webp",
+      "sha256_escudo": "0ff64333a7e5c119e33136dfa8e596def12af4f3f1ad3ba92acc40df15fe5505",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Foz do Iguaçu",
+      "uf": "PR",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/foz-do-iguacu.webp",
+      "sha256_escudo": "504fbfce863d87ec599fd498630d69b253531ba3edec21aec74bc21a7957e724",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Galo Maringá",
+      "uf": "PR",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/galo-maringa.webp",
+      "sha256_escudo": "e438ec23b848ec0e433dce4e4dfa170e1f2e6d5e810b70aaaa839b7b4f0e3886",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "São Joseense",
+      "uf": "PR",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#efcb24",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/sao-joseense.webp",
+      "sha256_escudo": "e744aab419ba018a51f117e49876fea9edb6af34cf33cbee23a86c09d4795c87",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://www.footballkitarchive.com/pt/camisa-titular-sao-joseense-2022-444869/"
+      ]
+    },
+    {
+      "nome": "America-RJ",
+      "uf": "RJ",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/america-rj.webp",
+      "sha256_escudo": "b36a859e93701f13470c1de236e1ea91ca502cc814ad328a279870698d82e5b1",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Bangu",
+      "uf": "RJ",
+      "div": "E",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/bangu.webp",
+      "sha256_escudo": "add806c509e25b3af95de2acca41b6287a93de24e92a164bcea9639edb4c6864",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Boavista-RJ",
+      "uf": "RJ",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/boavista-rj.webp",
+      "sha256_escudo": "a130ba6a7b0a9c3c73a134445c93c00dd2ff3fadcf0864d7b4775fe2ef675621",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Madureira",
+      "uf": "RJ",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#176cac",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/madureira.webp",
+      "sha256_escudo": "5e98d08d5565e1528e8bcb92291d5bc7b6c5cc14d1d3d4807ccdbcfbf0a4ba92",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Maricá",
+      "uf": "RJ",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#78bce4",
+        "#f3f1ed",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/marica.webp",
+      "sha256_escudo": "afabaf2db4fe5022858e48b013218199a90067b27ae7cf72745bef8b46943d6d",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Nova Iguaçu",
+      "uf": "RJ",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#e97824",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/nova-iguacu.webp",
+      "sha256_escudo": "daf8c96a4868198eaaacd953ef2889bd5ed401cbcb804e66568592a68e32287a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Portuguesa-RJ",
+      "uf": "RJ",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/portuguesa-rj.webp",
+      "sha256_escudo": "ed406f8d50806d941499f249b2b36c478b5eb4fdbd9166bcca1a04f7c8cdc784",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Sampaio Corrêa-RJ",
+      "uf": "RJ",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/sampaio-correa-rj.webp",
+      "sha256_escudo": "c80aec5febd064c5f5a2ea7ea0da3d310b4a086b88858f808831b0fc30150691",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "ABC",
+      "uf": "RN",
+      "div": "D",
+      "receita": "receita clássica já existente, preservada",
+      "escudo_existente": "escudos-clubes/abc.webp",
+      "sha256_escudo": "5c9f77a1f712e052205afd2008109339fbac770246809ce5f8ad84aafd0d7586",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "América-RN",
+      "uf": "RN",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/america-rn.webp",
+      "sha256_escudo": "ce71251723f04d02ac1011f6ac6c1b961572281fc40c2167dbc2ec67a450f4f7",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Laguna",
+      "uf": "RN",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#694197"
+      ],
+      "escudo_existente": "escudos-clubes/laguna.webp",
+      "sha256_escudo": "539e1754f7c24474ae72d113cacfb7bebdab3f791cf5371ca3b690eaf5a3354d",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Guaporé",
+      "uf": "RO",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#e97824",
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/guapore.webp",
+      "sha256_escudo": "612737cab51b58506861bbd1478a439af27b49bf7004a9e45694f2e282800eb5",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Ji-Paraná",
+      "uf": "RO",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#78bce4",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/ji-parana.webp",
+      "sha256_escudo": "3d4d10bff67c68a1c3cc2d29ac67ae362d08ef941b668d95f377c954ff98ea19",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Porto Velho",
+      "uf": "RO",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/porto-velho.webp",
+      "sha256_escudo": "9ca93b2b8752823a878a6c972ce4c261cf61fcecbd2316c6ec219cb1b26c3d24",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Baré",
+      "uf": "RR",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://www.rsssf.org/colours/brazil.html"
+      ]
+    },
+    {
+      "nome": "GAS",
+      "uf": "RR",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#efcb24",
+        "#176cac",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/gas.webp",
+      "sha256_escudo": "86f26c7553bcba7408c82cae6a38ad48315c671d839a0fae0b66348b19fdb2ee",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Monte Roraima",
+      "uf": "RR",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#efcb24",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/monte-roraima.webp",
+      "sha256_escudo": "be25eff728be07334897300e63d5ef2605a7ed985fb81cebb734d4571e383cdb",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "São Raimundo-RR",
+      "uf": "RR",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/sao-raimundo-rr.webp",
+      "sha256_escudo": "b95cdf8aee69a240691b69a35e4a8e746da63732473cf568e87bad2d23ac3233",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Avenida",
+      "uf": "RS",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/avenida.webp",
+      "sha256_escudo": "81ca8fc8c9191296a6033d4c1f5e2f065337f75d940ebade8679a5e9c71e5765",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Brasil de Pelotas",
+      "uf": "RS",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/brasil-de-pelotas.webp",
+      "sha256_escudo": "863e8e457d345e2fea0612356ccf0d0c43c1e540e033cfd23a6ffa4a81dcefe7",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Guarany de Bagé",
+      "uf": "RS",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/guarany-de-bage.webp",
+      "sha256_escudo": "a9ae81727b906f6bb3971f3cec866c240e49e7f3c48ee68036e7c2ba2e8d52d6",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Inter-SM",
+      "uf": "RS",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/inter-sm.webp",
+      "sha256_escudo": "dcc50b97116d681c825bbb443c9ba6a9eb9000a772d02125f4fcd7c4e10ca868",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Monsoon",
+      "uf": "RS",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#171719",
+        "#c9a343",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/monsoon.webp",
+      "sha256_escudo": "886805eea4e1c4d4b81304101997ec27b93bc4ee77a591490db0b61a8e4ae524",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://www.lance.com.br/futebol-nacional/clube-sensacao-no-rio-grande-do-sul-monsoon-apresenta-novo-uniforme-para-2025.html"
+      ]
+    },
+    {
+      "nome": "Novo Hamburgo",
+      "uf": "RS",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#78bce4",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/novo-hamburgo.webp",
+      "sha256_escudo": "9c21a599740c27b93bdd9d9c17e2a53139e3a2601d348efdd3f11057f1d5ad65",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "São José-RS",
+      "uf": "RS",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/sao-jose-rs.webp",
+      "sha256_escudo": "672b5800782c8db42b5d7dfab1f22e45d001c46ed40ce5705e675427b58bfdb6",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "São Luiz-RS",
+      "uf": "RS",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/sao-luiz-rs.webp",
+      "sha256_escudo": "9d57f58dd45e9f5661611abf5a5b0c557cb5f39cf66d76cda33efdc5ac7cf2bb",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Blumenau",
+      "uf": "SC",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/blumenau.webp",
+      "sha256_escudo": "7746562a8533c834ec235951b65a957b27fcfab6c3a7de78a0fb224ced43230a",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Camboriú",
+      "uf": "SC",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/camboriu.webp",
+      "sha256_escudo": "994999a446079b2a00dfab17ef01be0e08d9aadf3c0bc68dc68e7d33fa24f568",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Carlos Renaux",
+      "uf": "SC",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#78bce4",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/carlos-renaux.webp",
+      "sha256_escudo": "9f15ce47e9f4218c2a56f6631e91cf0ca9bc7d1f7c3c25d86a8424717705421b",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Concórdia",
+      "uf": "SC",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/concordia.webp",
+      "sha256_escudo": "50dfea3c3a590ca302718e0dd44d047aea8dbe031ce054db27bef5ad0b1057ef",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Joinville",
+      "uf": "SC",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#171719",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/joinville.webp",
+      "sha256_escudo": "3612ffade3a93fa058ce2a294388b834ecf8a0af2c2371c81a387f321060c3a6",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Marcílio Dias",
+      "uf": "SC",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#176cac",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/marcilio-dias.webp",
+      "sha256_escudo": "a04a6a1394e83bcf83fe4a8c11dacf563ad9e125ed622ecc75c8961a63d9f0df",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Santa Catarina",
+      "uf": "SC",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#e97824",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/santa-catarina.webp",
+      "sha256_escudo": "229855d804588222cb13c9ed1365d20686673b2f3612f3c181b6ca8804e24e0c",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://ge.globo.com/google/amp/sc/futebol/times/santa-catarina/noticia/2025/12/02/santa-catarina-apresenta-novo-escudo-para-a-temporada-de-2026.ghtml"
+      ]
+    },
+    {
+      "nome": "América-SE",
+      "uf": "SE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/america-se.webp",
+      "sha256_escudo": "a0b827a8387bcdad503b3f52977741a80d662b596777c9ec1db08edc917576a7",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Atlético Gloriense",
+      "uf": "SE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/atletico-gloriense.webp",
+      "sha256_escudo": "d75f7fc581b6474f4c9945d5faa50915880ab6de0fe10a6a9b8bb226f6f74db0",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://pt.wikipedia.org/wiki/Associa%C3%A7%C3%A3o_Desportiva_Atl%C3%A9tico_Gloriense"
+      ]
+    },
+    {
+      "nome": "Desportiva Aracaju",
+      "uf": "SE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#176cac",
+        "#efcb24"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://pt.wikipedia.org/wiki/Associa%C3%A7%C3%A3o_Desportiva_Aracaju"
+      ]
+    },
+    {
+      "nome": "Dorense",
+      "uf": "SE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/dorense.webp",
+      "sha256_escudo": "a3c21351cf5206a7bedafa20088251c5df1b922a829de4558fed48489688a4f3",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Falcon",
+      "uf": "SE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#694197",
+        "#c9a343",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/falcon.webp",
+      "sha256_escudo": "27e2d464052f0815faba2d2cce50e34864384bbdf6f2239734c43f4198e68c9d",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://www.footballkitarchive.com/pt/camisa-titular-falcon-fc-se-2025-387066/"
+      ]
+    },
+    {
+      "nome": "Guarany-SE",
+      "uf": "SE",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://www.rsssf.org/colours/brazil.html"
+      ]
+    },
+    {
+      "nome": "Lagarto",
+      "uf": "SE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/lagarto.webp",
+      "sha256_escudo": "7d1e5087c72e454db1ca24ce75cb3f112a3e63c5dd46a0d5b368fcc3b034d1fd",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Sergipe",
+      "uf": "SE",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/sergipe.webp",
+      "sha256_escudo": "8b92b1890979fe76f4fffdeab3d03a83a782a31843c675c0be6f4588e4442764",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Capivariano",
+      "uf": "SP",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/capivariano.webp",
+      "sha256_escudo": "0cfc2bfdf0e70ad2e3db5ab528607f1c5573bc61b9ee8321884c8f2c52e93363",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Noroeste",
+      "uf": "SP",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/noroeste.webp",
+      "sha256_escudo": "be7038287590ccfdc2c59298963712a93790933c6e9e456e83dc7a0b07d54fa2",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Portuguesa",
+      "uf": "SP",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/portuguesa.webp",
+      "sha256_escudo": "df2782c033a9d118310a46ff306c498f359654ca8d50b3557523ae0469322294",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": [
+        "https://ge.globo.com/futebol/times/portuguesa/noticia/2026/01/16/portuguesa-lanca-camisas-para-a-temporada-2026-em-comemoracao-aos-seus-105-anos-veja-fotos.ghtml"
+      ]
+    },
+    {
+      "nome": "Primavera-SP",
+      "uf": "SP",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#c8102e",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/primavera-sp.webp",
+      "sha256_escudo": "f77138e6e11facb99aaf25f75a00acfd0dfa2080889dce0d27d12037f30b3c2d",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Velo Clube",
+      "uf": "SP",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c8102e",
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/velo-clube.webp",
+      "sha256_escudo": "9bf89da39355e542da9ac0997fa537faa89b3eed39f817a40697c321a6a1465f",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "XV de Piracicaba",
+      "uf": "SP",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#f3f1ed",
+        "#171719"
+      ],
+      "escudo_existente": "escudos-clubes/xv-de-piracicaba.webp",
+      "sha256_escudo": "be9d51b35dd1aeea03f5fa88d7f8bd854701fd28c1398e595b7f6f10c37757e6",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Água Santa",
+      "uf": "SP",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed",
+        "#efcb24"
+      ],
+      "escudo_existente": "escudos-clubes/agua-santa.webp",
+      "sha256_escudo": "20a060401f05811d1fff1b8a000c9bbcb1cb04a993d590b57918107f8d7a3b95",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Araguaína",
+      "uf": "TO",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#176cac",
+        "#f3f1ed",
+        "#c8102e"
+      ],
+      "escudo_existente": "escudos-clubes/araguaina.webp",
+      "sha256_escudo": "edef38279430cb3f96d4cdf6eaf30a49ca1f4bcfc439779e0f85aeac7f98f728",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    },
+    {
+      "nome": "Capital-TO",
+      "uf": "TO",
+      "div": "E",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#c9a343",
+        "#171719"
+      ],
+      "escudo_existente": null,
+      "sha256_escudo": null,
+      "referencia_local": "sem escudo oficial cadastrado; conserva fallback genérico do jogo",
+      "fontes_externas": [
+        "https://www.capitalfc.com.br/linha-do-tempo"
+      ]
+    },
+    {
+      "nome": "Tocantinópolis",
+      "uf": "TO",
+      "div": "D",
+      "receita": "paleta simplificada nova",
+      "cores_aproximadas": [
+        "#087642",
+        "#f3f1ed"
+      ],
+      "escudo_existente": "escudos-clubes/tocantinopolis.webp",
+      "sha256_escudo": "b5c867257d0b5113b187c815f44b9e7798ed2f206fc5298c541c157015cae5be",
+      "referencia_local": "identidade visual/escudo do próprio jogo; revisão manual, sem extrair automaticamente cor majoritária",
+      "fontes_externas": []
+    }
+  ]
+}
