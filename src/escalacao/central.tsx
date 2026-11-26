@@ -227,6 +227,7 @@ export type CentralProps = {
    *  'deslogado' (só o aparelho) · 'salvando' · 'salvo' (acabou de subir, 2s). `ha` = minutos desde a
    *  última subida; `rodadas` = quantas rodadas jogou desde então. */
   salvar?: FaixaSalvarProps
+  posJogo?: { round:number; onContinue:()=>void; tabela?:CentralProps['tabela']; fase?:string }
   /** 🎙️ COLETIVA (19/10): fama do presidente, última manchete e o arquirrival; abre a Sala de imprensa */
   coletiva?: CardColetivaProps
   /** 🕵️ JANELA CHEGANDO (22/10, mockup do Sondar aprovado): nas últimas rodadas avisa que a janela vai abrir no Sondar */
@@ -365,6 +366,8 @@ export function CentralCarreira(p: CentralProps) {
       {!p.bb && <Forma f={p.formas[nome]} />}
     </div>
   )
+  const tabelaPosJogo=p.posJogo?.tabela??p.tabela
+  const posicaoPosJogo=tabelaPosJogo.findIndex(t=>t.you)
   const en = getLang() === 'en'
   // 📊 celular: 5 linhas (4 de cima + você). 🖥️ desktop: a tabela INTEIRA — as linhas extras só existem no monitor.
   const corta = (n: number) => (minhaPos != null && minhaPos > n) ? [...p.tabela.slice(0, n - 1), p.tabela[minhaPos - 1]] : p.tabela.slice(0, n)
@@ -415,7 +418,20 @@ export function CentralCarreira(p: CentralProps) {
         <div className="ll-central-esq">
           {/* 🏟️ O CAMAROTE: próximo jogo + o botão de sempre */}
           {p.avisos && <div style={{ flex: '0 0 100%', minWidth: 0 }}>{p.avisos}</div>}
-          {sedeAntes && p.sede ? <div className="ll-c-hero" style={{ flex: '0 0 100%', minWidth: 0 }}>
+          {p.posJogo ? <section className="ll-c-hero" data-career-post-match style={{flex:'0 0 100%',minWidth:0}}>
+            <div className="ll-central-card" style={{background:CREME,color:INK}} data-post-match-table>
+              <Cabecalho titulo={t('📊 Classificação','📊 Standings')} sub={p.posJogo.fase?.replace('1ª fase',t('1ª fase','First stage')).replace('2ª fase',t('2ª fase','Second stage')).replace('Grupo',t('Grupo','Group'))??t(`Resumo · rodada ${p.posJogo.round}`,`Summary · round ${p.posJogo.round}`)} link={t('tabela completa','full table')} onClick={()=>p.onTab('tabelas')}/>
+              <div className="ll-central-row" style={{padding:'6px 12px',fontSize:10,fontWeight:800}}><span style={{width:22}}>#</span><span style={{flex:1}}>{p.divName}</span><span>{t('PTS','PTS')}</span></div>
+              {tabelaPosJogo.map((row,i)=>({row,i})).filter(({i})=>i<3||(posicaoPosJogo>=0&&Math.abs(i-posicaoPosJogo)<=1)).map(({row,i},j,rows)=><div key={row.name}>
+                {j>0&&i>rows[j-1].i+1&&<div aria-hidden="true" style={{textAlign:'center',fontSize:11,color:'#777'}}>···</div>}
+                <div className="ll-central-row" style={{padding:'8px 12px',gap:8,fontSize:12,background:row.you?'#FFF3C4':undefined,fontWeight:row.you?900:700}}>
+                  <span style={{width:22,color:'#555'}}>{i+1}º</span><Escudo nome={row.name} size={24}/><span style={{flex:1,minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{row.name}</span><b>{row.pts}</b>
+                </div>
+              </div>)}
+            </div>
+            {agendaCard('ll-c-agenda-pos-jogo')}
+            <button type="button" data-post-match-continue onClick={p.posJogo.onContinue} style={{...OSW,width:'100%',marginTop:12,padding:13,fontSize:16,fontWeight:900,background:GOLD,color:INK,border:`3px solid ${INK}`,borderRadius:12,boxShadow:`3px 3px 0 ${INK}`,cursor:'pointer'}}>{t('Avançar para o próximo jogo ›','Continue to the next match ›')}</button>
+          </section> : sedeAntes && p.sede ? <div className="ll-c-hero" style={{ flex: '0 0 100%', minWidth: 0 }}>
             <CartaoSede s={p.sede} quantidade={p.sedeQuantidade} aoAssistir={p.onSedeAssistiu} aoPular={p.onSedeSeguir} pularTodos={p.onSedePularTodos} janela={p.sedeJanela} cls="" seguir={() => setSedeVista(p.sede!.chave)} onElenco={() => p.onTab('elenco')} onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />
             {p.proximo && <button type="button" onClick={() => setSedeVista(p.sede!.chave)} style={{ ...OSW, display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 10, background: '#1d1812', color: '#fff', border: `2px solid ${INK}`, borderRadius: 14, padding: '8px 12px', fontSize: 14, cursor: 'pointer' }}>
               <Escudo nome={p.proximo.casa} size={26} /><span style={{ opacity: .7 }}>×</span><Escudo nome={p.proximo.fora} size={26} />
@@ -473,10 +489,10 @@ export function CentralCarreira(p: CentralProps) {
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
           {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
           {/* 💾 23/11 (Diego: "não quero que tenha esse botão de salvar… já que já tem lá embaixo"): a faixa de Salvar saiu do topo da Central nova */}</div>}
-          {agendaCard('ll-c-agenda-cel')}
+          {!p.posJogo&&agendaCard('ll-c-agenda-cel')}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
-          <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
+          {!p.posJogo&&<div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
             <Cabecalho titulo={t('📊 Tabela', '📊 Table')} sub={p.divName.toLowerCase()} link={t('abrir', 'open')} onClick={() => p.onTab('tabelas')} />
             {p.preTemporada ? <p style={{ margin: 0, padding: '10px 13px', fontSize: 12, fontWeight: 700, color: '#5a5647' }}>{t('Ninguém jogou ainda. A tabela começa a contar no 1º jogo.', 'Nobody has played yet. The table starts counting from the first match.')}</p> :
             <button type="button" className="ll-central-link" onClick={() => p.onTab('tabelas')} style={{ width: '100%' }}>
@@ -486,7 +502,7 @@ export function CentralCarreira(p: CentralProps) {
                 </div>
               ) })}
             </button>}
-          </div>
+          </div>}
           <div className="ll-central-lado">
           {/* 📣 O GIRO: só a rodada já revelada. Celular: 3 jogos (o seu, o do líder, o jogaço);
               desktop: a rodada inteira, ao lado da tabela, no padrão das caixas creme (Diego 03/10). */}
@@ -558,7 +574,7 @@ export function CentralCarreira(p: CentralProps) {
             ))}
             </div>
           </div>}
-          {agendaCard('ll-c-agenda ll-c-agenda-pc')}
+          {!p.posJogo&&agendaCard('ll-c-agenda ll-c-agenda-pc')}
           </div>
         </div>
 
