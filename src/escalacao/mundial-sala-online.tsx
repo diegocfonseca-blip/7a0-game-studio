@@ -413,7 +413,7 @@ export function MundialSalaGate({ roomId, souDono, meuUid, classificacao, matchS
               </>)}
           {(fase?.fase === 'aviso' || fase?.fase === 'banner') && (
             <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '14px 13px', textAlign: 'center' }}>
-              <Trofeu comp="mundial" size={64} />
+              <Trofeu comp="supermundial" size={64} />
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '2px 0 0', textTransform: 'uppercase' }}>{fase.fase === 'aviso' ? tr('A escolha dos clubes vai começar!', 'Club picks are about to start!') : tr('Todos os clubes escolhidos!', 'All clubs picked!')}</p>
               <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', margin: '5px 0 0', lineHeight: 1.4 }}>
                 {fase.fase === 'aviso'
@@ -699,7 +699,7 @@ export function MundialSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
       return <ResumoFase titulo={titulo} passaram={passaram} cairam={cairam} proxima={proxima} seg={seg} total={total} cor={OURO_LIB} espera={espera} />
     }
     // 🎬 TÚNEL DA FINAL na paleta do Mundial
-    if (proxPasso === MUN.FINAL) return <TunelFinal comp="mundial" seg={seg} total={total} espera={espera} casa={{ nome: entrants[mundo.final.h].pais, crest: sel(mundo.final.h, 92) }} fora={{ nome: entrants[mundo.final.a].pais, crest: sel(mundo.final.a, 92) }} />
+    if (proxPasso === MUN.FINAL) return <TunelFinal comp="supermundial" seg={seg} total={total} espera={espera} casa={{ nome: entrants[mundo.final.h].pais, crest: sel(mundo.final.h, 92) }} fora={{ nome: entrants[mundo.final.a].pais, crest: sel(mundo.final.a, 92) }} />
     return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor={OURO_LIB} espera={espera} />
   })() : null
 
@@ -716,17 +716,17 @@ export function MundialSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
   )
 
   const cupPlan=meuUid&&relogio?.row?{key:`${roomId}:${ficha.edicao}:${ficha.seed}:${meuUid}`,uid:meuUid,step,minute:liveMin,running:relogio.row.running,duration:relogio.row.duration_ms,hasMatch:jogosDoPassoMun(mundo,step).some(g=>isYou(g.h)||isYou(g.a)),enabled:tat.plansEnabled&&tat.pronto,rows:tat.planos,legacy:tat.minha,activePosture:qual?.(entrants.findIndex(e=>e.you),step)??'equilibrio',send:tat.enviarPlano}:undefined
-  if(cupPilot)return <Campo2DDoPassoCtx.Provider value={doisDDoPasso(relogio?.row)}><TemaCompCtx.Provider value="mundial"><FootballMundialCupView world={mundo} entrants={entrants} step={step} minute={liveMin} finished={liveDone} field={c2d} renderMatch={(g,pc)=>live(g.h,g.a,g.ev,pc)} transition={abertura} controls={controles} tactics={comTatica&&relogio?.row&&!!meuUid&&ficha.times.some(t=>t.uid===meuUid)&&step<=MUN.FINAL?<CartaoTaticaCopa plan={cupPlan} minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t=>void tat.escolher(t)}/>:null} onClose={aoFechar} tournamentKey={`liberta:${roomId}:${ficha.seed}:${ficha.edicao}`} ceremony={<>
+  if(cupPilot)return <Campo2DDoPassoCtx.Provider value={doisDDoPasso(relogio?.row)}><TemaCompCtx.Provider value="supermundial"><FootballMundialCupView world={mundo} entrants={entrants} step={step} minute={liveMin} finished={liveDone} field={c2d} renderMatch={(g,pc)=>live(g.h,g.a,g.ev,pc)} transition={abertura} controls={controles} tactics={comTatica&&relogio?.row&&!!meuUid&&ficha.times.some(t=>t.uid===meuUid)&&step<=MUN.FINAL?<CartaoTaticaCopa plan={cupPlan} minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t=>void tat.escolher(t)}/>:null} onClose={aoFechar} tournamentKey={`liberta:${roomId}:${ficha.seed}:${ficha.edicao}`} ceremony={<>
     {finalVista&&isYou(mundo.campeao)&&<CardCollectPrompt motivo="Super Mundial" seasonKey={`munsala:${roomId}:${ficha.seed}:${ficha.edicao}`} origin="online"/>}
-    {done && !festaVista && <FestaCampeao comp="mundial" nome={entrants[mundo.campeao].pais} crest={sel(mundo.campeao, 150)}
+    {done && !festaVista && <FestaCampeao comp="supermundial" nome={entrants[mundo.campeao].pais} crest={sel(mundo.campeao, 150)}
         mascote={ownerVisual ? MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club) ?? ''] : undefined} lendas={ownerVisual ? entrants[mundo.campeao].xi.filter(c => c.fame >= 5).map(c => ({ nome: c.name, club: c.club, year: c.year })) : undefined} souCampeao={isYou(mundo.campeao)} souVice={isYou(mundo.final.h) || isYou(mundo.final.a)} onDone={() => { setFestaVista(true); try { sessionStorage.setItem(festaKey, '1') } catch { /* segue */ } }}
         artilheiro={(() => { const r = artilhariaMundial(mundo)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
         garcom={(() => { const r = garconsMundial(mundo)[0]; return r && r.assists > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.assists } : null })()} />}
-    {done&&<OwnerChampionBanner title={NOME} name={entrants[mundo.campeao].pais} crest={sel(mundo.campeao,52)} trophy={<Trofeu comp="mundial" size={160}/>} own={isYou(mundo.campeao)} legends={entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']}/>}
+    {done&&<OwnerChampionBanner title={NOME} name={entrants[mundo.campeao].pais} crest={sel(mundo.campeao,52)} trophy={<Trofeu comp="supermundial" size={160}/>} own={isYou(mundo.campeao)} legends={entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']}/>}
   </>}/></TemaCompCtx.Provider></Campo2DDoPassoCtx.Provider>
   return (
     <Campo2DDoPassoCtx.Provider value={doisDDoPasso(relogio?.row)}>
-    <TemaCompCtx.Provider value="mundial">
+    <TemaCompCtx.Provider value="supermundial">
       <CompetitionStage kind="club-world" title={NOME.toUpperCase()} phase={etapa} detail={tr('8 grupos em turno único · mata-mata todo em jogo único', '8 single round-robin groups · every knockout game one-off')}>{abertura}</CompetitionStage>
       <GiroDaRodada cinema />
       {/* ⚔️ o cartão de tática — só pra quem tem clube nesta copa e enquanto ainda falta jogo (igual às regionais) */}
@@ -795,7 +795,7 @@ export function MundialSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
       {finalVista && isYou(mundo.campeao) && <CardCollectPrompt
         motivo={tr('🌍 Campeão do Super Mundial', '🌍 Super Club World Cup champion')}
         seasonKey={`munsala:${roomId}:${ficha.seed}:${ficha.edicao}`} origin="online" />}
-      {done && !festaVista && <FestaCampeao comp="mundial" nome={entrants[mundo.campeao].pais} crest={sel(mundo.campeao, 150)}
+      {done && !festaVista && <FestaCampeao comp="supermundial" nome={entrants[mundo.campeao].pais} crest={sel(mundo.campeao, 150)}
         mascote={ownerVisual ? MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club) ?? ''] : undefined} lendas={ownerVisual ? entrants[mundo.campeao].xi.filter(c => c.fame >= 5).map(c => ({ nome: c.name, club: c.club, year: c.year })) : undefined} souCampeao={isYou(mundo.campeao)} souVice={isYou(mundo.final.h) || isYou(mundo.final.a)} onDone={() => { setFestaVista(true); try { sessionStorage.setItem(festaKey, '1') } catch { /* segue */ } }}
         artilheiro={(() => { const r = artilhariaMundial(mundo)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
         garcom={(() => { const r = garconsMundial(mundo)[0]; return r && r.assists > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.assists } : null })()} />}
@@ -805,9 +805,9 @@ export function MundialSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
         const linhaFinal = `${entrants[fin.h].pais} ${fin.g[0]}×${fin.g[1]} ${entrants[fin.a].pais}${fin.pen ? ` (${tr('pên.', 'pens')} ${fin.pen[0]}×${fin.pen[1]})` : ''}`
         return <>
           <CampeaoCinemaDe title={NOME} name={entrants[c].pais} crest={sel(c, 52)} legends={entrants[c].xi.filter(x => x.fame >= 5).map(x => ({ nome: x.name, club: x.club, year: x.year }))} mascot={MASCOTES[mascoteKeyDoTime(entrants[c].club) ?? '']}/>
-          {ownerVisual ? <OwnerChampionBanner title={NOME} name={entrants[c].pais} crest={sel(c, 52)} trophy={<Trofeu comp="mundial" size={210} />} own={isYou(c)} legends={entrants[c].xi.filter(x => x.fame >= 5).map(x => ({ nome: x.name, club: x.club, year: x.year }))} mascot={MASCOTES[mascoteKeyDoTime(entrants[c].club) ?? '']} line={`${tr('Final', 'Final')}: ${linhaFinal}`} /> : (
+          {ownerVisual ? <OwnerChampionBanner title={NOME} name={entrants[c].pais} crest={sel(c, 52)} trophy={<Trofeu comp="supermundial" size={210} />} own={isYou(c)} legends={entrants[c].xi.filter(x => x.fame >= 5).map(x => ({ nome: x.name, club: x.club, year: x.year }))} mascot={MASCOTES[mascoteKeyDoTime(entrants[c].club) ?? '']} line={`${tr('Final', 'Final')}: ${linhaFinal}`} /> : (
           <div style={{ ...box(isYou(c) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), color: INK, padding: 14, marginBottom: 10, textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 10 }}>{sel(c, 70)}<Trofeu comp="mundial" size={64} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 10 }}>{sel(c, 70)}<Trofeu comp="supermundial" size={64} /></div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '6px 0 0', textTransform: 'uppercase' }}>{entrants[c].pais} {tr('CAMPEÃO DO SUPER MUNDIAL!', 'SUPER CLUB WORLD CUP CHAMPION!')}</p>
             <p style={{ fontSize: 11, fontWeight: 800, margin: '3px 0 0' }}>{isYou(c) ? tr('🎉 É VOCÊ! A glória eterna é sua.', '🎉 IT’S YOU! Eternal glory is yours.') : entrants[c].humano ? `${tr('Técnico', 'Manager')}: ${entrants[c].club}` : tr('Título da máquina 🤖', 'Won by the machine 🤖')}</p>
             <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0' }}>{tr('final', 'final')}: {linhaFinal}</p>

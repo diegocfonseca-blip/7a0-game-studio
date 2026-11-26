@@ -8730,7 +8730,7 @@ export function EscSeason() {
                 // túnel, na paleta da competição — o MESMO relógio, nada a mais
                 if (qc.phase === 'final' && qc.ties.length === 1 && !bbS && !kingsS && !cupNow) {
                   const t0 = qc.ties[0]
-                  return <TunelFinal comp={chS ? 'champions' : libS ? 'liberta' : supS ? 'mundial' : relS ? 'relampago' : 'copa8'} seg={seg} total={total} espera={espera}
+                  return <TunelFinal comp={chS ? 'champions' : libS ? 'liberta' : supS ? 'supermundial' : relS ? 'relampago' : 'copa8'} seg={seg} total={total} espera={espera}
                     casa={{ nome: nameOf(t0.aId), crest: <Escudo nome={nameOf(t0.aId)} size={96} /> }} fora={{ nome: nameOf(t0.bId), crest: <Escudo nome={nameOf(t0.bId)} size={96} /> }} />
                 }
                 // ⚡ Relâmpago: a 1ª abertura é o SORTEIO DA CHAVE com suspense (mesmo relógio da abertura de sempre)
@@ -8739,7 +8739,7 @@ export function EscSeason() {
               })()
         const pilotPenalty=(tie:QuickCopaTie)=>footballPilot&&copaMin>=93&&tie.pens&&!tie.ot?<section className="fp-cup-penalties" aria-label={LS('Disputa de pênaltis','Penalty shootout')}><p>{LS('DECISÃO NOS PÊNALTIS','PENALTY SHOOTOUT')}</p><PensShootout campo={tie===meuTiePen?penCampo.estado:undefined} shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m=>m.id===tie.aId)?.squad} bSquad={state.managers.find(m=>m.id===tie.bId)?.squad} lento={copaTemGenteQ(tie)}/></section>:undefined
         return (
-          <TemaCompCtx.Provider value={temaFora || cupNow ? null : chS ? 'champions' : libS ? 'liberta' : supS ? 'mundial' : relS ? 'relampago' : 'copa8'}>{/* ⚡ Relâmpago: a taça e as cores dele */}
+          <TemaCompCtx.Provider value={temaFora || cupNow ? null : chS ? 'champions' : libS ? 'liberta' : supS ? 'supermundial' : relS ? 'relampago' : 'copa8'}>{/* ⚡ Relâmpago: a taça e as cores dele */}
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
             {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : supS ? 'club-world' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : supS ? 'SUPER MUNDIAL' : relS ? LS('⚡ MATA-MATA RELÂMPAGO', '⚡ LIGHTNING KNOCKOUT') : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : aberturaOn && !manual ? LS(`Próxima fase começa em ${aberturaLeft}s`, `Next round starts in ${aberturaLeft}s`) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
               {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{relS ? LS('Mata-mata Relâmpago: sem liga, a chave foi sorteada depois do leilão. Ida e volta em todas as fases e a final em jogo único — empate no placar somado vai pros pênaltis.', 'Lightning Knockout: no league, the draw was made after the auction. Two legs in every round and a single-match final — level on aggregate goes to penalties.') : libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : kingsS ? LS('Kings League Brasil: o 1º da liga vai direto pra SEMI. Quartas: 2º × 7º, 3º × 6º e 4º × 5º. Semis: 1º × quem passar do 4º × 5º, e os outros dois. TUDO jogo único, empate = SHOOTOUT.', 'Kings League Brasil: 1st goes straight to the SEMI. Quarters: 2nd × 7th, 3rd × 6th and 4th × 5th. Semis: 1st × the 4th-5th winner, and the other two. ALL single games, level = SHOOTOUT.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
@@ -13760,7 +13760,8 @@ export function EscEnd() {
   const soChampions = state.copaMode === 'champions'
   // ⚡ Relâmpago (28/10): também não tem liga — o fim é só do mata-mata (mesmo bloco da Só Champions)
   const soRelampago = state.copaMode === 'relampago'
-  const semLiga = soChampions || soRelampago
+  const soSuperMundial = state.copaMode === 'supermundial' // 🌍 26/11: também sem liga — o título é o do Super Mundial
+  const semLiga = soChampions || soRelampago || soSuperMundial
   // 👑 11/11 (Diego: *"quem fica em primeiro na tabela não é campeão. Campeão é só quem ganha a final"*): na Kings a liga é só a fase
   // de classificação — o 1º NÃO ganha taça, festa nem título. O campeão sai do mata-mata.
   const semTituloLiga = semLiga || kEnd
@@ -13790,7 +13791,7 @@ export function EscEnd() {
     if (qc?.champion && qc.phase === 'done') {
       const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
       const linha = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : ''
-      out.push({ key: 'copa', comp: state.copaMode === 'relampago' ? 'relampago' : state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha, vice: fin ? (fin.aId === qc.champion.id ? fin.bId : fin.aId) : undefined })
+      out.push({ key: 'copa', comp: state.copaMode === 'supermundial' ? 'supermundial' : state.copaMode === 'relampago' ? 'relampago' : state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha, vice: fin ? (fin.aId === qc.champion.id ? fin.bId : fin.aId) : undefined })
     }
     return out
   })()
@@ -14556,7 +14557,7 @@ export function EscEnd() {
         const chTab = soChampions && state.champions ? championsTabela(state.champions) : null
         const chCamp = semLiga ? state.quickCopa?.champion ?? null : null
         // ⚡ Relâmpago: a "posição" é até onde cada um chegou na chave (campeão 1º, vice 2º…); sem liga não há rebaixado nem classificado
-        const relPos = soRelampago && state.quickCopa ? posicaoNaChave(state.quickCopa) : null
+        const relPos = (soRelampago || soSuperMundial) && state.quickCopa ? posicaoNaChave(state.quickCopa) : null // 🌍 Só Super Mundial: até onde chegou no mata-mata
         const posDe = (id: number) => relPos ? (relPos.get(id) ?? 99) - 1 : chTab ? chTab.findIndex(t => t.id === id) : table.findIndex(t => t.id === id)
         // 🚪 vão TODOS os times da partida com o carimbo `humano`: o LigaHub só aproveita o que não é gente
         // agora se a mesma partida já o tinha anotado como de alguém (quem apertou SAIR depois do apito, 14/10)
@@ -14573,7 +14574,7 @@ export function EscEnd() {
             relegated: chTab || relPos ? false : pos >= 0 && pos + 1 >= zoneBot(table.length),
             leagueChampion: chTab || relPos ? chCamp?.id === m.id : champ.id === m.id,
             cupTitles,
-            ...(relPos ? { comp: 'relampago' as const } : chTab ? { comp: 'champions' as const } : {}), // 🏆 taça certa no perfil (28/10)
+            ...(relPos ? { comp: soSuperMundial ? 'supermundial' as const : 'relampago' as const } : chTab ? { comp: 'champions' as const } : {}), // 🏆 taça certa no perfil (28/10)
             humano: m.isHuman,
             // 🃏 22/11: as chaves das cartinhas que este time ganhou — o resgate da tela inicial (`esc_titulos_sem_carta`) lê daqui
             cartas: [

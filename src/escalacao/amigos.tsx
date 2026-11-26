@@ -201,6 +201,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
             ['liberta', tacas?.libertadores ?? 0, 'Libertadores'], ['champions', tacas?.champions ?? 0, 'Champions'],
             ['relampago', tacas?.relampago ?? 0, tr('Relâmpago', 'Lightning')], ['mundo', tacas?.mundial ?? 0, tr('Copa do Mundo', 'World Cup')],
             ['riosp', tacas?.regional ?? 0, tr('Regionais', 'Regionals')],
+            ['supermundial', tacas?.supermundial ?? 0, tr('Super Mundial', 'Super Club World Cup')], // 🌍 26/11
           ]} />
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 8, ...OSW, fontSize: 15, color: INK }}>
             <span title={tr('1º da semana', '1st of the week')}>🥇 {p.medalhas?.ouro ?? 0}</span>

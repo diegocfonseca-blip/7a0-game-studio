@@ -13,6 +13,14 @@ Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions�
   `xiDaMaquinaClube`; força do XI real levada pra régua 58–80 dos bots). Reusa a máquina da Libertadores com o seu time (tela
   'liberta' com `rodadas: 3` + `superMundial`) e o mata-mata da Copa em jogo único. Pregão aberto não vale (igual à Só Champions).
   Trava `npm run super-mundial` (4 e 20 pessoas, do leilão ao campeão).
+  🔁 26/11 (Diego: *"dar uma analisada na força dos bots… parecido conforme a regra da Copa do Mundo"*): o clube real joga com os 11
+  MELHORES dele, na mesma conta de força do time de gente (`forcaClubeReal`); quem nunca foi campeão do mundo de clubes perde 1 em cada
+  carta (igual às seleções pequenas da máquina na Copa); e a força vai pra régua da sala (Real 80 · grandes 76–79 · Auckland 58),
+  porque sem régua o XI de verdade (Real 95) atropelava qualquer time de leilão (74–80). Campeões do mundo: `CAMPEOES_DO_MUNDO_CLUBES`.
+- ✅ **🏆 Troféu de verdade + perfil (26/11)**: CompId `supermundial` com o DISCO de ouro do troféu de 2025 (FIFA + Tiffany: mapa-múndi
+  gravado e planetas — fontes FIFA/ESPN), paleta própria, túnel, festa do campeão e taça do perfil (`trofeus-perfil.tsx`). Perfil →
+  "Títulos no online" ganhou a taça do Super Mundial: `esc_tacas_online` conta `comp='supermundial'` (Só) + `cup_titles 'supermundial'`
+  (Liga +) — migration `20261126160000_tacas_online_super_mundial.sql`, APLICADA. Prints em `scripts/mockups/super-mundial/`.
   ⚠️ Achado à parte: `npm run relampago` (manchete em inglês no teste) e `testa-libertadores.mts` (classificação do Brasil Oficial)
   já falhavam ANTES, também na main — não é deste trabalho.
 - ⏳ **⭐ Liga + Champions (convocando)** — A FAZER (próximo). Faltam cartas pra 13 dos 36 (todos do baralho Europa): Atalanta,

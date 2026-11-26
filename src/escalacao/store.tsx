@@ -3437,7 +3437,7 @@ function rollManagerForm(m: Manager, tactic: Tactic, oppTactic: Tactic, rng: () 
 
 // força "de base" de um time (sem sorte/tática): usa o nível MÉDIO de cada
 // carta. Serve pra comparar humanos x bots e calibrar a dificuldade do CPU.
-function midPower(m: Manager): { atk: number; def: number } {
+export function midPower(m: Manager): { atk: number; def: number } {
   const rolls = m.squad.map(c => ({ pos: c.pos, lvl: (c.lo + c.hi) / 2 }))
   const sector = (pos: Sector): number => {
     const s = rolls.filter(r => r.pos === pos)
@@ -5215,12 +5215,32 @@ function playLibertaRodada(s: EscState) {
 // próprias cartas (`elencoConvidado` → `xiDaMaquinaClube`). 8 grupos de 4 em turno ÚNICO, passam 2, oitavas na chave de 2025 e
 // tudo em jogo único (`PLAY_COPA_LEG`). Reusa a máquina da Libertadores da sala (fase de grupos na tela 'liberta' + o mata-mata
 // da Copa), com duas marcas: `rodadas: 3` e `superMundial`.
-// 📏 FORÇA dos clubes reais: a força do XI de verdade (59 do Auckland a 94 do Real) cai na régua dos bots da liga (58 a 80),
-// com o mesmo ajuste de sala dos convidados da Liberta. Nada inventado: quem é forte nas cartas é forte no jogo.
+// 📏 FORÇA dos clubes reais — a REGRA DA COPA DO MUNDO (Diego 26/11: *"dar uma analisada na força dos bots… deixar muito parecido
+// conforme a regra da Copa do Mundo"*): o clube da máquina joga com os 11 MELHORES dele, na mesma conta de força setor a setor do
+// time de gente (`midPower`), e, igual às seleções pequenas da máquina na Copa (`MAQUINA2`), quem NUNCA foi campeão do mundo de
+// clubes perde 1 de nível em cada carta. Medido em 26/11: o XI de verdade vai de 58 (Auckland) a 95 (Real), e um time BOM de
+// leilão fica em 74–80 — sem régua o Real atropelava a sala. Então a força vai pra régua da sala (58 → 58 · 95 → 80, a mesma faixa
+// dos convidados da Libertadores com o seu time), mantendo a ORDEM de verdade, e leva o mesmo ajuste de sala dos bots.
 export const SUPER_MUNDIAL_ID0 = 2600 // ids dos clubes reais (não colidem com a liga, a Liberta 900+ e a Champions 1800+)
 export const CHAVE_OITAVAS_MUNDIAL: [number, number][] = [[0, 1], [2, 3], [4, 5], [6, 7], [1, 0], [3, 2], [5, 4], [7, 6]]
-const forcaMundialNaRegua = (f: number) => Math.round(58 + Math.max(0, Math.min(1, (f - 59) / 35)) * 22)
-function seedSuperMundial(league: LeagueTeam[], humanos: Set<number>, rng: () => number, degrau = 0): LibertaState {
+// os campeões do mundo de clubes (Intercontinental/Mundial FIFA) entre os 32 de 2025 — a lista é fixa, igual às "seleções grandes"
+export const CAMPEOES_DO_MUNDO_CLUBES = new Set(['Real Madrid', 'Bayern', 'Inter', 'Juventus', 'Chelsea', 'Man City', 'Porto', 'Dortmund', 'Atlético de Madrid', 'Flamengo', 'River Plate', 'Boca Juniors'])
+export function forcaClubeReal(clube: string, naRegua = true): { atk: number; def: number } {
+  const menos = CAMPEOES_DO_MUNDO_CLUBES.has(clube) ? 0 : 1
+  const xi = xiDaMaquinaClube(clube).xi.map(c => ({ pos: c.sec, lvl: (c.lo + c.hi) / 2 - menos }))
+  const sector = (pos: Sector): number => {
+    const s = xi.filter(r => r.pos === pos)
+    if (!s.length) return 40
+    const avg = s.reduce((x, r) => x + r.lvl, 0) / s.length
+    return avg - (avg - Math.min(...s.map(r => r.lvl))) * 0.35
+  }
+  const gol = sector('GOL'), lat = sector('LAT'), zag = sector('ZAG'), mei = sector('MEI'), ata = sector('ATA')
+  const atk = ata * 0.45 + mei * 0.35 + lat * 0.20, def = gol * 0.30 + zag * 0.40 + lat * 0.15 + mei * 0.15
+  const regua = (f: number) => Math.round((58 + Math.max(0, Math.min(1, (f - 58) / 37)) * 22) * 10) / 10
+  return naRegua ? { atk: regua(atk), def: regua(def) } : { atk, def }
+}
+function seedSuperMundial(league: LeagueTeam[], gente: Manager[], rng: () => number, degrau = 0): LibertaState {
+  const humanos = new Set(gente.map(m => m.id))
   // só os times de GENTE entram (os rivais-bot do leilão ficam de fora): a vaga deles é palco pros clubes de verdade
   const daSala = league.filter(t => t.isManager && humanos.has(t.id)).slice(0, 32)
   const nomes = new Set(daSala.map(t => t.name.toLowerCase()))
@@ -5229,10 +5249,12 @@ function seedSuperMundial(league: LeagueTeam[], humanos: Set<number>, rng: () =>
   const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
   const times: LibertaTeam[] = []
   daSala.forEach(t => times.push({ id: t.id, name: t.name, pote: 1, grupo: 0, isManager: true, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero }))
-  reais.forEach(({ c, f }, i) => { const v = forcaMundialNaRegua(f) + degrau; times.push({ id: SUPER_MUNDIAL_ID0 + i, name: c, clubeReal: c, pote: 1, grupo: 0, isManager: false, baseAtk: v, baseDef: v, ...zero }) })
+  reais.forEach(({ c }, i) => { const f = forcaClubeReal(c); times.push({ id: SUPER_MUNDIAL_ID0 + i, name: c, clubeReal: c, pote: 1, grupo: 0, isManager: false, baseAtk: f.atk + degrau, baseDef: f.def + degrau, ...zero }) })
   // 🎱 potes pela força (gente pela força do elenco; clube real pela régua acima) e a regra da FIFA: confederação repetida no
   // grupo só a Europa, no máximo 2 (time da sala não tem confederação). Não fechou em 300 tentativas → potes sem a regra.
-  const forca = (t: LibertaTeam) => t.baseAtk + t.baseDef
+  // pote pela força que VALE no jogo: gente pelo elenco (`midPower`), clube real pelas cartas dele
+  const forcaDe = new Map<number, number>(gente.map(m => { const p = midPower(m); return [m.id, p.atk + p.def] }))
+  const forca = (t: LibertaTeam) => forcaDe.get(t.id) ?? (t.baseAtk + t.baseDef)
   const ord = [...times].sort((a, b) => forca(b) - forca(a) || a.id - b.id)
   const conf = (t: LibertaTeam) => (t.clubeReal ? confedDoClube(t.clubeReal) : '?')
   const cabe = (g: LibertaTeam[], t: LibertaTeam) => { const c = conf(t); if (c === '?') return true; const n = g.filter(x => conf(x) === c).length; return c === 'UEFA' ? n < 2 : n === 0 }
@@ -5264,7 +5286,7 @@ function abreSuperMundialSePrecisa(s: EscState) {
   if (s.round !== 0 || !s.league.length) return
   // 🧹 rodada 0 = qualquer copa no estado é resto da partida anterior (lição da Só Champions, 25/09)
   s.champions = null; s.quickCopa = null; s.liberta = null
-  s.liberta = seedSuperMundial(s.league, new Set(s.managers.filter(m => m.isHuman).map(m => m.id)), mulberry((s.seed ^ 0x5D1A1) >>> 0), escalaDe(s).convidado)
+  s.liberta = seedSuperMundial(s.league, s.managers.filter(m => m.isHuman), mulberry((s.seed ^ 0x5D1A1) >>> 0), escalaDe(s).convidado)
   s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
   s.news = [tr('🌍 Direto pro SUPER MUNDIAL! 32 clubes no formato de 2025 — os times da sala e, completando, os clubes de verdade daquele Mundial.', '🌍 Straight into the SUPER CLUB WORLD CUP! 32 clubs in the 2025 format — the room\'s teams and, to complete it, the real clubs from that tournament.')]
   s.screen = 'liberta'

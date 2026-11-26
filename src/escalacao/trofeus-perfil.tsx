@@ -65,6 +65,18 @@ const illustrations: Partial<Record<CompId, ReactNode>> = {
     <path d="m50 34 10 8-4 12H44l-4-12Z" fill="#F4E6B9" />
     <path d="m41 77-3 26h24l-3-26" fill={GOLD_DARK} />
   </>,
+  // 🌍 Super Mundial (26/11): the real 2025 trophy shape — a standing gold DISC with an engraved world map and an orbit of planets.
+  supermundial: <>
+    <circle cx="50" cy="48" r="38" fill={GOLD} />
+    <path d="M14 48h72M18 32h64M18 64h64" fill="none" stroke={GOLD_DARK} strokeWidth="1.6" />
+    <ellipse cx="50" cy="48" rx="12" ry="37" fill="none" stroke={GOLD_DARK} strokeWidth="1.6" />
+    <ellipse cx="50" cy="48" rx="25" ry="37" fill="none" stroke={GOLD_DARK} strokeWidth="1.6" />
+    <path d="M32 34c6-5 13-3 12 3-2 6-8 8-11 5Zm8 14c4-2 7 2 6 9-2 7-6 9-7 4-1-5-1-10 1-13Zm14-16c7-3 15 0 16 5-4 3-11 2-15 3Z" fill="#F0D88C" strokeWidth="1.5" />
+    <ellipse cx="50" cy="48" rx="47" ry="12" fill="none" strokeWidth="4" transform="rotate(-18 50 48)" />
+    <ellipse cx="50" cy="48" rx="47" ry="12" fill="none" stroke="#F4E6B9" strokeWidth="1.8" transform="rotate(-18 50 48)" />
+    <circle cx="8" cy="60" r="3.5" fill="#F4ECD6" strokeWidth="1.5" /><circle cx="92" cy="34" r="4" fill={GOLD} strokeWidth="1.5" />
+    <path d="m42 86-3 17h22l-3-17" fill={GOLD_DARK} />
+  </>,
   // Fictional competitions: original cups in the same visual family.
   liga: <>
     <path d="M29 31C10 23 14 63 36 64m35-33C90 23 86 63 64 64" fill="none" strokeWidth="5" />
