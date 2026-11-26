@@ -51,11 +51,12 @@ export function pintorChegada(canvas:HTMLCanvasElement,images:{background:HTMLIm
       ctx.restore();
     }
     function presentation(t:number){
-      ctx.fillStyle='#163d2d';ctx.fillRect(0,0,1280,720);
+      // Neutral press backdrop: a fixed club colour can belong to the buyer's rival.
+      ctx.fillStyle='#181818';ctx.fillRect(0,0,1280,720);
       for(let row=0;row<5;row++)for(let col=0;col<10;col++){
-        ctx.fillStyle=(col+row)%2?'#f4ecd6':'#17432f';ctx.beginPath();ctx.roundRect(col*148-96,row*120-24,132,101,7);ctx.fill();
+        ctx.fillStyle=(col+row)%2?'#282828':'#222222';ctx.beginPath();ctx.roundRect(col*148-96,row*120-24,132,101,7);ctx.fill();
       }
-      const light=ctx.createLinearGradient(0,0,0,720);light.addColorStop(0,'#fff1bd22');light.addColorStop(.8,'#07160b00');light.addColorStop(1,'#07160b88');ctx.fillStyle=light;ctx.fillRect(0,0,1280,720);
+      const light=ctx.createLinearGradient(0,0,0,720);light.addColorStop(0,'#ffffff14');light.addColorStop(.8,'#0c0c0c00');light.addColorStop(1,'#0c0c0c99');ctx.fillStyle=light;ctx.fillRect(0,0,1280,720);
       const breathing=Math.sin(t/560)*1.4;
       ctx.save();ctx.translate(0,breathing)
       if(portrait){
@@ -70,8 +71,8 @@ export function pintorChegada(canvas:HTMLCanvasElement,images:{background:HTMLIm
         ctx.drawImage(images.presentation.garment,315,20,650,650)
       }
       ctx.restore()
-      ctx.fillStyle='#17211e';ctx.fillRect(0,648,1280,72);ctx.fillStyle='#d6ae46';ctx.fillRect(0,648,1280,4);
-      ([[425,'#ffc400'],[845,'#1b7a3d']] as const).forEach(([x,color])=>{ctx.strokeStyle='#242424';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,667);ctx.lineTo(x+12,591);ctx.stroke();ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x+13,582,19,13,-.2,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#0c0c0c';ctx.lineWidth=3;ctx.stroke()});
+      ctx.fillStyle='#181818';ctx.fillRect(0,648,1280,72);ctx.fillStyle='#d6ae46';ctx.fillRect(0,648,1280,4);
+      ([[425,'#737373'],[845,'#a3a3a3']] as const).forEach(([x,color])=>{ctx.strokeStyle='#242424';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,667);ctx.lineTo(x+12,591);ctx.stroke();ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x+13,582,19,13,-.2,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#0c0c0c';ctx.lineWidth=3;ctx.stroke()});
       flashes(t,[[75,510],[1205,480],[190,570]]);
     }
 

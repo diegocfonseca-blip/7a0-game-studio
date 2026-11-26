@@ -39,3 +39,14 @@ Capturas e logs: `/workspace/shared/apresentacao-solo-20261126/`.
 - Build exigido: `npm run build` (`tsc -b && vite build`).
 
 Reversão: commit isolado desta correção. Não recarregar clientes automaticamente.
+
+## Fundo neutro — correção solicitada pelo Diego
+
+O fundo verde e creme poderia lembrar um rival do clube comprador. A tomada de
+apresentação passa a usar grafite/cinza, inclusive a mesa e os microfones, com
+iluminação neutra. A faixa fina dourada conserva o acabamento comum do jogo.
+Não muda a camisa do comprador, o avatar, os controles nem a chegada do ônibus.
+É uma alteração apenas das cores pintadas, sem novo arquivo de imagem.
+
+Capturas reais e verificações desta revisão:
+`/workspace/shared/apresentacao-fundo-neutro-20261126/`.
