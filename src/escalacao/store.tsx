@@ -16090,14 +16090,14 @@ export function ultimaSubidaNuvem(seed: number | undefined): SubidaNuvem | null 
   if (receipt) return { at: Date.parse(receipt.savedAt), seasonNo: receipt.seasonNo, round: receipt.round }
   try { const r = localStorage.getItem(`esc-nuvem-subiu:${uid}:${seed}`); return r ? JSON.parse(r) as SubidaNuvem : null } catch { return null }
 }
-export async function syncCareersWithCloud(): Promise<boolean> {
+export async function syncCareersWithCloud(fresh = false): Promise<boolean> {
   // getSession não vira falha de rede em logout. A identidade vem do login local,
   // e o servidor valida o token nas RPCs.
   const { data } = await supabase.auth.getSession()
   const uid = data.session?.user.id ?? null
   if (uid !== authUidSalvar) return false
   await careerSave.changeAccount(uid)
-  return uid ? careerSave.sync() : false
+  return uid ? careerSave.sync(fresh) : false
 }
 let carreiraEmMemoria: EscState | null = null
 export function carreiraAtivaPraAbrir(): EscState | null { return careerSave.activeSummary()?.save ?? carreiraEmMemoria ?? null }
