@@ -120,7 +120,8 @@
  .ll-auction-shell .ll-auction-summary .ll-eu-footer>div>div>div{flex-direction:column;align-items:stretch}
  .ll-auction-shell .ll-auction-summary .ll-eu-footer>div>div>div>button{width:100%}
  .ll-auction-shell .ll-auction-price>div{box-sizing:border-box}
- .ll-auction-main .ll-pregao-single{display:grid!important;grid-template-columns:230px minmax(0,1fr);gap:20px!important;align-items:start}
+ .ll-auction-main .ll-pregao-single{display:grid!important;grid-template-columns:280px minmax(0,1fr)!important;grid-template-areas:"id ctl" "id bts"!important;gap:12px 22px!important;align-items:start}
+ .ll-stage-pregao{gap:10px}.ll-auction-main .ll-pa-duo .ll-pa-carta{width:min(100%,182px)!important}.ll-stage-pregao .ll-auction-heading{display:none}.ll-stage-pregao .ll-auction-desktop .ll-desktop-panel>h2{min-height:40px;padding:8px 14px}
  .ll-auction-main .ll-pregao-controls>div[style*="sticky"]{position:relative!important;top:0!important}
  .ll-cx-t-elenco .ll-elenco-help>div{padding:10px 14px!important;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center}
  .ll-cx-t-elenco .ll-elenco-help>div>button{grid-column:2;grid-row:1/span 4;margin:0!important;padding:8px 12px!important}

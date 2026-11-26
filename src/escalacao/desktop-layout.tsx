@@ -33,16 +33,18 @@ type Slot='summary'|'team'|'room'|'price'|'timer'|'intro'
 type Targets=Partial<Record<Slot,HTMLDivElement|null>>
 const AuctionLayoutContext=createContext<{enabled:boolean;targets:Targets}>({enabled:false,targets:{}})
 /** One live copy of each control; on mobile it stays in its original position. */
+/** 🖥️ 26/11: a tela está no layout do computador? (o pregão aberto troca lista por tira e mostra as teclas) */
+export function useAuctionDesktop(){return useContext(AuctionLayoutContext).enabled}
 export function AuctionSlot({name,children,desktopOnly=false}:{name:Slot;children:ReactNode;desktopOnly?:boolean}){
  const layout=useContext(AuctionLayoutContext),target=layout.targets[name]
  if(desktopOnly&&!layout.enabled)return null
  return layout.enabled&&target?createPortal(children,target):<>{children}</>
 }
-export function AuctionDesktopLayout({enabled,children,bar,title,description,budget,slots,playersTitle,teamTitle,teamSummary}:{teamTitle?:string;teamSummary?:string;enabled:boolean;children:ReactNode;bar?:ReactNode;title?:string;description?:string;budget?:{balance:number;committed?:number;masked?:boolean};slots?:{position:string;open:number}[];playersTitle?:string}){
+export function AuctionDesktopLayout({enabled,children,bar,title,description,budget,slots,playersTitle,teamTitle,teamSummary,sideTitle,compacto=false}:{/** 🔨 26/11: título do 1º painel da lateral (no pregão aberto = Últimas marteladas) */sideTitle?:string;/** 🔨 26/11: pregão aberto — sem o cabeçalho grande, pra carta e botões caberem sem rolar */compacto?:boolean;teamTitle?:string;teamSummary?:string;enabled:boolean;children:ReactNode;bar?:ReactNode;title?:string;description?:string;budget?:{balance:number;committed?:number;masked?:boolean};slots?:{position:string;open:number}[];playersTitle?:string}){
  const [summary,setSummary]=useState<HTMLDivElement|null>(null),[team,setTeam]=useState<HTMLDivElement|null>(null),[room,setRoom]=useState<HTMLDivElement|null>(null),[price,setPrice]=useState<HTMLDivElement|null>(null),[timer,setTimer]=useState<HTMLDivElement|null>(null),[intro,setIntro]=useState<HTMLDivElement|null>(null)
  const value=useMemo(()=>({enabled,targets:{summary,team,room,price,timer,intro}}),[enabled,summary,team,room,price,timer,intro])
  if(!enabled)return <>{children}</>
- return <AuctionLayoutContext.Provider value={value}><div className="ll-auction-stage">
+ return <AuctionLayoutContext.Provider value={value}><div className={compacto?"ll-auction-stage ll-stage-pregao":"ll-auction-stage"}>
   <div className="ll-auction-heading"><div><h1>{title}</h1><p>{description}</p></div><div className="ll-auction-timer" ref={setTimer}/></div>
   <div className="ll-auction-sectors">{bar}</div>
   <div className="ll-auction-prelude" ref={setIntro}/>
@@ -50,7 +52,7 @@ export function AuctionDesktopLayout({enabled,children,bar,title,description,bud
   <div className="ll-auction-desktop">
   <section className="ll-desktop-panel ll-auction-players"><h2>{playersTitle||tr('Jogadores disponíveis','Available players')}</h2><div className="ll-auction-main">{children}</div></section>
   <aside className="ll-auction-sidebar" aria-label={tr('Seu leilão','Your auction')}>
-   <section className="ll-desktop-panel"><h2>{tr('Meu envelope','My envelope')}</h2>
+   <section className="ll-desktop-panel"><h2>{sideTitle??tr('Meu envelope','My envelope')}</h2>
     {/* 💰 04/11 (Diego: *"saldo, em lances e disponível está confuso, repetindo"*, mockup `scripts/mockups/envelope-desktop.png`):
         um número só, grande — quanto ainda dá pra gastar. A conta (o que tem e o que já foi pros lances) só quando já tem lance. */}
     {budget&&(()=>{const pos=budget.committed??0,livre=Math.max(0,budget.balance-pos),conta=!budget.masked&&pos>0

@@ -149,6 +149,18 @@ for (const rivals of [9, 10, 15]) {
   if (clubes >= 11) assert.ok(lanceMesa2, 'o humano conseguiu dar lance na mesa 2')
   console.log(`   ${clubes} clubes · ${clubes >= 11 ? 'duas mesas' : 'uma mesa'} · ${Math.round(ticks * PA_TICK_MS / 60000)} min de pregão`)
 }
+// 🃏 UMA CARTA POR VEZ EM SALA GRANDE (26/11, Diego: "dê opção ao usuário… quer com uma carta ou duas"): com a escolha
+// `paUmaCarta`, 15 rivais (16 clubes) abrem UMA mesa só; sem ela, duas. E a escolha nunca vaza pra partida seguinte.
+{
+  let u = reducer({} as EscState, { type: 'NEW_GAME' } as never)
+  u = reducer(u, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals: 15, career: false, league: 'both', copaMode: 'liga_copa', intro: false, pregaoAberto: true, paUmaCarta: true } as never)
+  assert.equal(!!u.pa?.duplo, false, '16 clubes com "uma por vez": UMA mesa só')
+  assert.equal(u.paUmaCarta, true)
+  u = reducer(u, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals: 15, career: false, league: 'both', copaMode: 'liga_copa', intro: false, pregaoAberto: true } as never)
+  assert.equal(!!u.pa?.duplo, true, 'sem a escolha, 16 clubes voltam pras DUAS mesas')
+  assert.equal(u.paUmaCarta, undefined, 'a escolha não vaza pra partida seguinte')
+  console.log('🃏 sala grande: "uma por vez" abre uma mesa; o padrão continua com duas')
+}
 // 🧱 CLUBES + PREGÃO ABERTO (17/10, Diego: "apareceu envelope de clubes e não o leilão aberto"): o lote é o PACOTE do clube,
 // cada técnico leva UM por setor, o pregão termina e cai na convocação com todo mundo de time fechado
 {
