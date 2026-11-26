@@ -22,6 +22,8 @@ import { FORMACOES_JOGO, FORMATIONS } from './types'
 // (igual à Copa do Mundo da sala — ninguém "manda resultado", cada um recalcula).
 import { CATALOG, CATALOG_EU, CATALOG_WORLD, clubCanon } from './data'
 import { CARTAS_REGIONAIS } from './cartas-regionais'
+import { CARTAS_MUNDIAL_CLUBES } from './cartas-mundial-clubes'
+import { CARTAS_SELECOES_EXTRA } from './cartas-selecoes-extra'
 import { disputaPenaltis } from './penaltis'
 import { fatoresTatica, temTatica, dadoDaTatica, type QualTatica } from './copa-taticas' // ⚔️ tática no online (23/10)
 import type { Entrant, Formation, PoolCard, Sec } from './copa-mundo'
@@ -65,6 +67,8 @@ type CartaCat = { name: string; club: string; year: number; fame: number; lo: nu
 const chave = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
 const normClube = (s: string) => clubCanon(s).trim().toLowerCase()
 const poolCache = new Map<string, Record<Sec, PoolCard[]>>()
+/** os clubes que ganharam cartas SÓ do Super Mundial (`cartas-mundial-clubes.ts`) */
+const CLUBES_SO_MUNDIAL = new Set(CARTAS_MUNDIAL_CLUBES.map(c => normClube(c.club)))
 /** todas as cartas do clube: baralhos do Brasil, Europa e Mundo + o regional. Sem repetir carta. */
 export function poolDoClube(clube: string): Record<Sec, PoolCard[]> {
   const k = normClube(clube)
@@ -79,6 +83,18 @@ export function poolDoClube(clube: string): Record<Sec, PoolCard[]> {
     if (vistas.has(ck)) continue
     vistas.add(ck)
     out[sec].push({ name: c.name, club: c.club, year: c.year, fame: c.fame, lo: c.lo, hi: c.hi, sec })
+  }
+  // 🌍 26/11: as cartas SÓ do Super Mundial (clubes do Mundial de Clubes 2025 que não fechavam time). Elas só existem pra clube
+  // que NÃO joga regional nem Liberta da sala, então nenhuma copa que já roda muda. As cartas de seleção extra entram só pros
+  // clubes deste lote (o Crépeau do LAFC, o Román Torres do Seattle) — nunca pros clubes da Liberta (o Quintero do Universitario).
+  if (CLUBES_SO_MUNDIAL.has(k)) {
+    for (const c of [...CARTAS_MUNDIAL_CLUBES, ...CARTAS_SELECOES_EXTRA]) {
+      if (normClube(c.club) !== k) continue
+      const ck = chave(c)
+      if (vistas.has(ck)) continue
+      vistas.add(ck)
+      out[c.pos].push({ name: c.name, club: c.club, year: c.year, fame: c.fame, lo: c.lo, hi: c.hi, sec: c.pos })
+    }
   }
   for (const sec of SECS) out[sec].sort((a, b) => a.name.localeCompare(b.name, 'pt'))
   poolCache.set(k, out)

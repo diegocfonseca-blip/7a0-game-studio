@@ -1,13 +1,20 @@
-## 26/11 — 🌍 SUPER MUNDIAL nas salas online (ideia do Diego) — PROPOSTA, esperando decisão
-Pedido: *"bolar o super mundial nas salas online… conforme foi o último"* (Mundial de Clubes FIFA 2025, EUA, 14/06–13/07; fonte pt.wikipedia).
-Formato real: 32 clubes · 8 grupos de 4 (3 rodadas) · passam 2 · oitavas, quartas, semi e final em JOGO ÚNICO · sem 3º lugar.
-É o MESMO formato da nossa Copa do Mundo de 32 (`formatoCopa`/`simulaCopaMundo`), então o motor já existe.
-Proposta: sala "🌍 Só Super Mundial" (igual à Só Champions: leilão de sempre, sem liga) → clubes de gente + os clubes REAIS de 2025 completando as 32 vagas.
-Cartas hoje: 23 dos 32 fecham time (Chelsea, PSG, Real, City, Bayern, Inter, Juventus, Atlético, Dortmund, Benfica, Porto, Palmeiras, Flamengo,
-Fluminense, Botafogo, River, Boca, Al-Hilal, Inter Miami…). Sem cartas suficientes: Salzburg, Urawa, Ulsan, Al Ain, Wydad, Espérance,
-Sundowns, Al Ahly (4), Seattle, Pachuca, Monterrey (2), LAFC (1), Auckland. Decisão pendente: fazer lote de cartas reais desses OU completar com batismos.
-Nada feito; mockup antes de codar.
-
+## 26/11 — 🌍 SUPER MUNDIAL + LIGA + CHAMPIONS nas salas — 🔒 SÓ DIEGO E FUTPOINT (`SUPER_MUNDIAL_GERAL`, sport.ts)
+Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions… 2 de cada… publicar é só na minha e no do Footpoint"*.
+- ✅ **🌍 Liga + Super Mundial (convocando)** — FEITO no branch (falta OK visual + publicar): acabou a liga, cada um escolhe um dos 32
+  clubes do Mundial de 2025 e convoca 11 das cartas dele. 8 grupos em turno único (regra das confederações), chave das oitavas
+  de 2025, tudo em jogo único. Motor `mundial-sala.ts`, tela `mundial-sala-online.tsx` (adaptada da Liberta da sala), palco
+  `football-cup-mundial.tsx`, marca da sala `regionalNaLiga: 'mundial'`, relógio `esc_regional_clock` (6+1 passos, sem SQL).
+  Título na sala = `supermundial` (taça do Mundial). Trava `npm run mundial-sala`. Bancada `scripts/teste-mundial-sala/`, prints em
+  `scripts/mockups/super-mundial/`.
+- ✅ **Cartas só do modo** (`cartas-mundial-clubes.ts`, ~240): 13 clubes sem carta + Al-Hilal/Inter Miami sem zagueiro. Fora do
+  leilão e do pacote do campeão. Detalhe e fontes: `docs/super-mundial-cartas.md`. Escudo neutro nos clubes sem arte.
+- ⏳ **⭐ Só Super Mundial (com o seu time)** — A FAZER: igual à Só Champions (sem liga, até 32 da sala), as vagas que sobram com os
+  clubes reais de 2025 (cartas reais), mesmo formato.
+- ⏳ **⭐ Liga + Champions (convocando)** — A FAZER: os 36 da Champions 2025–26 (campeão PSG nos pênaltis contra o Arsenal, 30/05/26),
+  fase de liga de 8 jogos, 9º–24º no playoff, mata-mata ida e volta, final única. Vai precisar de cartas pra clubes pequenos
+  (Kairat, Pafos, Bodø/Glimt, Qarabağ, Union SG, Slavia, København…). Lista dos 36 e tabela final: pt.wikipedia "Liga dos Campeões
+  da UEFA de 2025–26".
+- Trocar o modo de uma liga que está com o Super Mundial: bloqueado com aviso (igual à Liberta da sala; o servidor não conhece).
 ## 25/11 — melhorias nas duas carreiras
 
 Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos os componentes compartilhados de Central, Mercado, Finanças, técnico, formações/trocas, memória, cenas, lesões e save. A tradicional passa a usar o painel organizado do Clube com mapa grande e ações claras. Corrigida sobreposição dos botões de saída sobre as áreas do Mercado no desktop, nos dois modos. Bancadas agora iniciam a tradicional pelo leilão nativo, com testes de save, cenas e lesões. Sem nova economia/OVR, migração de modo ou mudança em online/basquete/F1. Capturas apresentadas; Diego confirmou “ok” à publicação conjunta em produção, encerrando a fase de prévia local após o bloqueio anterior. Evidências e limites: [paridade](auditorias/paridade-carreiras-20261125.md).
