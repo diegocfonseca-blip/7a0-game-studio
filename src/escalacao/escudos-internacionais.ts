@@ -45,4 +45,6 @@ export const ESCUDOS_INTERNACIONAIS: Record<string, { src: string; w: number; h:
   'Union SG': { src: 'escudos-clubes/union-sg.webp', w: 136, h: 160 },
   'Urawa Reds': { src: 'escudos-clubes/urawa-reds.webp', w: 124, h: 160 },
   'Wydad': { src: 'escudos-clubes/wydad.webp', w: 125, h: 160 },
+  'Pafos': { src: 'escudos-clubes/pafos.webp', w: 126, h: 160 },
+  'Qarabağ': { src: 'escudos-clubes/qarabag.webp', w: 126, h: 160 },
 }
