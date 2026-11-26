@@ -1,17 +1,18 @@
 // 🔨 PREGÃO ABERTO — a tela (16/10, mockup aprovado: `scripts/mockups/pregao-aberto.png`).
 // Uma carta por vez, lance à vista, ordem embaralhada, martelo em `PA_MARTELO_MS`. O motor mora em store.tsx (paTick/paMartelo);
 // aqui só se desenha e se roteia o lance. No solo o relógio é deste aparelho; no online (quando for ligado) só o dono tica.
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useEsc, paPodeLancar, paMinimo, paMesa, paMesasAtivas, PA_TICK_MS, PA_MARTELO_MS } from './store'
-import { Shell, AuctionBar, CollectibleCard, YourPitch, RivalsStrip, nomePacote } from './screens'
-import {AuctionSlot} from './desktop-layout'
+import { Shell, AuctionBar, CollectibleCard, YourPitch, RivalsStrip, nomePacote, FAME_TIER, PROMESSA_TIER } from './screens'
+import { AuctionSlot, useAuctionDesktop } from './desktop-layout'
+import { ehPromessa } from './data'
 import { SeloPacote } from './selo-clube'
 import { useT } from './lang'
-import { playTick, playHammer, playDouLhe, playCoberto } from './sound'
-import type { Sector, Card } from './types'
+import { playTick, playHammer, playDouLhe, playCoberto, playChime } from './sound'
+import type { Sector, Card, Manager } from './types'
 import { openSlots } from './store'
 import { agoraSala } from './relogio'
-import { getSport } from './sport'
+import { getSport, usePregaoNovo } from './sport'
 import { POS_LABELS } from './sportcfg'
 import { ViceCityFaixa, ViceCityMao, ViceDecor, VICE_TEMA_CSS, ViceOverlays } from './vice-city-ui'
 
@@ -23,7 +24,157 @@ const POS_PT: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goalkeeper'
 const bbPA = () => getSport() === 'basquete'
 const tagPos = (p: string) => bbPA() && p in POS_LABELS.basquete ? POS_LABELS.basquete[p as Sector].tag : p
 
+// 🔨 26/11 (Diego: *"Faz só na minha conta, pra eu ver"*): o pregão de cara nova só na conta dele; o resto segue no de hoje.
 export function PregaoAberto() {
+  const novo = usePregaoNovo()
+  return novo ? <PregaoAbertoNovo /> : <PregaoAbertoAntigo />
+}
+
+function PregaoAbertoNovo() {
+  const { state, dispatch } = useEsc()
+  const t = useT()
+  const desk = useAuctionDesktop()
+  const you = state.managers[state.youIdx]
+  const pa = state.pa
+  const card = state.currentCards[0]
+  const online = state.onlineMode === 'online'
+  const euTico = !online || state.isHost
+  // ⏱️ o relógio da SALA (o do dono): no online o prazo do martelo nasce no aparelho dele, e celular adiantado/atrasado
+  // mostraria a contagem errada. No solo `agoraSala()` é o próprio Date.now().
+  const [agora, setAgora] = useState(agoraSala())
+
+  // ⏱️ o relógio: 1 tick por segundo (martelo + lance dos robôs) — só quem manda no relógio
+  useEffect(() => {
+    if (!pa || !euTico) return
+    const iv = setInterval(() => dispatch({ type: 'PREGAO_ABERTO_TICK' }), PA_TICK_MS)
+    return () => clearInterval(iv)
+  }, [!!pa, euTico]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const iv = setInterval(() => setAgora(agoraSala()), 250); return () => clearInterval(iv) }, [])
+
+  // 🔊 tique a cada lance novo, martelo a cada venda
+  const nLances = (pa?.lances.length ?? 0) + (pa?.m2?.lances.length ?? 0) // 🔨🔨 as duas mesas fazem barulho
+  const lastRef = useRef(0)
+  useEffect(() => { if (nLances > 0 && nLances !== lastRef.current) playTick(); lastRef.current = nLances }, [nLances])
+  const nVend = pa?.vendidos.length ?? 0
+  const vendRef = useRef(nVend)
+  // 🔨 26/11 (Diego aprovou o vídeo do pregão novo; regra de 21/11: *"martelinho batendo sempre que alguém ganhasse o lance"*):
+  // o martelo bate pra SALA TODA em toda carta arrematada (antes, desde 19/11, era só de quem levou). Carta que ninguém quis = sem martelo.
+  const ultimoVendido = pa?.vendidos[0]
+  useEffect(() => { if (nVend > vendRef.current && ultimoVendido && ultimoVendido.mgr != null) playHammer(); vendRef.current = nVend }, [nVend]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 😱 19/11: cobriram o SEU lance (você era o líder de uma mesa e deixou de ser) — só pra você
+  const meuId = state.managers[state.youIdx]?.id
+  const lideres = paMesasAtivas(state).map(k => { const v = paMesa(state, k); return v ? `${v.card?.id ?? ''}:${v.M.lider ?? ''}` : '' }).join('|')
+  const lideresRef = useRef(lideres)
+  useEffect(() => {
+    const antes = lideresRef.current.split('|'), agoraL = lideres.split('|')
+    agoraL.forEach((x, i) => { const [cid, l] = x.split(':'), [cid0, l0] = (antes[i] ?? '').split(':'); if (cid && cid === cid0 && l0 === String(meuId) && l !== String(meuId)) playCoberto() })
+    lideresRef.current = lideres
+  }, [lideres]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🔔 19/11: "dou-lhe uma… duas…" — batida mais forte nos 3 últimos segundos antes do martelo (pra todos, é o relógio da mesa)
+  const douLheRef = useRef<Record<number, string>>({})
+  useEffect(() => {
+    for (const k of paMesasAtivas(state)) {
+      const v = paMesa(state, k); const dl = v?.M.deadline
+      if (!v?.card || !dl || !v.M.lances.length) continue
+      const seg = Math.ceil((dl - agora) / 1000)
+      if (seg < 1 || seg > 3) continue
+      const chave = `${dl}:${seg}`
+      if (douLheRef.current[k] === chave) continue
+      douLheRef.current[k] = chave; playDouLhe(seg)
+    }
+  }, [agora]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🔔 26/11: a carta virou e era LENDA → sininho dourado pra sala toda (uma vez por carta)
+  const sinoRef = useRef('')
+  const viradas = paMesasAtivas(state).map(k => { const M = paMesa(state, k)?.M; return M?.viraAte && agora < M.viraAte && M.viraId ? M.viraId : '' }).filter(Boolean)
+  useEffect(() => {
+    for (const id of viradas) {
+      if (sinoRef.current.includes(id)) continue
+      const c = pa?.fila.find(x => x.id === id)
+      if (c && !c.pacote && c.fame >= 5 && !ehPromessa(c) && pa?.vendidos.find(v => v.cardId === id)?.mgr != null) { sinoRef.current = `${sinoRef.current}|${id}`.slice(-200); setTimeout(() => playChime(), 450) }
+    }
+  }, [viradas.join('|')]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!pa || !you) return <Shell bar={<AuctionBar />}><div className="pt-10 text-center text-5xl">🔨</div></Shell>
+  const posVagas = card ? openSlots(you, card.pos) : 0
+  const total = pa.fila.length
+  const n = Math.min(total, pa.idx + 1)
+  // quantas cartas ainda vão passar na mesa (as da fila + as que estão na mesa agora)
+  const restantes = Math.max(0, total - pa.idx - 1) + paMesasAtivas(state).filter(k => paMesa(state, k)?.card).length
+  const mesas = paMesasAtivas(state)
+  // 🎭 PALCO (26/11, vídeo aprovado): com UMA carta na mesa, a que saiu vira no MEIO da tela. Com duas, cada uma vira no lugar
+  // (o palco cobriria a outra mesa, que segue rolando). Pacote de clube e Vice City ficam como eram.
+  const M0 = paMesa(state, 0)?.M
+  const viradaPalco = mesas.length === 1 && !pa.vice && M0?.viraAte && agora < M0.viraAte && M0.viraId ? pa.fila.find(x => x.id === M0.viraId) ?? null : null
+
+  return (
+    <Shell bar={<AuctionBar vagas={posVagas > 0 ? posVagas : undefined} />}>
+      <style>{CSS_VIRA}</style>
+      {pa.vice && <style>{VICE_TEMA_CSS}</style>}
+      <div className={pa.vice ? 'space-y-3 vice-tema' : 'space-y-3'}>
+        {pa.vice && <ViceDecor />}
+        {pa.vice && <ViceOverlays />}
+        {/* 🏷️ o nome do modo em cima: quem entrou na sala descobre AQUI em que pregão está. 26/11: faixa FINA (uma linha) —
+            no celular a carta e os botões de lance têm que caber na tela sem rolar */}
+        <AuctionSlot name="intro">
+        <div style={{ background: pa.vice ? 'linear-gradient(90deg,#2a0b4d,#5b1a6e)' : INK, color: '#fff', border: `3px solid ${pa.vice ? '#ff4fd8' : INK}`, borderRadius: 13, padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 9, boxShadow: pa.vice ? '0 0 16px rgba(255,79,216,.7), 4px 4px 0 0 #0C0C0C' : `4px 4px 0 0 ${INK}` }}>
+          <span style={{ fontSize: 20 }}>{pa.vice ? '🌴' : '🔨'}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ ...OSW, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', lineHeight: 1.1 }}>{pa.vice ? t('🌴 Vice City · Pregão aberto', '🌴 Vice City · Open outcry') : t('Pregão aberto', 'Open outcry')}</p>
+            {/* ⏳ FALTAM N CARTAS (17/10, Diego: "uma alertazinha… pra pessoa entender que tá acabando"): nas últimas 11 da fila */}
+            {restantes > 0 && restantes <= PA_ALERTA_FIM ? (
+              <p style={{ display: 'inline-block', margin: '3px 0 0', background: '#E8503A', border: '2px solid #fff', borderRadius: 7, padding: '1px 7px', fontSize: 10.5, fontWeight: 900 }}>
+                {restantes === 1 ? t('⏳ ÚLTIMA CARTA DO PREGÃO!', '⏳ LAST CARD OF THE AUCTION!') : t(`⏳ FALTAM ${restantes} ${state.leilaoClubes ? 'PACOTES' : 'CARTAS'} · corre que tá acabando!`, `⏳ ${restantes} ${state.leilaoClubes ? 'PACKS' : 'CARDS'} LEFT · hurry, it’s ending!`)}
+              </p>
+            ) : <p style={{ fontSize: 10, fontWeight: 700, opacity: .8, margin: '2px 0 0', lineHeight: 1.3 }}>{state.leilaoClubes
+              ? (pa.duplo ? t(`pacote ${n} de ${total} · DOIS na mesa`, `pack ${n} of ${total} · TWO on the table`) : t(`pacote ${n} de ${total} · ordem embaralhada`, `pack ${n} of ${total} · shuffled order`))
+              : pa.duplo ? t(`carta ${n} de ${total} · DUAS na mesa, posições diferentes`, `card ${n} of ${total} · TWO on the table, different positions`) : t(`carta ${n} de ${total} · ordem embaralhada`, `card ${n} of ${total} · shuffled order`)}
+              {/* 🎁 sem Monte (16/10): quem entra já sabe que não fica com time furado (a explicação inteira fica no rodapé) */}
+              <b style={{ display: 'inline-block', marginLeft: 6, background: GREEN, border: '1.5px solid #fff', borderRadius: 6, padding: '0 5px', fontSize: 9.5 }}>{t('🎁 sem monte', '🎁 no pile')}</b></p>}
+          </div>
+          <div style={{ background: GOLD, color: INK, border: '2px solid #fff', borderRadius: 10, padding: '3px 9px', textAlign: 'center' }}>
+            <b style={{ ...OSW, display: 'block', fontSize: 16, lineHeight: 1 }}>{Math.floor(you.money)} 🪙</b>
+            <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1 }}>{t('SEU CAIXA', 'YOUR CASH')}</span>
+          </div>
+        </div>
+        </AuctionSlot>
+
+        {/* 🌴 Vice City: o último golpe pra sala inteira, em cima da mesa */}
+        {pa.vice && <ViceCityFaixa />}
+        {/* 🔨🔨 uma mesa (até 10 clubes) ou duas lado a lado (11+, Diego 17/10) — a MESMA mesa desenhada 1 ou 2 vezes */}
+        {mesas.length === 1
+          ? <MesaPregao k={0} agora={agora} />
+          : <>
+              <div className="ll-pa-duo" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
+                {mesas.map(k => <MesaPregao key={k} k={k} agora={agora} compacto />)}
+              </div>
+              <p className="ov3-page-muted" style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{state.leilaoClubes
+                ? t(`Cada pacote tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelos dois — ou só pelo que você precisa.`, `Each pack has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)
+                : t(`Cada carta tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelas duas — ou só pela que você precisa.`, `Each card has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)}
+                {desk && <>{' '}<b>⌨️ {t('Teclado: 1 · 2 · 3 na carta da esquerda · 8 · 9 · 0 na da direita.', 'Keyboard: 1 · 2 · 3 on the left card · 8 · 9 · 0 on the right one.')}</b></>}</p>
+            </>}
+
+        {/* 🌴 Vice City: a sua mão de cartas de golpe, logo embaixo da mesa (à mão, sem rolar) */}
+        {pa.vice && <ViceCityMao />}
+        {/* 🔨 26/11: ÚLTIMAS MARTELADAS + QUEM AINDA PRECISA — no computador, na lateral (no lugar do "Meu envelope", que no
+            pregão não servia pra nada); no celular, logo embaixo da mesa, numa tira que arrasta pro lado */}
+        <AuctionSlot name="summary"><MarteladasEPrecisa /></AuctionSlot>
+
+        {/* 🟩 o campinho PADRÃO do leilão (17/10, Diego: "deve ser os campinhos padrões igual os outros modos… quando
+            aparece uma lenda aparece o avatar da lenda") — o MESMO `YourPitch` do envelope e da Tocaia, com rosto e manto */}
+        <p className="ov3-page-muted" style={{ margin: '4px 0 0', textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.45)' }}>{bbPA() ? t('Seu quinteto', 'Your five') : t('Sua escalação', 'Your lineup')}</p>
+        <YourPitch small />
+        <RivalsStrip desktopOnly />
+        <p className="ov3-page-muted" style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{state.leilaoClubes
+          ? t('Um pacote por setor: quem já tem o do setor não dá lance. 🎁 Sem Monte: setor sem pacote no fim ganha um pacote que sobrou, de graça. Depois do pregão vem a convocação.', 'One pack per sector: if you have that sector’s pack, no more bids there. 🎁 No pile: a sector without a pack at the end gets a leftover pack for free. The call-up comes after the auction.')
+          : t('Quem já fechou a posição não dá lance. 🎁 Sem Monte: vaga vazia no fim ganha jogador de graça (nunca craque nem lenda).', 'Position full? No more bids there. 🎁 No pile: empty spots at the end get a free player (never a star or a legend).')}</p>
+      </div>
+      {viradaPalco && <PalcoPregao c={viradaPalco} />}
+    </Shell>
+  )
+}
+
+// 🔨 O PREGÃO DE HOJE (antes de 26/11) — continua valendo pra todo mundo menos a conta do Diego (`usePregaoNovo`).
+function PregaoAbertoAntigo() {
   const { state, dispatch } = useEsc()
   const t = useT()
   const you = state.managers[state.youIdx]
@@ -122,10 +273,10 @@ export function PregaoAberto() {
         {pa.vice && <ViceCityFaixa />}
         {/* 🔨🔨 uma mesa (até 10 clubes) ou duas lado a lado (11+, Diego 17/10) — a MESMA mesa desenhada 1 ou 2 vezes */}
         {mesas.length === 1
-          ? <MesaPregao k={0} agora={agora} />
+          ? <MesaPregaoAntiga k={0} agora={agora} />
           : <>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
-                {mesas.map(k => <MesaPregao key={k} k={k} agora={agora} compacto />)}
+                {mesas.map(k => <MesaPregaoAntiga key={k} k={k} agora={agora} compacto />)}
               </div>
               <p className="ov3-page-muted" style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{state.leilaoClubes
                 ? t(`Cada pacote tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelos dois — ou só pelo que você precisa.`, `Each pack has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)
@@ -165,7 +316,7 @@ export function PregaoAberto() {
 
 // 🔨🔨 UMA MESA do pregão aberto (17/10): a carta, o lance atual com o relógio, os últimos lances e os seus botões. Com uma
 // mesa só ela é a tela de sempre; com duas (`compacto`) cada uma ocupa meia largura e mostra só o essencial.
-function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; compacto?: boolean }) {
+function MesaPregaoAntiga({ k, agora, compacto = false }: { k: number; agora: number; compacto?: boolean }) {
   const { state, dispatch } = useEsc()
   const t = useT()
   const [outro, setOutro] = useState('')
@@ -309,6 +460,299 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
         )}</div>
 }
 
+
+// 🏷️ a categoria da carta (as MESMAS cores da carta do jogo) — pra miniatura das marteladas e o brilho da virada
+function tierDe(c: Card) { return ehPromessa(c) ? PROMESSA_TIER : FAME_TIER[c.fame] ?? FAME_TIER[1] }
+function catCurta(c: Card) { return ehPromessa(c) ? 'PROM.' : c.fame >= 5 ? 'LENDA' : c.fame === 4 ? 'CRAQUE' : c.fame >= 2 ? 'BOM' : 'PROF.' }
+function brilhoDe(c: Card) { return ehPromessa(c) ? 'rgba(139,92,246,.85)' : c.fame >= 5 ? 'rgba(255,196,0,.9)' : c.fame === 4 ? 'rgba(190,200,220,.95)' : c.fame >= 2 ? 'rgba(65,192,122,.8)' : 'rgba(203,191,158,.9)' }
+
+// 🎭 O PALCO DA VIRADA (26/11, vídeo aprovado `scripts/mockups/pregao-aberto-pc.mp4`): a carta de verdade cresce no meio da tela
+// durante os MESMOS `PA_VIRA_MS` de hoje (ninguém lança nesse tempo — a próxima carta só abre depois). Não segura nada: some
+// sozinho junto com a virada e não pega toque (`pointerEvents: none`).
+function PalcoPregao({ c }: { c: Card }) {
+  const { state } = useEsc()
+  const t = useT()
+  const v = state.pa?.vendidos.find(x => x.cardId === c.id)
+  const eu = state.managers[state.youIdx]?.id
+  const quase = v && v.mgr != null && v.mgr !== eu && v.segundo > 0 && v.preco - v.segundo <= 2
+  return (
+    <div className="pa-palco" style={{ position: 'fixed', inset: 0, zIndex: 9980, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 16, background: `radial-gradient(circle at 50% 46%, ${brilhoDe(c).replace(/[\d.]+\)$/, '.35)')}, rgba(0,0,0,.84) 60%)` }}>
+      <p className="pa-palco-vend" style={{ ...OSW, fontWeight: 900, color: '#fff', fontSize: 'clamp(38px, 7vw, 60px)', textShadow: '4px 4px 0 #000', margin: 0, lineHeight: 1 }}>{v?.mgr == null ? t('🙈 NINGUÉM QUIS', '🙈 NOBODY WANTED IT') : t('🔨 VENDIDO!', '🔨 SOLD!')}</p>
+      <div className="pa-palco-carta" style={{ width: 'min(300px, 68vw)', filter: `drop-shadow(0 0 30px ${brilhoDe(c)})` }}>
+        <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={!!c.folk} promessa={c.promessa} />
+      </div>
+      {v && <div className="pa-palco-quem ov3-surface" style={{ background: '#fff', color: INK, border: `4px solid ${INK}`, borderRadius: 14, boxShadow: `5px 5px 0 ${INK}`, padding: '8px 16px', textAlign: 'center', maxWidth: '92vw' }}>
+        {v.mgr == null
+          ? <b style={{ ...OSW, fontSize: 18 }}>{t('Fica na sobra: pode cair de graça em quem terminar com vaga vazia.', 'Goes to the leftovers: may go free to whoever ends with an empty slot.')}</b>
+          : <>
+              {v.mgr !== eu && <span style={{ fontSize: 13, fontWeight: 800, color: '#555' }}>{t('levou ', 'won by ')}</span>}
+              <b style={{ ...OSW, fontSize: 24, textTransform: 'uppercase' }}>{v.mgr === eu ? t('🎉 É SEU!', '🎉 IT’S YOURS!') : v.time}</b>
+              <span style={{ ...OSW, fontWeight: 900, fontSize: 22, background: GOLD, border: `3px solid ${INK}`, borderRadius: 10, padding: '0 10px', marginLeft: 8 }}>{v.preco} 🪙</span>
+              {v.segundo > 0 && <small style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#555', marginTop: 3 }}>{quase ? t(`faltou ${v.preco - v.segundo} pro 2º lance — QUASE!`, `the runner-up was short by ${v.preco - v.segundo} — SO CLOSE!`) : t(`2º lance: ${v.segundo} 🪙`, `runner-up bid: ${v.segundo} 🪙`)}</small>}
+            </>}
+      </div>}
+    </div>
+  )
+}
+
+// 🔨 ÚLTIMAS MARTELADAS + ⚽ QUEM AINDA PRECISA (26/11). Computador: lista na lateral. Celular: tira que arrasta pro lado.
+// "Quem ainda precisa" conta as vagas que cada clube que DISPUTA (gente + robôs rivais) ainda tem na posição da carta da mesa.
+function MarteladasEPrecisa() {
+  const { state } = useEsc()
+  const t = useT()
+  const desk = useAuctionDesktop()
+  const pa = state.pa
+  if (!pa) return null
+  const eu = state.managers[state.youIdx]?.id
+  const vend = pa.vendidos.slice(0, desk ? 6 : 12)
+  const carta = (id: string) => pa.fila.find(x => x.id === id)
+  const disputam = state.managers.filter(m => (m.isHuman && !m.dormindo) || (!m.isHuman && m.auctionRival))
+  const posMesa = paMesasAtivas(state).map(k => paMesa(state, k)?.card?.pos).filter((p): p is Sector => !!p)
+  const posUnicas = [...new Set(posMesa)]
+  const mini = (c: Card | undefined) => {
+    const tier = c && !c.pacote ? tierDe(c) : null
+    return <div className="ov3-surface" style={{ width: 36, height: 48, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 6, background: tier ? tier.grad : '#fff', color: tier ? tier.ink : INK, display: 'grid', placeItems: 'center', textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 8, lineHeight: 1.05, padding: 1 }}>{c?.pacote ? <SeloPacote c={c} size={30} /> : c ? catCurta(c) : '?'}</div>
+  }
+  const linhaVenda = (v: typeof vend[number], i: number) => {
+    const c = carta(v.cardId)
+    const sub = c?.pacote ? tagPos(v.pos) : `${tagPos(v.pos)} · ${c?.club ?? ''} ${c?.year ?? ''}`
+    return (
+      <div key={`${v.cardId}-${i}`} className={desk ? '' : 'ov3-surface'} style={desk
+        ? { display: 'grid', gridTemplateColumns: '36px minmax(0,1fr) auto', gap: 8, alignItems: 'center', padding: '6px 0', borderTop: i ? '1px solid rgba(127,127,127,.3)' : 'none' }
+        : { flex: 'none', width: 158, display: 'grid', gridTemplateColumns: '36px minmax(0,1fr)', gap: 6, alignItems: 'center', background: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: 4 }}>
+        {mini(c)}
+        <div style={{ minWidth: 0 }}>
+          <b style={{ ...OSW, fontSize: 13.5, display: 'block', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.nome}</b>
+          <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</small>
+          {!desk && <small style={{ display: 'block', fontSize: 10.5, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.mgr == null ? t('ninguém quis', 'nobody wanted it') : <><b style={OSW}>{v.preco} 🪙</b> · {v.mgr === eu ? t('você', 'you') : v.time}</>}</small>}
+        </div>
+        {desk && <div style={{ textAlign: 'right', minWidth: 0 }}>
+          {v.mgr == null ? <small style={{ fontSize: 10.5, fontWeight: 800, opacity: .6 }}>{t('ninguém quis', 'nobody')}</small>
+            : <><b style={{ ...OSW, fontSize: 16 }}>{v.preco} 🪙</b><small style={{ display: 'block', fontSize: 10, fontWeight: 900, opacity: v.mgr === eu ? 1 : .7, maxWidth: 110, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.mgr === eu ? t('⭐ você', '⭐ you') : v.time}</small></>}
+        </div>}
+      </div>
+    )
+  }
+  const precisa = (pos: Sector) => disputam.map(m => ({ m, v: openSlots(m, pos) })).sort((a, b) => b.v - a.v || (a.m.id === eu ? -1 : b.m.id === eu ? 1 : 0))
+  const tituloPrecisa = posUnicas.length === 1 ? t(`⚽ Quem ainda precisa de ${tagPos(posUnicas[0])}`, `⚽ Who still needs a ${tagPos(posUnicas[0])}`) : t('⚽ Quem ainda precisa', '⚽ Who still needs')
+  const nome = (m: Manager) => m.id === eu ? t('Você', 'You') : m.teamName
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: desk ? 10 : 8 }}>
+      {/* no computador o título "Últimas marteladas" já é o do painel da lateral */}
+      {!desk && <div className="ov3-surface" style={{ background: '#FBF6E9', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, overflow: 'hidden' }}>
+        <p style={{ ...OSW, fontWeight: 800, fontSize: 13, textTransform: 'uppercase', margin: 0, padding: '5px 10px', borderBottom: `2px solid ${INK}`, display: 'flex', justifyContent: 'space-between' }}>{t('🔨 Últimas marteladas', '🔨 Latest hammers')}{vend.length > 2 && <span style={{ fontSize: 10, color: 'rgba(0,0,0,.45)' }}>{t('arrasta pro lado ›', 'swipe ›')}</span>}</p>
+        {vend.length ? <div style={{ display: 'flex', gap: 7, padding: 7, overflowX: 'auto' }}>{vend.map(linhaVenda)}</div>
+          : <p style={{ margin: 0, padding: '10px', fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', textAlign: 'center' }}>{t('Nenhuma carta martelada ainda.', 'No card hammered yet.')}</p>}
+      </div>}
+      {desk && (vend.length ? <div>{vend.map(linhaVenda)}</div> : <p style={{ margin: 0, fontSize: 12, fontWeight: 700, opacity: .6 }}>{t('Nenhuma carta martelada ainda.', 'No card hammered yet.')}</p>)}
+      {posUnicas.length > 0 && (desk ? (
+        <div style={{ borderTop: '2px solid rgba(127,127,127,.45)', paddingTop: 8 }}>
+          <p style={{ ...OSW, fontWeight: 800, fontSize: 14, textTransform: 'uppercase', margin: '0 0 4px' }}>{tituloPrecisa}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: `minmax(0,1fr) ${posUnicas.map(() => '52px').join(' ')}`, fontSize: 12.5, fontWeight: 800 }}>
+            {posUnicas.length > 1 && <><span style={{ ...OSW, fontSize: 11, opacity: .6 }}>{t('CLUBE', 'CLUB')}</span>{posUnicas.map(p => <span key={p} style={{ ...OSW, fontSize: 11, opacity: .6, textAlign: 'center' }}>{tagPos(p)}</span>)}</>}
+            {(() => {
+              const linhas = precisa(posUnicas[0]).slice(0, 6)
+              const resto = disputam.length - linhas.length
+              return <>{linhas.map(({ m }) => <Fragment key={m.id}>
+                <span style={{ padding: '4px 0', borderTop: '1px solid rgba(127,127,127,.3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: m.id === eu ? 900 : 800 }}>{m.id === eu ? `⭐ ${nome(m)}` : nome(m)}</span>
+                {posUnicas.map(p => { const v = openSlots(m, p); return <span key={p} style={{ padding: '4px 0', borderTop: '1px solid rgba(127,127,127,.3)', textAlign: 'center', color: v ? undefined : '#E8503A' }}>{v || t('fechou', 'full')}</span> })}
+              </Fragment>)}{resto > 0 && <span style={{ gridColumn: '1 / -1', paddingTop: 4, fontSize: 11, opacity: .6 }}>{t(`+ ${resto} clubes`, `+ ${resto} clubs`)}</span>}</>
+            })()}
+          </div>
+        </div>
+      ) : (
+        <div className="ov3-surface" style={{ background: '#FBF6E9', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, overflow: 'hidden' }}>
+          <p style={{ ...OSW, fontWeight: 800, fontSize: 13, textTransform: 'uppercase', margin: 0, padding: '5px 10px', borderBottom: `2px solid ${INK}` }}>{tituloPrecisa}</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, padding: 7 }}>
+            {posUnicas.map(p => {
+              const lista = precisa(p), mostra = lista.slice(0, posUnicas.length > 1 ? 3 : 6), resto = lista.length - mostra.length
+              return <Fragment key={p}>{posUnicas.length > 1 && <b style={{ ...OSW, fontSize: 12, alignSelf: 'center' }}>{tagPos(p)}:</b>}
+                {mostra.map(({ m, v }) => <span key={m.id} className={v ? 'ov3-surface' : ''} style={{ fontSize: 11, fontWeight: 800, border: `2px solid ${INK}`, borderRadius: 7, padding: '1px 6px', background: v ? (m.id === eu ? GOLD : '#fff') : '#E8503A', color: v ? INK : '#fff' }}>{nome(m)} · {v || t('fechou', 'full')}</span>)}
+                {resto > 0 && <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', alignSelf: 'center' }}>+{resto}</span>}</Fragment>
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// 🔨🔨 UMA MESA do pregão aberto (17/10): a carta, o lance atual com o relógio, os últimos lances e os seus botões. Com uma
+// mesa só ela é a tela de sempre; com duas (`compacto`) cada uma ocupa meia largura e mostra só o essencial.
+// 📐 26/11: com uma mesa vira uma GRADE — no celular a carta fica à esquerda do lance e os botões embaixo, tudo sem rolar;
+// no computador a carta grande à esquerda e lance + botões à direita (CSS em `CSS_VIRA` e `desktop-layout.css`).
+function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; compacto?: boolean }) {
+  const { state, dispatch } = useEsc()
+  const t = useT()
+  const desk = useAuctionDesktop()
+  const [outro, setOutro] = useState('')
+  const you = state.managers[state.youIdx]
+  const online = state.onlineMode === 'online'
+  // 🌐 LANCE QUE NÃO VALEU NUNCA SOME CALADO (17/10): no online o lance viaja até o dono. Se outro cobriu antes de ele
+  // chegar (ou a carta já trocou), a pessoa vê o porquê — foi a lição da Tocaia (sala do Fridão, 23/09).
+  const [meuLance, setMeuLance] = useState<{ cardId: string; valor: number; em: number } | null>(null)
+  const [aviso, setAviso] = useState('')
+  const [apertou, setApertou] = useState<number | null>(null)
+  const mvEu = paMesa(state, k)
+  useEffect(() => {
+    if (!meuLance || !you || !mvEu) return
+    const c = mvEu.card, M0 = mvEu.M
+    if (c?.id === meuLance.cardId && M0.lider === you.id) { setMeuLance(null); return }
+    const coberto = c?.id !== meuLance.cardId || (M0.lider !== null && M0.lider !== you.id && M0.preco >= meuLance.valor)
+    if (coberto) {
+      setMeuLance(null)
+      setAviso(c?.id !== meuLance.cardId
+        ? t('⚠️ O martelo bateu antes do seu lance chegar.', '⚠️ The hammer fell before your bid arrived.')
+        : t(`⚠️ Alguém cobriu antes do seu lance chegar — o mínimo agora é ${paMinimo(state, k)}.`, `⚠️ Someone topped it before your bid arrived — the minimum is now ${paMinimo(state, k)}.`))
+    }
+  }, [mvEu?.card?.id, mvEu?.M.lider, mvEu?.M.preco, meuLance]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!meuLance) return
+    const tm = setTimeout(() => { setMeuLance(null); setAviso(t('⚠️ Seu lance não chegou no dono da sala (internet). Tenta de novo.', '⚠️ Your bid didn’t reach the room owner (connection). Try again.')) }, 5000)
+    return () => clearTimeout(tm)
+  }, [meuLance]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!aviso) return; const tm = setTimeout(() => setAviso(''), 3500); return () => clearTimeout(tm) }, [aviso])
+  const mv = paMesa(state, k)
+  const pa = state.pa
+  const card = mv?.card ?? null
+  const M = mv?.M
+  const minimo = paMinimo(state, k)
+  const pode = (v: number) => !!card && !!you && paPodeLancar(state, you.id, v, state.youUid, k)
+  const lance = (v: number) => {
+    if (!card || !you || !pode(v)) return
+    dispatch({ type: 'PREGAO_ABERTO_LANCE', mgrId: you.id, valor: v, by: state.youUid, mesa: k, cardId: card.id })
+    if (online) setMeuLance({ cardId: card.id, valor: v, em: Date.now() })
+  }
+  // 🔨 atalhos de lance (17/10, Diego): +1 · +2 · +5 · +10 numa mesa só; na carta dupla +1 · +5 · +10
+  const extras = compacto ? [0, 4, 9] : [0, 1, 4, 9]
+  // ⌨️ 26/11: no COMPUTADOR o lance também sai pelo teclado. Uma mesa: 1 · 2 · 5 · 0. Duas: 1 · 2 · 3 na da esquerda, 8 · 9 · 0 na da direita.
+  const teclas = !compacto ? ['1', '2', '5', '0'] : k === 0 ? ['1', '2', '3'] : ['8', '9', '0']
+  const lanceRef = useRef(lance); lanceRef.current = lance
+  const minRef = useRef(minimo); minRef.current = minimo
+  useEffect(() => {
+    if (!desk) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return
+      const alvo = e.target as HTMLElement | null
+      if (alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.isContentEditable)) return
+      const i = teclas.indexOf(e.key)
+      if (i < 0) return
+      e.preventDefault()
+      setApertou(i); setTimeout(() => setApertou(x => x === i ? null : x), 180)
+      lanceRef.current(minRef.current + extras[i])
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [desk, compacto, k]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (!mv || !pa || !you || !M) return null
+  const lider = M.lider !== null ? state.managers.find(m => m.id === M.lider) : null
+  const seg = M.deadline ? Math.min(PA_MARTELO_MS / 1000, Math.max(0, Math.ceil((M.deadline - agora) / 1000))) : 0 // nunca mostra 7s por um tique atrasado
+  const posVagas = card ? openSlots(you, card.pos) : 0
+  // 🃏 a carta que acabou de sair DESTA mesa vira no mesmo lugar (rosto, cor, estrelas, selo) por `PA_VIRA_MS`
+  const virada = M.viraAte && agora < M.viraAte && M.viraId ? pa.fila.find(x => x.id === M.viraId) ?? null : null
+  const vendVirada = virada ? pa.vendidos.find(x => x.cardId === virada.id) : undefined
+  const posNome = !card ? '' : bbPA() ? t(POS_LABELS.basquete[card.pos].singular.pt.toLowerCase(), POS_LABELS.basquete[card.pos].singular.en.toLowerCase()) : t(POS_PT[card.pos][0], POS_PT[card.pos][1])
+  const contagem = seg <= 1 ? t('TRÊS… VENDIDO!', 'THREE… SOLD!') : seg <= 2 ? t('DUAS…', 'TWICE…') : seg <= 3 ? t('UMA…', 'ONCE…') : ''
+  const vermelho = seg <= 2 && M.lider !== null && !virada
+  return <div className={compacto ? 'll-pregao-table' : 'll-pregao-table ll-pregao-single ll-pa-v2'} style={compacto ? { display: 'flex', flexDirection: 'column', gap: 7, minWidth: 0 } : { minWidth: 0 }}>{card ? (
+          <>
+            <div className="ll-pregao-identity ll-pa-id" style={{display:'flex',flexDirection:'column',gap:compacto?7:10}}>
+            {/* 🃏 a carta da mesa — a MESMA carta do jogo */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              {/* 🖥️ 17/10: na mesa dupla do computador a carta enchia meia tela e empurrava o lance pra fora — teto de 230px */}
+              <div className="ll-pa-carta" style={{ width: compacto ? 'min(100%, 230px)' : '100%', position: 'relative' }}>
+                {card.pacote
+                  ? <PacoteMesa c={virada?.pacote ? virada : card} compacto={compacto} aberto={!!virada?.pacote?.conquista} />
+                  : virada
+                  ? <div key={virada.id} className="pa-vira" style={compacto ? { filter: `drop-shadow(0 0 18px ${brilhoDe(virada)})` } : undefined}><CollectibleCard name={virada.name} club={virada.club} year={virada.year} pos={virada.pos} fame={virada.fame} folk={!!virada.folk} promessa={virada.promessa} /></div>
+                  : <CartaCoberta name={card.name} club={card.club} year={card.year} pos={card.pos} />}
+                {/* 🔨 26/11: com DUAS mesas a virada é no lugar — carimbo de quem levou (a outra mesa segue rolando) */}
+                {compacto && virada && !virada.pacote && vendVirada && <div className="pa-carimbo ov3-surface" style={{ position: 'absolute', left: '50%', top: '42%', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 10, boxShadow: `3px 3px 0 ${INK}`, padding: '4px 8px', textAlign: 'center', whiteSpace: 'nowrap', maxWidth: '112%' }}>
+                  <b style={{ ...OSW, display: 'block', color: '#E8503A', fontSize: 15, lineHeight: 1 }}>{vendVirada.mgr == null ? t('🙈 NINGUÉM QUIS', '🙈 NOBODY') : t('🔨 VENDIDO!', '🔨 SOLD!')}</b>
+                  {vendVirada.mgr != null && <span style={{ ...OSW, fontWeight: 800, fontSize: 12, textTransform: 'uppercase' }}>{vendVirada.mgr === you.id ? t('VOCÊ', 'YOU') : vendVirada.time} <b style={{ background: GOLD, border: `2px solid ${INK}`, borderRadius: 6, padding: '0 5px' }}>{vendVirada.preco} 🪙</b></span>}
+                </div>}
+              </div>
+            </div>
+            {!compacto && desk && <p className="ov3-page-muted" style={{ margin: 0, textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>
+              {card.pacote ? t('próximo clube', 'next club') : t('próxima carta', 'next card')}: <b className="ov3-surface" style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b> · {t('posição', 'position')}: <b className="ov3-surface" style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b>
+            </p>}
+            </div>
+            <div className="ll-pregao-controls ll-pa-ctl" style={{display:'flex',flexDirection:'column',gap:compacto?7:10,minWidth:0}}>
+            {/* 💰 o lance atual + o relógio do martelo (GRUDADO: a lista cresce e o preço não pode sumir) */}
+            <div className="ll-pa-lance" style={{ position: 'sticky', top: 6, zIndex: 5, display: 'flex', alignItems: 'center', gap: compacto ? 6 : 10, flexWrap: 'wrap', border: `3px solid ${INK}`, borderRadius: 14, padding: compacto ? '6px 8px' : '8px 12px', boxShadow: `4px 4px 0 0 ${INK}`, background: virada ? '#E9E2CF' : vermelho ? '#E8503A' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, color: virada ? 'rgba(0,0,0,.5)' : vermelho ? '#fff' : INK }}>
+              <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 22 : 34, lineHeight: 1 }}>{M.lider !== null ? `${M.preco} 🪙` : '—'}</b>
+              <div className="ll-pa-quem" style={{ flex: 1, minWidth: 0 }}>
+                <small style={{ display: 'block', fontSize: 9, fontWeight: 900, letterSpacing: 1, opacity: .75 }}>{M.lider !== null ? t('LANCE ATUAL', 'CURRENT BID') : t('NINGUÉM DEU LANCE', 'NO BIDS YET')}</small>
+                <span style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 11.5 : 16, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{lider ? `${lider.teamName}${lider.id === you.id ? ` · ${t('VOCÊ', 'YOU')}` : ''}` : t('lance livre: dá quanto quiser', 'open bid: offer what you want')}</span>
+              </div>
+              <div className="ll-pa-relogio" style={{ textAlign: 'center', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: compacto ? '3px 6px' : '4px 10px', minWidth: compacto ? 44 : 62 }}>
+                <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1 }}>{virada ? '🔨' : `⏱ ${seg}s`}</b>
+                {/* 📐 17/10 (Diego): a linha do "uma… duas… vendido!" fica SEMPRE reservada — senão as duas mesas desalinhavam */}
+                <span style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: .5, minHeight: '1.2em' }}>{virada ? t('VIRANDO', 'FLIPPING') : contagem || ' '}</span>
+              </div>
+            </div>
+
+            {/* 📜 os últimos lances */}
+            {M.lances.length > 0 && (
+              <div className="ov3-surface" style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 13, overflow: 'hidden' }}>
+                {[...M.lances].reverse().slice(0, compacto ? 2 : 3).map((l, i) => {
+                  const m = state.managers.find(x => x.id === l.mgr)
+                  return (
+                    <div className="ov3-surface" key={`${l.mgr}-${l.valor}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: compacto ? '4px 8px' : '5px 10px', borderTop: i ? '1.5px solid rgba(0,0,0,.08)' : 'none', background: i === 0 ? '#E9F5EC' : '#fff', fontWeight: 700, fontSize: 12 }}>
+                      <span className="ov3-surface" style={{ ...OSW, fontWeight: 700, textTransform: 'uppercase', border: `2px solid ${INK}`, borderRadius: 8, padding: '1px 7px', background: m?.id === you.id ? GOLD : '#F4ECD6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{m?.teamName ?? '?'}</span>
+                      <b style={{ ...OSW, marginLeft: 'auto', fontSize: compacto ? 14 : 16, flex: 'none' }}>{l.valor} 🪙</b>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {aviso && <div className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? '5px 7px' : '7px 10px', fontSize: compacto ? 10.5 : 12, fontWeight: 800, textAlign: 'center' }}>{aviso}</div>}
+            </div>
+            {/* 🫵 seus botões — ou a trava explicada */}
+            <div className="ll-pa-bts" style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+            {posVagas <= 0 ? (
+              <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
+                🔒 {card.pacote
+                  ? t(`Você já tem o seu pacote de ${posNome} — neste só assiste.`, `You already have your ${posNome} pack — just watching this one.`)
+                  : t(`Você já tem ${posNome} — nesta carta só assiste.`, `You already have a ${posNome} — just watching this one.`)}
+              </div>
+            ) : M.lider === you.id ? (
+              <div className="ov3-surface" style={{ background: '#E9F5EC', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase' }}>
+                ✋ {t(`Você está na frente. Se ninguém cobrir em ${PA_MARTELO_MS / 1000}s, é seu.`, `You lead. Nobody tops it in ${PA_MARTELO_MS / 1000}s and it’s yours.`)}
+              </div>
+            ) : Math.floor(you.money) < minimo ? (
+              <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
+                🔒 {t(`Seu caixa não cobre ${minimo} 🪙.`, `Your cash doesn’t cover ${minimo} 🪙.`)}
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: compacto ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr', gap: compacto ? 5 : 7 }}>
+                  {extras.map((extra, i) => {
+                    const v = minimo + extra
+                    const ok = pode(v)
+                    const press = apertou === i
+                    return <button key={extra} disabled={!ok} onClick={() => lance(v)} style={{ position: 'relative', ...OSW, fontWeight: 900, border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? '8px 2px' : '11px 4px', background: ok ? (press ? '#FFDB4D' : GOLD) : '#CBBF9E', boxShadow: ok && !press ? `3px 3px 0 0 ${INK}` : 'none', transform: press ? 'translate(3px,3px)' : undefined, cursor: ok ? 'pointer' : 'default', color: ok ? INK : 'rgba(0,0,0,.45)', lineHeight: 1.05 }}>
+                      {/* 17/10 (Diego): só o "+N" — o valor do lance já aparece na faixa do LANCE ATUAL, mostrar os dois confunde */}
+                      <span style={{ display: 'block', fontSize: compacto ? 17 : 22 }}>+{extra + 1}</span>
+                      {desk && <kbd style={{ position: 'absolute', top: 3, right: 4, background: INK, color: '#fff', borderRadius: 4, padding: '0 4px', fontSize: 9.5, fontFamily: 'system-ui, sans-serif', fontWeight: 900, lineHeight: 1.4 }}>{teclas[i]}</kbd>}
+                    </button>
+                  })}
+                  <div className="ov3-surface" style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 11, background: '#fff', overflow: 'hidden', gridColumn: '1 / -1', minHeight: 34 }}>
+                    <input inputMode="numeric" value={outro} onChange={e => setOutro(e.target.value.replace(/\D/g, ''))} placeholder={t('outro', 'other')} style={{ width: '100%', minWidth: 0, border: 'none', padding: '0 6px', ...OSW, fontWeight: 900, fontSize: 14, textAlign: 'center' }} />
+                    <button disabled={!pode(Number(outro))} onClick={() => { lance(Number(outro)); setOutro('') }} style={{ border: 'none', borderLeft: `3px solid ${INK}`, background: pode(Number(outro)) ? GREEN : '#CBBF9E', color: '#fff', fontWeight: 900, padding: '0 8px', cursor: 'pointer' }}>OK</button>
+                  </div>
+                </div>
+                {!compacto && <p className="ov3-page-muted ll-pa-dica" style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t(`Cada lance novo zera o relógio. ${PA_MARTELO_MS / 1000}s sem lance = uma, duas, três… vendido!`, `Every new bid resets the clock. ${PA_MARTELO_MS / 1000}s without a bid = going once, twice… sold!`)}{desk && <b>{' '}⌨️ {t('Teclado: 1 · 2 · 5 · 0.', 'Keyboard: 1 · 2 · 5 · 0.')}</b>}</p>}
+              </>
+            )}
+            </div>
+          </>
+        ) : (
+          <div className="pt-6 text-center text-4xl">🔨</div>
+        )}</div>
+}
+
 // 🧱 PACOTE DE CLUBE NA MESA (17/10, Diego: "teria que aparecer o escudo dos times, quantos jogadores por posição e sem
 // precisar se transformar em carta dourada… já que clubes não têm Lenda, Craque etc."). Nada fica coberto e nada vira: o
 // lote já é o que é — escudo, "Goleiros do Palmeiras" e QUANTOS jogadores vêm. Os NOMES continuam escondidos até a
@@ -351,7 +795,22 @@ export function CartaCoberta({ name, club, year, pos }: { name: string; club: st
 const CSS_VIRA = `@keyframes paVira{0%{transform:perspective(500px) rotateY(90deg)}100%{transform:perspective(500px) rotateY(0)}}
 .pa-vira{animation:paVira .6s ease-out both}
 @keyframes paPres{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
-@keyframes paBarra{from{width:100%}to{width:0}}`
+@keyframes paBarra{from{width:100%}to{width:0}}
+/* 🎭 26/11: o palco da virada (uma carta na mesa) e o carimbo (duas cartas) — tudo dentro dos 2s da virada */
+@keyframes paPalcoIn{from{opacity:0}to{opacity:1}}
+@keyframes paPalcoCarta{0%{transform:perspective(900px) rotateY(90deg) scale(.7)}55%{transform:perspective(900px) rotateY(0) scale(1.06)}100%{transform:perspective(900px) rotateY(0) scale(1)}}
+@keyframes paPalcoVend{0%{transform:scale(1.7);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes paPalcoQuem{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes paCarimbo{0%{transform:translate(-50%,-50%) rotate(-6deg) scale(1.9);opacity:0}100%{transform:translate(-50%,-50%) rotate(-6deg) scale(1);opacity:1}}
+.pa-palco{animation:paPalcoIn .18s ease-out both}
+.pa-palco-carta{animation:paPalcoCarta .6s ease-out both}
+.pa-palco-vend{animation:paPalcoVend .3s .12s cubic-bezier(.3,1.6,.5,1) both}
+.pa-palco-quem{animation:paPalcoQuem .3s .55s ease-out both}
+.pa-carimbo{animation:paCarimbo .28s .5s cubic-bezier(.3,1.6,.5,1) both;z-index:4}
+/* 📐 26/11: UMA mesa = grade. Celular: carta à esquerda do lance, botões embaixo (tudo na tela sem rolar) */
+.ll-pa-v2{display:grid;grid-template-columns:142px minmax(0,1fr);grid-template-areas:"id ctl" "bts bts";gap:10px;align-items:start}
+.ll-pa-v2 .ll-pa-id{grid-area:id;min-width:0}.ll-pa-v2 .ll-pa-ctl{grid-area:ctl}.ll-pa-v2 .ll-pa-bts{grid-area:bts}
+@media (max-width:719px){.ll-pa-v2 .ll-pa-quem{order:3;flex:1 1 100%!important}.ll-pa-v2 .ll-pa-dica{display:none}.ll-pa-v2 .ll-pa-lance{position:relative!important;top:0!important}}`
 
 // 🎁 SEU TIME FECHOU DE GRAÇA (16/10): sem Monte no pregão aberto, a vaga vazia ganha jogador. Diego: *"no fim o cara precisa
 // apertar botão?? quando tiver na sala online isso não pode atrapalhar"* → SEM BOTÃO: aparece por cima, some sozinho em 6s,

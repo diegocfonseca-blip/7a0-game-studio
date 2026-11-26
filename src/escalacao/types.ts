@@ -869,6 +869,8 @@ export interface EscState {
   convocacaoFormacao?: Record<number, FormationKey>
   /** 🔨 modo PREGÃO ABERTO ligado nesta partida (16/10, em teste) */
   pregaoAberto?: boolean
+  /** 🃏 26/11 (Diego): pregão aberto com UMA carta na mesa mesmo com 11+ clubes (escolha de quem cria) */
+  paUmaCarta?: boolean
   /** 🌴 sala Vice City (19/11): pregão aberto com cartas de golpe */
   viceCity?: boolean
   /** 🃏 19/11: quantas cartas de golpe cada técnico recebe (3 padrão · 4 · 5), escolha de quem cria */
