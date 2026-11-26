@@ -1,3 +1,4 @@
+import {COPA_CARREIRA_ANCORA,COPA_CARREIRA_CICLO} from './copa-mundo-calendario'
 import {gestaoAtiva,carreiraSoloFutebol} from './carreira-regras'
 import {fatosDoBairro} from './cenas-bairro-fatos'
 import {LesaoAoVivo} from './lesao-ao-vivo'
@@ -8316,8 +8317,8 @@ export async function globalRankRpc(name: GlobalRankRpc, args: Record<string, nu
 //     38 rodadas;
 //   • a SUPERCOPA vale MENOS que a liga (15) porque é UM jogo, e você só entra
 //     nela por já ter ganho a liga ou a copa (o ponto grande já veio antes);
-//   • a COPA DO MUNDO segue valendo muito (200) por ser o endgame — só existe
-//     da T100 em diante e só uma vez a cada 10 temporadas.
+//   • a COPA DO MUNDO segue valendo 200; o calendário atual é de quatro
+//     temporadas e a participação depende do ranking.
 //
 // ⚠️ ESTA MESMA CONTA decide o TOP 32 que se classifica pra Copa do Mundo (o
 // mural de clubes usa `pontosDeTitulos` também). Os dois têm que andar JUNTOS —
@@ -10582,7 +10583,7 @@ export function PyramidSeasonScreen() {
         const supercopas = state.careerSupercopaHonors?.[`m${youId}`] ?? 0
         // 🌍 SÓ CONTA COPA DO MUNDO QUE CABE NESTA CARREIRA (17/08). Duas travas
         // no mesmo lugar, e as duas são "não dá pra ter o que ainda não jogou":
-        //   • a Copa do Mundo só existe da temporada 100 em diante;
+        //   • a Copa do Mundo pode existir desde a primeira temporada;
         //   • e ninguém pode ter ganho uma edição FUTURA da própria carreira —
         //     é o mesmo princípio do ranking ("ninguém vê o futuro de ninguém").
         // Isto é o cinto de segurança do bug que o Diego achou: o mural vazava da
@@ -10592,7 +10593,7 @@ export function PyramidSeasonScreen() {
         // próxima temporada que a pessoa jogar — sem precisar mexer no aparelho
         // dela nem apagar nada à mão.
         const world = mergedMundialMural(state.seed, state.copaMundoMural)
-          .filter(m => m.voce && m.season >= 100 && m.season <= (state.seasonNo ?? 0)).length
+          .filter(m => m.voce && m.season >= COPA_CARREIRA_ANCORA && m.season <= (state.seasonNo ?? 0)).length
         // 🛡️ TRAVA DE SANIDADE (19/08, caso do Paduz): NINGUÉM PODE TER MAIS
         // TÍTULO DO QUE TEMPORADA JOGADA. Ele começou carreira nova e ela nasceu
         // com 31 Séries A e 28 Copas — dá pra ver nos saves dele no banco: a
@@ -11998,19 +11999,17 @@ export function PyramidSeasonScreen() {
   // com a Copa depois, os gols dela nunca entrariam. Então, só quando o SEU clube
   // está nela (é ano de Copa e você está no TOP 32), o roteiro abre na Copa, e a
   // Bola de Ouro, o histórico da temporada e a comissão da Agência ESPERAM ela
-  // acabar. Ano sem Copa (9 em cada 10) segue exatamente como era.
-  // 🇧🇷 Brasil Oficial: a Copa do Mundo chega por CONVITE (a seleção da sua posição no ranking dos 32). 18/11 (Diego: "não pode
-  // mais ser bloqueada… esse o começo, mas com base ainda em convites e ranking"): desde a 1ª temporada (= 2026, ano de Copa de
-  // verdade) e de 4 em 4. Era a partir da 50 (17/11). Carreira já começada: o `ensureSave` só troca a âncora se nenhuma Copa foi jogada.
-  const cmAncora = state.oficial ? 1 : 100
-  // 🇧🇷 Brasil Oficial: a Copa volta de 4 em 4 (Diego 17/11: "tb será de 4 em 4 anos"); a de sempre segue de 10 em 10
-  const cmCiclo = state.oficial ? 4 : 10
-  const cmAgenda = useMemo(() => (state.seed != null ? copaMundoDaTemporada(state.seed, state.seasonNo ?? 1, cmAncora, cmCiclo) : { ano: false, jogada: false }),
+  // acabar. Ano sem Copa segue o encerramento normal, sem parar por seleção.
+  // 🌍 26/11: ambas as carreiras têm Copa desde T1, a cada 4 temporadas, por ranking.
+  // O calendário migra preservando as edições concluídas e qualquer Copa em andamento.
+  const cmAncora = COPA_CARREIRA_ANCORA
+  const cmCiclo = COPA_CARREIRA_CICLO
+  const cmAgenda = useMemo(() => (state.seed != null ? copaMundoDaTemporada(state.seed, state.seasonNo ?? 1, cmAncora, cmCiclo,state.copaMundoMural) : { ano: false, jogada: false,proxima:1,emAndamento:false }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [state.seed, state.seasonNo, state.copaMundoStats, state.copaMundoMural, cmAncora, cmCiclo])
   const mundoAntes = done && !!state.careerOnline && state.onlineMode !== 'online' && (state.seasonNo ?? 1) >= cmAncora && cmAgenda.ano
     // (depois de jogada ela FICA na frente, mesmo se o ranking mexer com o prêmio dela)
-    && (cmVaga.top16.some(r => r.you) || state.copaMundoStats?.season === state.seasonNo)
+    && (cmVaga.top16.some(r => r.you) || cmAgenda.emAndamento || state.copaMundoStats?.season === state.seasonNo)
   const mundoPendente = mundoAntes && !cmAgenda.jogada && state.copaMundoStats?.season !== state.seasonNo
   // 🌍 22/11 (Diego, print do "nenhuma seleção te chamou": *"não precisa, só vai aparecer algo quando tiver o convite"*): o passo 3
   // só entra no roteiro quando há o que fazer nele — Copa do Mundo com o SEU clube convidado, ou a temporada internacional (T40+).
@@ -13672,7 +13671,7 @@ export function PyramidSeasonScreen() {
         }
       }
     } else if (mundoPendente) {
-      compPalco = { arte: 'mundo', rotulo: tr('🌍 Copa do Mundo', '🌍 World Cup'), frase: tr('É ano de Copa do Mundo — ela abre o fim de temporada, em Jogos.', 'It’s a World Cup year — it opens the season wrap-up, in Matches.') }
+      compPalco = { arte: 'mundo', rotulo: tr('🌍 Copa do Mundo', '🌍 World Cup'), frase: tr('Chegou um convite de seleção para a Copa do Mundo. Confira em Jogos.', 'A national team invitation has arrived for the World Cup. Check Matches.') }
     } else if (done && copaBase && copaFinished && copaBase.rounds.length) {
       // liga e Copa encerradas: o giro mostra a decisão da Copa (o playoff da B não é a Copa)
       const final = copaBase.rounds[copaBase.rounds.length - 1]
@@ -13714,7 +13713,7 @@ export function PyramidSeasonScreen() {
       copaChegando: [
         ...(!seasonOver && 38 - round <= 5 ? [{ nome: (copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']) as [string, string], rodadasFaltam: 38 - round }] : []),
         ...(intlEnabled && sn === 39 ? [{ nome: ['Libertadores', 'Libertadores'] as [string, string], proximaTemporada: true }] : []),
-        ...(sn >= cmAncora - 1 && cmAgenda.ano && !cmAgenda.jogada ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], esteAno: true }] : sn + 1 >= cmAncora && (sn + 1 - cmAncora) % cmCiclo === 0 ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], proximaTemporada: true }] : []),
+        ...(sn >= cmAncora - 1 && cmAgenda.ano && !cmAgenda.jogada ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], esteAno: true }] : cmAgenda.proxima===sn+1 ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], proximaTemporada: true }] : []),
       ],
     })
     if (compManchete) jornal.manchete = compManchete
@@ -14496,8 +14495,8 @@ export function PyramidSeasonScreen() {
             artilheiros={top5Jornal.artilheiros}
             garcons={top5Jornal.garcons}
             artilheirosDoAno={artilheirosDoAno}
-            /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado), começa
-               na temporada 100 e repete de 10 em 10 — só aparece se ELA terminou nesta
+            /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado);
+               o calendário das carreiras é de quatro temporadas — só aparece se ELA terminou nesta
                temporada exata (pedido do Diego 05/08). */
             mundial={(() => {
               if (state.seed == null) return undefined
@@ -15038,7 +15037,7 @@ export function PyramidSeasonScreen() {
             // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
             // Ninguém aperta nada: é conversa entre os celulares.
-            return <CopaMundoGate anchor={cmAncora} ciclo={cmCiclo} convite={!!state.oficial} seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
+            return <CopaMundoGate muralGuardado={state.copaMundoMural} anchor={cmAncora} ciclo={cmCiclo} convite={!!state.oficial} seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}
