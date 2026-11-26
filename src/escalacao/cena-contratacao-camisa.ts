@@ -1,18 +1,19 @@
 import {escudoDe,nomeLimpo} from './escudos'
 import {kitDoTime} from './camisas-2d-dados'
 import {camisaSalaoDe,RECORTE_CAMISA} from './salao-camisas'
-import {uniformeDoTime} from './futebol3d/uniformes.mjs'
+import {uniformeApresentacao} from './cena-contratacao-uniformes'
+import {pintarTecido} from './cena-contratacao-tecido'
 import {arteEscudoClube} from './presidencia-sala-identidade-assets'
+import {ESCUDOS_OFICIAIS} from './escudos-oficiais'
 
-type Uniforme={tipo:string;corpo:string;detalhe:string;gola:string;n:number;largura:number}
 /** The buyer is separate from the historical card identity. Use the same public
  * crest, shop artwork and kit palette already used by this career's club. */
 export function camisaApresentada(destino:string){
  const nome=nomeLimpo(destino),base=escudoDe(nome),cores=kitDoTime(nome,base.c1)
  const arquivo=camisaSalaoDe(nome)
- return {nome,uniforme:uniformeDoTime(nome,cores[0],cores[1]??base.c2) as Uniforme,
+ return {nome,uniforme:uniformeApresentacao(nome,[cores[0],cores[1]??base.c2]),
   arte:arquivo?import.meta.env.BASE_URL+'mantos-salao/'+arquivo:undefined,
-  recorte:RECORTE_CAMISA[nome],escudo:arteEscudoClube(nome)}
+  recorte:RECORTE_CAMISA[nome],escudo:!arquivo&&ESCUDOS_OFICIAIS[nome]?import.meta.env.BASE_URL+ESCUDOS_OFICIAIS[nome].src:arteEscudoClube(nome)}
 }
 export type CamisaApresentada=ReturnType<typeof camisaApresentada>
 
@@ -46,27 +47,43 @@ export function corpoApresentacao(body:HTMLImageElement,camisa:CamisaApresentada
    }
   }
  }
- ctx.save();contorno(ctx);ctx.clip()
  const k=camisa.uniforme
- ctx.globalCompositeOperation='multiply';ctx.fillStyle=k.corpo;ctx.fillRect(290,340,670,750)
- ctx.fillStyle=k.detalhe
- if(k.tipo==='listras_h'||k.tipo==='listras_v'){
-  const vertical=k.tipo==='listras_v',span=vertical?650:730,start=vertical?300:350,step=span/k.n
-  for(let i=0;i<k.n;i++)if(vertical)ctx.fillRect(start+i*step,340,step*k.largura,750);else ctx.fillRect(290,start+i*step,670,step*k.largura)
- }else if(k.tipo==='faixa'){
-  ctx.beginPath();ctx.moveTo(850,350);ctx.lineTo(950,350);ctx.lineTo(400,1090);ctx.lineTo(300,1090);ctx.closePath();ctx.fill()
- }else if(k.tipo==='metade')ctx.fillRect(630,340,340,750)
- ctx.globalCompositeOperation='source-over'
+ let fabricMask:HTMLCanvasElement|undefined
  if(art){
+  // Keep approved custom club artwork on its existing path.
+  ctx.save();contorno(ctx);ctx.clip();ctx.globalCompositeOperation='multiply';ctx.fillStyle=k.corpo;ctx.fillRect(290,340,670,750);ctx.globalCompositeOperation='source-over'
   const cut=camisa.recorte
   ctx.drawImage(art,0,0,art.naturalWidth,cut?art.naturalHeight*cut[2]/cut[1]:art.naturalHeight,303,347,640,730)
+  ctx.restore()
  }else{
+  fabricMask=pintarTecido(ctx,k)
+  ctx.save();contorno(ctx);ctx.clip()
   ctx.strokeStyle=k.gola;ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(544,352);ctx.quadraticCurveTo(635,463,720,352);ctx.stroke()
-  if(crest){const h=85,w=h*crest.naturalWidth/crest.naturalHeight;ctx.drawImage(crest,744-w/2,478,w,h)}
+  if(crest){
+   const badge=camisa.nome==='Flamengo'?monogramaFlamengo(crest):crest
+   const h=85,w=h*(badge instanceof HTMLImageElement?badge.naturalWidth/badge.naturalHeight:badge.width/badge.height)
+   ctx.drawImage(badge,744-w/2,478,w,h)
+  }
+  ctx.restore()
  }
- ctx.restore()
  const garment=document.createElement('canvas');garment.width=garment.height=768
  const g=garment.getContext('2d');if(!g)throw Error('Canvas indisponível')
- g.scale(.6,.6);contorno(g);g.clip();g.drawImage(canvas,0,0,1280,1280)
+ if(fabricMask){g.drawImage(canvas,0,0);g.globalCompositeOperation='destination-in';g.drawImage(fabricMask,0,0)}
+ else{g.scale(.6,.6);contorno(g);g.clip();g.drawImage(canvas,0,0,1280,1280)}
  return {body:canvas,garment}
+}
+
+/** The shirt uses the white CRF, taken from the same official shield asset.
+ * Preserve its actual letterforms instead of drawing a replacement logo. */
+function monogramaFlamengo(crest:HTMLImageElement){
+ const c=document.createElement('canvas');c.width=c.height=128
+ const x=c.getContext('2d');if(!x)return crest
+ x.drawImage(crest,0,0,crest.naturalWidth*.5,crest.naturalHeight*.4,0,0,128,128)
+ const pixels=x.getImageData(0,0,128,128),p=pixels.data
+ for(let i=0;i<p.length;i+=4){
+  const lo=Math.min(p[i],p[i+1],p[i+2]),hi=Math.max(p[i],p[i+1],p[i+2])
+  p[i+3]=hi-lo<48?Math.round(p[i+3]*Math.max(0,Math.min(1,(lo-100)/120))):0
+  p[i]=244;p[i+1]=241;p[i+2]=232
+ }
+ x.putImageData(pixels,0,0);return c
 }
