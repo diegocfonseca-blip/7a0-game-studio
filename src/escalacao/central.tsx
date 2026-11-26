@@ -247,7 +247,7 @@ const FUNDOS: Record<CentralArte, string> = { estadio: estadioArt, copaBr: copaB
 // ideia: *"sim, faz"*. Motivo: desde 04/10 a nuvem só recebe a carreira quando a pessoa aperta
 // salvar — então o botão não pode morar só no pé da página. A faixa diz em que pé está a nuvem
 // (em dia · atrasada · nunca · só no aparelho) e o botão sobe na hora.
-function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
+export function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   const t = useT()
   const ha = (m?: number) => m == null ? '' : m < 1 ? t('agora há pouco', 'just now') : m < 60 ? t(`há ${m} min`, `${m} min ago`) : t(`há ${Math.round(m / 60)} h`, `${Math.round(m / 60)} h ago`)
   const AMBAR = '#FFB020', VERDE = '#4ADE80', CINZA = '#9A9A9A'

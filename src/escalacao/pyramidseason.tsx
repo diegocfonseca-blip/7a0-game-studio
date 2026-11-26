@@ -174,7 +174,7 @@ import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } fr
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
 import {DesktopRankSummary} from './desktop-layout'
-import { CentralCarreira } from './central'
+import { CentralCarreira, FaixaSalvar } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
 import type { CentralAgenda, CentralAgendaVelha, CentralJogo, CentralArte, FaixaSalvarProps, RaioX } from './central'
 import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
@@ -15862,6 +15862,7 @@ export function PyramidSeasonScreen() {
         {/* O painel 3D fica fora do conteúdo oculto de Jogos; abrir deve mostrar as trocas sobre o mapa. */}
         {subAberto && subPossivel && tab === 'estadio' && painelSub('janela')}
         <AvisoContaCarreira />
+        {visualV2 && salvarNuvem && <div className="ll-cx-sair"><FaixaSalvar s={salvarNuvem} /></div>}
         {state.onlineMode === 'online' ? (
           <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
         ) : (

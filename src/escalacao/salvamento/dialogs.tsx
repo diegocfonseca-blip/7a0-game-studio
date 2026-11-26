@@ -3,6 +3,17 @@ import { Box, Btn } from '../screens'
 import { useEsc } from '../store'
 import { useT } from '../lang'
 import * as saves from './service'
+export function SaveCopies({seed}:{seed:number}) {
+  const t=useT(),c=saves.copies(seed)
+  const progress=(s:{seasonNo:number;round:number})=>`${t('Temporada','Season')} ${s.seasonNo} · ${t('rodada','round')} ${s.round}`
+  const style={display:'block',fontSize:10.5,fontWeight:700,color:'#4a4740',marginTop:4,lineHeight:1.4} as const
+  return <div data-save-copies={seed}>
+    {!c.checked?<span style={style}>{t('☁️ Nuvem ainda não conferida','☁️ Cloud not checked yet')}</span>
+      : !c.cloud?<span style={style}>{t('📱 Só neste aparelho · use Salvar para enviar à nuvem com plano','📱 Only on this device · use Save to upload with a plan')}</span>
+      : <><span style={style}>☁️ {t('Na nuvem','Cloud')}: {progress(c.cloud)} · {new Date(c.cloud.savedAt).toLocaleString()}</span>
+        {c.device&&(c.pending||!c.sameRevision)&&<span style={{...style,color:'#8a5000'}}>📱 {t('Neste aparelho','This device')}: {progress(c.device)} · {t('cópias diferentes; confira ao continuar','different copies; check when continuing')}</span>}</>}
+  </div>
+}
 export function SaveDialogs() {
   const { state, dispatch } = useEsc(), t = useT()
   const [, tick] = useState(0)
@@ -38,14 +49,15 @@ export function SaveDialogs() {
       <Box bg="#F4ECD6" className="p-4" style={{ color: '#0C0C0C', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2 id="save-conflict-title" className="text-xl font-black uppercase">{t('Dois avanços desta carreira', 'Two versions of this career')}</h2>
         <p className="text-sm my-3">{t('Há avanços diferentes desta carreira. As cópias serão preservadas. Qual você quer continuar?', 'There are different versions of this career. The copies will be kept. Which do you want to continue?')}</p>
-        <p className="text-sm mb-2"><b>{t('Neste aparelho', 'This device')}</b>: {t('temporada', 'season')} {c.local.seasonNo} · {t('rodada', 'round')} {c.local.round}</p>
-        <p className="text-sm mb-4"><b>{c.source === 'device' ? t('Em outra aba deste aparelho','Another tab on this device') : t('Na nuvem', 'Cloud')}</b>: {t('temporada', 'season')} {c.cloud.seasonNo} · {t('rodada', 'round')} {c.cloud.round}<br /><span className="text-xs">{new Date(c.cloud.savedAt).toLocaleString()}</span></p>
+        <p className="text-sm mb-2"><b>{c.source === 'device' ? t('Em outra aba deste aparelho','Another tab on this device') : t('Na nuvem', 'Cloud')}</b>: {t('temporada', 'season')} {c.cloud.seasonNo} · {t('rodada', 'round')} {c.cloud.round}<br /><span className="text-xs">{new Date(c.cloud.savedAt).toLocaleString()}</span></p>
+        <p className="text-sm mb-4"><b>{t('Neste aparelho', 'This device')}</b>: {t('temporada', 'season')} {c.local.seasonNo} · {t('rodada', 'round')} {c.local.round}{c.local.savedAt&&<><br/><span className="text-xs">{new Date(c.local.savedAt).toLocaleString()}</span></>}</p>
         <div className="grid gap-3">
           <Btn onClick={() => c.choose('cloud')}>{c.source === 'device' ? t('Continuar do avanço da outra aba','Continue from the other tab') : t('Continuar da nuvem', 'Continue from cloud')}</Btn>
           <Btn onClick={() => c.choose('local')}>{t('Continuar deste aparelho', 'Continue from this device')}</Btn>
           <button onClick={() => c.choose('cancel')} className="text-sm underline py-2">{t('Cancelar e manter tudo', 'Cancel and keep everything')}</button>
         </div>
         <p className="text-xs mt-3">{t('Escolher este aparelho não altera a nuvem agora. Para enviar este avanço, toque em Salvar.', 'Choosing this device does not change the cloud now. To upload this progress, tap Save.')}</p>
+        {c.local.seasonNo===c.cloud.seasonNo&&c.local.round===c.cloud.round&&<p className="text-xs mt-2">{t('A rodada é igual, mas outras escolhas da carreira estão diferentes. Nenhuma cópia será substituída sem sua escolha.','The round is the same, but other career choices differ. Neither copy will be replaced without your choice.')}</p>}
       </Box>
     </div>
   </div>

@@ -1,6 +1,6 @@
 import {QuickMatchLayout,AuctionIdentity,AuctionPositions} from './shared-game-ui'
 import * as careerSaves from './salvamento/service'
-import { SaveHistory } from './salvamento/dialogs'
+import { SaveHistory, SaveCopies } from './salvamento/dialogs'
 import {MatchPresentationClockContext,useMatchPresentationClock,matchPresentationMinute,matchPresentationRemaining,type MatchPresentationClock} from './match-presentation-clock'
 import {footballRoundStatus,footballNextFixture} from './football-round-status'
 import { LinhaComunidadeChat } from './links-comunidade' // 📲🎮 23/11: WhatsApp + Discord no chat
@@ -1974,7 +1974,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   const [cloudUnavailable,setCloudUnavailable]=useState(false)
   // ☁️ 03/11: abriu a lista → confere a nuvem (só o carimbo, uns bytes) e redesenha se outro aparelho salvou depois.
   // Antes a lista era só a foto do aparelho na hora: quem abria logo depois de atualizar via a carreira velha.
-  useEffect(() => { let vivo = true; const off=careerSaves.subscribe(()=>{if(vivo)setList(listAllCareers())}); syncCareersWithCloud().then(ok => { if (vivo) { setList(listAllCareers());setLoadingSaves(false);setCloudUnavailable(!ok&&!!careerSaves.account()) } }, () => { if(vivo){setLoadingSaves(false);setCloudUnavailable(true)} }); return () => { vivo = false; off() } }, [])
+  useEffect(() => { let vivo = true; const off=careerSaves.subscribe(()=>{if(vivo)setList(listAllCareers())}); syncCareersWithCloud(true).then(ok => { if (vivo) { setList(listAllCareers());setLoadingSaves(false);setCloudUnavailable(!ok&&!!careerSaves.account()) } }, () => { if(vivo){setLoadingSaves(false);setCloudUnavailable(true)} }); return () => { vivo = false; off() } }, [])
   // 💾 17/10: a ficha extra comprada na Loja vem do banco; quando chega, a tela redesenha com o limite novo
   const [, setExtras] = useState(0)
   useEffect(() => { carregaFichasExtras().then(setExtras, () => {}) }, [])
@@ -2003,12 +2003,14 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   const t = useT() // 🌐 BR/EN
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
-      <div className="ov3-surface" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
+      <div className="ov3-surface" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', color: INK, border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>{t('🪜 Minhas Carreiras', '🪜 My Careers')}</p>
           <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {careerSlotLimit(list.length)}</span>
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
+        <p style={{fontSize:11,color:'#4a4740',lineHeight:1.4,margin:'0 0 12px'}}>{t('A lista reúne carreiras deste aparelho e da nuvem. Só as enviadas à nuvem podem continuar em outro aparelho.','This list includes device and cloud careers. Only careers uploaded to the cloud can continue on another device.')}</p>
+        {careerSaves.cloudRights()?.paid && <p style={{fontSize:11,color:'#4a4740',lineHeight:1.4,margin:'0 0 12px'}}>{t(`Seu plano inclui ${careerSaves.cloudRights()!.slots} fichas na nuvem. Cópias antigas deste aparelho continuam preservadas.`,`Your plan includes ${careerSaves.cloudRights()!.slots} cloud slots. Older copies on this device are kept.`)}</p>}
         {historySeed !== null && <SaveHistory seed={historySeed} onClose={() => setHistorySeed(null)} onRestored={() => { setHistorySeed(null); setList(listAllCareers()) }} />}
         <AvisoCarreiraGratis />
         {avisoTroca && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Não foi possível confirmar a ação. Confira a conexão e o espaço do aparelho e tente novamente.', '⚠️ Could not confirm the action. Check your connection and device storage, then try again.')}</p>}
@@ -2024,12 +2026,13 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
             <div className="ov3-surface" key={String(slot.save.seed ?? i)} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${DIV_COLOR[div] ?? '#8B8168'}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: active ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
               {active && <span style={{ position: 'absolute', top: -9, left: 12, background: GOLD, color: INK, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, border: `2px solid ${INK}`, ...OSWALD }}>{t('▶ última jogada', '▶ last played')}</span>}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn}</p>
+                <p style={{ color: INK, fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 9.5, fontWeight: 900, color: '#fff', background: DIV_COLOR[div] ?? '#8B8168', padding: '2px 7px', borderRadius: 6, ...OSWALD }}>SÉRIE {div}</span>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>{t('Temporada', 'Season')} {slot.save.seasonNo ?? 1}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>{t('Temporada', 'Season')} {slot.save.seasonNo ?? 1} · {t('rodada','round')} {slot.save.round ?? 0}</span>
                 </div>
                 <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 {t('caixa', 'till')} {caixa} · {t('jogou', 'played')} {agoLabel(slot.at)}</span>
+                <SaveCopies seed={slot.save.seed}/>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
                 <button disabled={busy} onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('▶️ Continuar', '▶️ Continue')}</button>

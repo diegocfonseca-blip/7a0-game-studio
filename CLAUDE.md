@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## Saves entre aparelhos — 26/11/2026
+
+Diego relatou PC com cópia antiga e celular avançado. Teste acompanhado confirmou upload manual e leitura no PC; não atribuir perda ao servidor sem prova. Recuperação local continua automática e nuvem continua manual. Mostrar origem/rodada/data das cópias na lista, explicar limite local preservado versus vagas da nuvem e conflito de mesma rodada; resumo local prioriza careerPlacements após promoção. Faixa aprovada de Salvar/estado da nuvem volta **no rodapé**, junto de Sair e salvar; não recolocar no topo (pedido de23/11). Consulta fresca do manifesto ao abrir lista, sem baixar todos os payloads. Nenhuma alteração de SQL, direitos, protocolo ou saves reais. Escopo e provas: `docs/auditorias/saves-entre-aparelhos-20261126.md`.
+
 ## Copa do Mundo por convite nas duas carreiras — 26/11/2026
 
 Diego pediu Copa a cada **4 temporadas**, sem desbloqueio por temporada mínima na tradicional. As duas carreiras usam agenda desde T1 (1,5,9…), mantendo o requisito do ranking de clubes. Tradicional conserva escolha entre seleções permitidas pela posição, agora apresentada como convites e com recusa; Brasil Oficial conserva o convite de um país associado à posição. Migrar agenda antiga preservando títulos, edições encerradas e torneio em andamento; próximas edições a cada quatro temporadas desde a última edição registrada/ativa. Não mudar T40 dos internacionais de clubes, online, OVR, economia nem motor. Escopo e testes: `docs/auditorias/copa-mundo-convites-20261126.md`.

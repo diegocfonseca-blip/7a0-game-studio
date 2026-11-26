@@ -9,7 +9,7 @@ type Manifest = { protocol: number; careers: Summary[]; deleted?: number[]; righ
 type ReadResult = { status: string; save: EscState; summary: Summary; versionAt: string; version: number }
 type WriteResult = { status: string; summary?: Summary; current?: Summary }
 export type History = { revision: number; savedAt: string; seasonNo: number; round: number }
-export type Conflict = { source?: 'device'; seed: number; local: { seasonNo: number; round: number }; cloud: Summary; choose: (c: 'cloud' | 'local' | 'cancel') => void }
+export type Conflict = { source?: 'device'; seed: number; local: { seasonNo: number; round: number; savedAt?: string }; cloud: Summary; choose: (c: 'cloud' | 'local' | 'cancel') => void }
 let uid: string | null = null, epoch = 0, ready: Promise<void> | null = null
 let meta = new Map<number, Meta>(), cloud = new Map<number, Summary>(), memory = new Map<number, EscState>()
 let deleted = new Set<number>()
@@ -37,6 +37,11 @@ export const account = () => uid
 export const cloudRights = () => rights
 export const isDirty = (seed: number) => pending.has(seed) || meta.get(seed)?.dirty === true
 export const cloudReceipt = (seed: number) => cloud.get(seed) ?? null
+/** Metadata only: never downloads a payload or chooses between divergent copies. */
+export function copies(seed: number) {
+  const m=meta.get(seed),remote=cloud.get(seed)
+  return { device:m?.summary, cloud:remote, checked, pending:isDirty(seed), sameRevision:!!m&&!!remote&&m.base===remote.revision }
+}
 export const initialized = () => !!ready
 export function stateBound(st: EscState) { const owner = bound.get(st); return !owner || owner === uid }
 export function bind(st: EscState) { if (uid) bound.set(st, uid); return st }
@@ -44,7 +49,7 @@ export function bindNext(previous: EscState, next: EscState) { const owner = bou
 function isCareer(s: unknown): s is EscState { const st = s as EscState; return !!st?.careerOnline && st.onlineMode !== 'online' && !st.co2 && st.sport !== 'basquete' && !!st.managers?.length }
 function summary(st: EscState): Summary {
   const m = st.managers[st.youIdx ?? 0]
-  return { seed: st.seed, revision: 0, savedAt: new Date().toISOString(), seasonNo: st.seasonNo ?? 1, round: st.round ?? 0, teamName: m?.teamName ?? m?.name ?? '', official: !!st.oficial, sport: 'futebol', fingerprint: '', division: st.careerDivision ?? undefined, coins: st.careerCoins?.[m?.id??0] ?? 0 }
+  return { seed: st.seed, revision: 0, savedAt: new Date().toISOString(), seasonNo: st.seasonNo ?? 1, round: st.round ?? 0, teamName: m?.teamName ?? m?.name ?? '', official: !!st.oficial, sport: 'futebol', fingerprint: '', division: st.careerPlacements?.['m'+(m?.id??0)] ?? st.careerDivision ?? undefined, coins: st.careerCoins?.[m?.id??0] ?? 0 }
 }
 export function summaries() {
   const seeds = new Set([...meta.keys(), ...cloud.keys(), ...memory.keys()].filter(seed=>!deleted.has(seed)))
@@ -195,7 +200,7 @@ export async function flush(seed?: number) {
 async function decide(st: EscState, remote: ReadResult, source?: 'device'): Promise<'cloud' | 'local' | 'cancel'> {
   if (notice) return 'cancel'
   return new Promise(resolve => {
-    notice = { source, seed: st.seed, local: { seasonNo: st.seasonNo ?? 1, round: st.round ?? 0 }, cloud: remote.summary,
+    notice = { source, seed: st.seed, local: { seasonNo: st.seasonNo ?? 1, round: st.round ?? 0, savedAt:meta.get(st.seed)?.summary.savedAt }, cloud: remote.summary,
       choose: c => { notice = null; emit(); resolve(c) } }; emit()
   })
 }
