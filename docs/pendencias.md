@@ -2567,7 +2567,10 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
-## 🔨 PREGÃO ABERTO DE CARA NOVA (26/11, vídeos aprovados: *"Ok pode fazer"* + *"pode fazer já o novo jeito p móveis e desktop"*) — no branch, falta publicar
+## 🔨 PREGÃO ABERTO DE CARA NOVA (26/11, vídeos aprovados: *"Ok pode fazer"* + *"pode fazer já o novo jeito p móveis e desktop"*) — 🔒 SÓ NA CONTA DO DIEGO (26/11, *"Faz só na minha conta, pra eu ver"*)
+- Trava `PREGAO_NOVO_GERAL = false` + `usePregaoNovo()` (sport.ts). Sem ela, todo mundo vê o pregão de hoje (`PregaoAbertoAntigo`, cópia fiel) —
+  inclusive o martelo só pra quem levou. A escolha de uma/duas cartas também só aparece pra ele. **Ao liberar geral**: `PREGAO_NOVO_GERAL = true` e
+  pôr de volta a linha da novidade (texto pronto: "🔨 Pregão aberto de cara nova… (Pregão aberto)", PT+EN, no commit 3c41624b de novidades.ts).
 - Vídeos do mockup: `scripts/mockups/video-pregao-pc/` (`video.html` uma carta · `duplo.html` duas · `cel.html` / `cel.html#duplo` celular; `render2.mjs` grava com os sons do jogo).
 - 🃏 **Uma ou duas cartas**: criar sala com pregão aberto em sala de 20 → "🃏🃏 Duas juntas" (padrão, como era) ou "🃏 Uma por vez" (`paUma` na sala →
   `paUmaCarta` no estado; `abrePregaoAberto` não abre a 2ª mesa). Nunca vaza pra outra partida (`MARCAS_DE_MODO`); revanche repete. A partida rápida

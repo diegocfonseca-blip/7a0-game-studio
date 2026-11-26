@@ -48,7 +48,7 @@ type DeckChoice = DeckCarreira | 'world'
 import { TIMES_ELITE } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
 import { COPAS_REGIONAIS, clubesDaCopa, ehCopaRegional, type CopaRegionalId } from './copa-regional'
-import { useKingsLiberada, useConquistasLiberado, useViceCity, BASQUETE_LIGAS_ONLINE, BASQUETE_CARREIRA_ONLINE, useSportUnlocked } from './sport'
+import { useKingsLiberada, useConquistasLiberado, usePregaoNovo, useViceCity, BASQUETE_LIGAS_ONLINE, BASQUETE_CARREIRA_ONLINE, useSportUnlocked } from './sport'
 // 👑 13/11 (Diego: *"limite a 10… se por da Kings deixe com 10 times apenas… jogadores padrão aí tudo bem"*): a sala com o BARALHO da
 // Kings tem no máximo 10 pessoas — com mais, faltava zagueiro de verdade e o jogo completava com jogador de mentira (sala FDBQPN, 16 pessoas).
 // Mais nomes da Kings no baralho = sobe este número (pra 20 faltam ~53: +4 GOL, +18 ZAG, +16 MEI, +15 ATA).
@@ -801,6 +801,7 @@ export function EscLobby() {
   // 🃏 26/11 (Diego: *"dê opção ao usuário… quer com uma carta ou duas qd tiver escolhido 20"*): em sala de 20, o pregão aberto
   // abre DUAS cartas na mesa (regra de 17/10); quem cria pode preferir UMA. Padrão = duas, como sempre foi.
   const [paUma, setPaUma] = useState(false)
+  const pregaoNovoOk = usePregaoNovo() // 🔨 26/11: a escolha de uma/duas cartas só na conta do Diego por enquanto
   const envUnicoOk = useEnvelopeUnicoLiberado() // ⚡ envelope único (28/10): só a conta do Diego por enquanto
   const [rapidoEnvUnico, setRapidoEnvUnico] = useState(false)
   // 🧱 LEILÃO DE CLUBES (27/09, em teste): o lote é um setor de clube e no fim vem a
@@ -2159,7 +2160,7 @@ export function EscLobby() {
     // 👑 11/11: sala da Kings — formação 'kings', a competição dela e o baralho escolhido; o que não vale na Kings sai do pacote
     if (kingsVe && kingsSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { formation: 'kings', copaMode: 'liga', kingsBaralho: kingsBarSala || undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, tamanhoLiga: undefined, turnoUnico: undefined, duplasMode: undefined, varzea: undefined, mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, relampagoChave: undefined, ...(kingsBarSala ? {} : { deck: rapidoDeck, deckSala: rapidoDeck }) })
     // 🌴 19/11: sala Vice City — sempre Pregão aberto, sem duplas/clubes/Champions (o golpe acontece com uma carta por vez na mesa)
-    if ((gs as GS).pregaoAberto && paUma && !tam10Sala) Object.assign(gs as Record<string, unknown>, { paUma: true }) // 🃏 26/11: uma carta na mesa mesmo em sala de 20
+    if (pregaoNovoOk && (gs as GS).pregaoAberto && paUma && !tam10Sala) Object.assign(gs as Record<string, unknown>, { paUma: true }) // 🃏 26/11: uma carta na mesa mesmo em sala de 20
     if (viceVe && viceSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { vice: true, viceCartas: viceCartasSel, pregaoAberto: true, holandes: undefined, envUnico: undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, duplasMode: undefined, ...(rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago' ? { copaMode: 'liga', relampagoChave: undefined } : {}) })
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
@@ -4452,7 +4453,7 @@ export function EscLobby() {
                       ? tr(`🐊 A leva inteira na tela com UM preço só, abrindo em ${nbaSala ? 50 : 100} e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.`, `🐊 The whole batch on screen with ONE price, opening at ${nbaSala ? 50 : 100} and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.`)
                       : tr('✉️ O leilão de sempre: cada um escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: everyone writes a secret bid and the highest wins at the hammer.')}
                   </p>
-                  {pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' && !tam10Vale && !(rapidoEnvUnico && envUnicoOk && !roomDuplas) && (
+                  {pregaoNovoOk && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' && !tam10Vale && !(rapidoEnvUnico && envUnicoOk && !roomDuplas) && (
                     <div className="mt-2.5">
                       <p className="text-white/80 text-[11px] font-black uppercase tracking-wide mb-1" style={OSWALD}>{tr('Cartas na mesa (sala de 20)', 'Cards on the table (20-club room)')}</p>
                       <Seg options={[[false, tr('🃏🃏 Duas juntas', '🃏🃏 Two at once')], [true, tr('🃏 Uma por vez', '🃏 One at a time')]] as [boolean, string][]} value={paUma} onSet={v => setPaUma(v)} />

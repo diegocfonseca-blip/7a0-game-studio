@@ -146,7 +146,7 @@ import { PainelDonoLiga } from './painel-dono-liga'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
-import { useBrasilOficial } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
+import { useBrasilOficial, usePregaoNovo } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
 import { EscolhaCarreira, EscolhaClubeOficial } from './brasil-oficial-tela'
 import { FaixaProximaCompeticao, proximasCompeticoes, useCopasDaSala, RODADAS_DO_AVISO } from './proxima-competicao'
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
@@ -1072,6 +1072,7 @@ export function HoldButton({ onStep, disabled = false, className = '', style, ch
 const MobileAuctionHeaderContext = createContext(false)
 
 export function Shell({ children, bar, presentationHeader, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget, presentationClock }: { presentationHeader?:React.ReactNode; presentationClock?:MatchPresentationClock|null; children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
+  const pregaoNovo = usePregaoNovo() // 🔨 26/11: o pregão de cara nova (layout compacto no PC) só na conta do Diego
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
@@ -1159,7 +1160,7 @@ export function Shell({ children, bar, presentationHeader, hideExit = false, cla
           {bar}
         </div>
       )}
-      <div className={`ll-shell-content max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}${wide && desk2 ? ' ll-desk2' : ''}`}><AuctionDesktopLayout enabled={auctionDesktop} compacto={state.phase==='pregao'} sideTitle={state.phase==='pregao'?tr('🔨 Últimas marteladas','🔨 Latest hammers'):undefined} bar={bar} title={isReserveAuction?`${reserveLabel} · ${auctionTitle}`:auctionTitle} description={auctionDescription} playersTitle={state.screen==='monte'?tr('Monte de jogadores','Player pile'):state.screen==='cerimonia'?tr('Revelação','Reveal'):state.phase==='pregao'?tr('Jogador na mesa','Player at auction'):undefined} budget={auctionDesktop&&state.phase!=='pregao'?{balance:state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx]),...auctionBudget}:undefined} slots={auctionDesktop&&['envelope','resq_envelope','holandes','pregao'].includes(state.phase)?ordemSetores().map(position=>({position:posTag(position),open:openSlots(state.managers[state.youIdx],position)})):undefined}>{children}</AuctionDesktopLayout></div>
+      <div className={`ll-shell-content max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}${wide && desk2 ? ' ll-desk2' : ''}`}><AuctionDesktopLayout enabled={auctionDesktop} compacto={pregaoNovo&&state.phase==='pregao'} sideTitle={pregaoNovo&&state.phase==='pregao'?tr('🔨 Últimas marteladas','🔨 Latest hammers'):undefined} bar={bar} title={isReserveAuction?`${reserveLabel} · ${auctionTitle}`:auctionTitle} description={auctionDescription} playersTitle={state.screen==='monte'?tr('Monte de jogadores','Player pile'):state.screen==='cerimonia'?tr('Revelação','Reveal'):state.phase==='pregao'?tr('Jogador na mesa','Player at auction'):undefined} budget={auctionDesktop&&!(pregaoNovo&&state.phase==='pregao')?{balance:state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx]),...auctionBudget}:undefined} slots={auctionDesktop&&['envelope','resq_envelope','holandes','pregao'].includes(state.phase)?ordemSetores().map(position=>({position:posTag(position),open:openSlots(state.managers[state.youIdx],position)})):undefined}>{children}</AuctionDesktopLayout></div>
       {inGame && !hideExit && (
         <div ref={saidaRef} className="ll-shell-exit max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
@@ -3085,6 +3086,7 @@ export function EscSetup() {
   // martelo em 6s. Só pra conta de teste (`PREGAO_ABERTO_TESTERS`); pra todo o resto o jogo segue idêntico.
   const [pregaoAb, setPregaoAb] = useState(false)
   const [paUma, setPaUma] = useState(false) // 🃏 26/11: uma carta na mesa mesmo com 11+ clubes (padrão: duas)
+  const pregaoNovoOk = usePregaoNovo() // 🔨 26/11: só na conta do Diego por enquanto
   const viceVe = useViceCity() // 🌴 19/11: Vice City (pregão aberto com cartas de golpe) — só pra quem o teste libera
   const [vice, setVice] = useState(false)
   const envUnicoOk = useEnvelopeUnicoLiberado() // ⚡ envelope único (28/10): só a conta do Diego por enquanto
@@ -3211,7 +3213,7 @@ export function EscSetup() {
       })
     }
     else if (bbSetup) dispatch({ type: 'START_NBA', nbaTam: nbaTamQ, nbaFormato: nbaFormQ, nbaMundo: nbaMundoQ, teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico, clubes: clubesOn && clubes, intro: true })
-    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, paUmaCarta: pregaoAbertoOk && pregaoAb && !envUnico && paUma && rivals + 1 >= 11 ? true : undefined, vice: (viceVe && vice && pregaoAbertoOk && pregaoAb && !envUnico) || undefined, envUnico: envUnicoOk && envUnico && !career && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado && !kingsLigado, kings: kingsLigado || undefined, kingsBaralho: kingsLigado && kingsBar || undefined, pokemon: pokeLigado || undefined, intro: true,
+    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, paUmaCarta: pregaoNovoOk && pregaoAbertoOk && pregaoAb && !envUnico && paUma && rivals + 1 >= 11 ? true : undefined, vice: (viceVe && vice && pregaoAbertoOk && pregaoAb && !envUnico) || undefined, envUnico: envUnicoOk && envUnico && !career && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado && !kingsLigado, kings: kingsLigado || undefined, kingsBaralho: kingsLigado && kingsBar || undefined, pokemon: pokeLigado || undefined, intro: true,
       relampagoChave: copaMode === 'relampago' ? relChave : undefined, tamanhoLiga: tamLiga === 10 && copaMode !== 'relampago' && copaMode !== 'champions' ? 10 : undefined,
       selecao: clubesOn && clubes && pacSel && !pacConq && !kingsLigado || undefined, decada: clubesOn && clubes && pacDec && !pacConq && !kingsLigado || undefined, conquistas: conqOn && clubesOn && clubes && pacConq && !kingsLigado && !bbSetup || undefined, varzea: league === 'br' && !(clubesOn && clubes) && !kingsLigado && varzeaR || undefined })
   }
@@ -3675,7 +3677,7 @@ export function EscSetup() {
                 ? t(`🐊 A leva inteira na tela com UM preço só, abrindo em ${getSport() === 'basquete' ? 50 : 100} e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.`, `🐊 The whole batch on screen with ONE price, opening at ${getSport() === 'basquete' ? 50 : 100} and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.`)
                 : t('✉️ O leilão de sempre: você escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: you write your bid in secret and the highest wins at the hammer.')}
             </p>
-            {pregaoAb && !envUnico && !(viceVe && vice) && rivals + 1 >= 11 && (
+            {pregaoNovoOk && pregaoAb && !envUnico && !(viceVe && vice) && rivals + 1 >= 11 && (
               <div className="mt-2">
                 <p className="text-xs font-black uppercase mb-1">{t('Cartas na mesa', 'Cards on the table')}</p>
                 <div className="grid grid-cols-2 gap-2">
