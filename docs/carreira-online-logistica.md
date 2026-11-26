@@ -52,6 +52,17 @@ passa… até quantos times, 20 seria o ideal?"*
 5. **Quem não jogou não perde o clube**: o time joga sozinho; quando ele volta pra carreira, alcança onde todo mundo está. Na virada
    (o leilão) é a mesma coisa: quem não está fica com o mesmo time (*"não é a mesma coisa de quem não jogou?"* — é).
 
+## 🔀 Dois jeitos de jogar (Diego, 26/11: *"eu queria testar os dois"*) — o dono escolhe ao criar
+**⚡ Dinâmica** (igual às salas online / Liga Draft):
+- Começou a temporada, as rodadas ROLAM uma atrás da outra, com as copas no meio, sem parar.
+- Só PARA quando começa uma competição nova (Copa do Brasil, Libertadores…): banner com quem se classificou e
+  *"tem 60 s pra mexer no time/estratégia"*; relógio no canto pra todos. Quem não está nela segue livre pelas abas (mercado,
+  ver os jogos de quem joga…).
+- O relógio é AVISO; quem manda seguir é o DONO (igual o draft): acabou o tempo, ele dá ok; antes do tempo, pede confirmação
+  ("avançar mesmo sem o tempo acabar?"). Avançou = avança pra todo mundo.
+**🧭 Livre** (a proposta anterior): o que é seu no seu tempo; jogo da rodada, leilão e virada juntos, com ✋ Pronto e o dono mandando seguir.
+Construir primeiro a ⚡ Dinâmica (mais perto do que já existe nas salas), depois a 🧭 Livre.
+
 ## Ordem de trabalho
 1. Alcance de quem faltou (`co2` + simulação das rodadas perdidas) — trava nova: aparelho que volta = mesmo estado do que ficou.
 2. A virada (leilão de todos no aparelho do comandante · ausente fica com o time · sobe/cai · T2) — trava: 3 clubes, 2 temporadas.
