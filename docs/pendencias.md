@@ -1,3 +1,7 @@
+## 26/11 — Estádio do Santa Cruz
+
+Nome corrigido de Arena de Pernambuco para **Arruda**, a pedido de Diego, no catálogo compartilhado por agenda e estádio do Brasil Oficial. Consulta `estadioDoClube("Santa Cruz")` conferida; sem alteração de saves.
+
 ## 26/11 — 🌍 SUPER MUNDIAL + LIGA + CHAMPIONS nas salas — 🔒 SÓ DIEGO E FUTPOINT (`SUPER_MUNDIAL_GERAL`, sport.ts)
 Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions… 2 de cada… publicar é só na minha e no do Footpoint"*.
 - ✅ **🌍 Liga + Super Mundial (convocando)** — FEITO no branch (falta OK visual + publicar): acabou a liga, cada um escolhe um dos 32

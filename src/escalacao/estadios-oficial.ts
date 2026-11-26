@@ -60,7 +60,7 @@ export const ESTADIOS_OFICIAL: Record<string, string> = {
   "Maranhão": "Castelão (MA)",
   "Maringá": "Willie Davids",
   "Paysandu": "Curuzu",
-  "Santa Cruz": "Arena de Pernambuco",
+  "Santa Cruz": "Arruda",
   "Volta Redonda": "Raulino de Oliveira",
   "Ypiranga": "Colosso da Lagoa",
   "Galvez": "Arena da Floresta",
