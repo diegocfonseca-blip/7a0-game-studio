@@ -98,6 +98,10 @@ Nada de "o último que entrou manda / o outro só assiste".
 - **Bots no leilão = configuração do DONO** (*"ele escolhe o número… nenhum bot ou até 5"*): 0 a 5 bots dão lance; são rivais da(s)
   divisão(ões) de quem está jogando e mudam quando a divisão muda. Motivo: com 2 amigos e 1 sem dar lance, o outro não leva tudo de
   graça. Tela de CONFIGURAÇÕES do dono vai ganhar mais opções depois.
+- **Bot que perde jogador** (Diego, 26/11): SEMPRE avisa (Central/Tuiter: quem levou, por quanto, de quem). Só repõe se ficar com MENOS
+  de 11 pro time; a reposição é uma SOBRA REAL do leilão com over PARECIDO (nunca jogador genérico/fake) — vale também quando o dono
+  configurou 0 bots no leilão (o bot não dá lance, mas não fica com buraco). Base que já existe: `completa` (store ~1530) usa
+  "carta real livre" por referência; conferir que pega a de over mais próximo da que saiu.
 - 💡 Feito no branch: linha no Sondar do Mercado (carreira normal e Oficial, com gestão nova) — "Pode ser sondado: 🆓 sem contrato e
   🪑 reserva de outro clube (paga a transferência). Titular nunca."
 
