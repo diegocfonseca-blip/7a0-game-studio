@@ -1,3 +1,4 @@
+import '../../src/App'
 import React,{useState} from 'react'
 import {createRoot} from 'react-dom/client'
 import '../../src/index.css'
@@ -6,6 +7,9 @@ import {Shell,ChatWidget} from '../../src/escalacao/screens'
 import {CopaDaSala,montaFicha,entrantesDaFicha,paisesDaEuro} from '../../src/escalacao/copa-mundo-online'
 import {countryPool,bestXI,simulaCopaMundo,CMModal} from '../../src/escalacao/copa-mundo'
 import {CopaRegionalTorneio,montaFichaRegional,entrantesRegionais} from '../../src/escalacao/copa-regional-online'
+import {ChampionsSalaTorneio} from '../../src/escalacao/champions-sala-online'
+import {montaFichaChampions,entrantesChampions,simulaChampionsSala} from '../../src/escalacao/champions-sala'
+import {OwnerPrimary,FootballChatTarget} from '../../src/escalacao/owner-online-visual'
 import {LibertaSalaTorneio} from '../../src/escalacao/liberta-sala-online'
 import {montaFichaLiberta,entrantesLiberta,simulaLibertaSala} from '../../src/escalacao/liberta-sala'
 import {simulaRegional,poolDoClube,completaXIClube} from '../../src/escalacao/copa-regional'
@@ -26,13 +30,15 @@ const places=people.map((id,i)=>({id:i,nome:i?'Futpoint FC':'Neymarzetti',humano
 const regionalPicks=new Map(people.map((id,i)=>{const pais=i?'Palmeiras':'Flamengo',xi=completaXIClube(pais,'4-3-3',[]);return[id,{pais,form:'4-3-3' as const,xiKeys:xi.map(c=>`${c.name}|${c.club}|${c.year}`)}]}))
 const regional={...montaFichaRegional('riosp',places,uids,regionalPicks,seed,1),tatica:true}
 const liberta=montaFichaLiberta(places,uids,regionalPicks,seed,1)
-const ents=kind==='regional'?entrantesRegionais(regional,uid):kind==='liberta'?entrantesLiberta(liberta,uid):entrantesDaFicha(fixture,uid)
-const world=kind==='regional'?simulaRegional(ents,seed):kind==='liberta'?simulaLibertaSala(ents,seed):simulaCopaMundo(ents,seed,1,fixture.potes,fixture.forte)
-;(window as any).qaCupFixture={kind,seed,fixture:kind==='regional'?regional:kind==='liberta'?liberta:fixture,world,entrants:ents}
+const champions=montaFichaChampions(places,uids,new Map(),seed,1)
+const ents=kind==='champions'?entrantesChampions(champions,uid):kind==='regional'?entrantesRegionais(regional,uid):kind==='liberta'?entrantesLiberta(liberta,uid):entrantesDaFicha(fixture,uid)
+const world=kind==='champions'?simulaChampionsSala(ents,seed):kind==='regional'?simulaRegional(ents,seed):kind==='liberta'?simulaLibertaSala(ents,seed):simulaCopaMundo(ents,seed,1,fixture.potes,fixture.forte)
+;(window as any).qaCupFixture={kind,seed,fixture:kind==='champions'?champions:kind==='regional'?regional:kind==='liberta'?liberta:fixture,world,entrants:ents}
 function App(){
  const [state,setState]=useState(()=>({...footballTestState(),screen:'end' as const,campo2d:q.has('field'),isHost:q.has('host'),youIdx:uid===main?0:1,youUid:uid}))
+ const [closed,setClosed]=useState(false)
  const [chatOpen,setChatOpen]=useState(false),[chat,setChat]=useState<any[]>([]),dispatch=(a:any)=>setState(s=>reducer(s,a)),noop=()=>{}
  const ctx={state,dispatch,emote:noop,addEmote:noop,emotes:[],chat,chatUnread:0,sendChat:(text:string)=>setChat(rows=>[...rows,{id:String(rows.length),name:uid===main?'Neymarzetti':'Futpoint FC',text,at:Date.now(),playerIndex:state.youIdx}]),chatOpen,setChatOpen,hostStale:false,kickPlayer:noop,leaveRoom:noop,becameHost:false,hostOutroAparelho:false}
- return <EscCtxBancada.Provider value={ctx as never}><Shell><p>Bancada sem sala real</p>{kind==='regional'?<CMModal wide cinematic onlineBroadcast><CopaRegionalTorneio copa="riosp" ficha={regional} roomId={state.roomId!} meuUid={uid} souDono={q.has('host')} aoCampeao={noop} aoFechar={noop}/></CMModal>:kind==='liberta'?<CMModal wide cinematic onlineBroadcast><LibertaSalaTorneio ficha={liberta} roomId={state.roomId!} meuUid={uid} souDono={q.has('host')} aoCampeao={noop} aoFechar={noop}/></CMModal>:<CopaDaSala ficha={fixture} roomId={state.roomId!} meuUid={uid} souDono={q.has('host')} aoFechar={noop}/>}</Shell><ChatWidget/></EscCtxBancada.Provider>
+ return <EscCtxBancada.Provider value={ctx as never}><Shell><p>Bancada sem sala real</p>{q.has('underlying')&&<OwnerPrimary label="Liga encerrada"><p>Partida anterior</p><FootballChatTarget/></OwnerPrimary>}{kind==='champions'?(closed?<button onClick={()=>setClosed(false)}>Reabrir Champions</button>:<CMModal wide cinematic onlineBroadcast><ChampionsSalaTorneio ficha={champions} roomId={state.roomId!} meuUid={q.has('spectator')?undefined:uid} souDono={q.has('host')} aoCampeao={noop} aoFechar={()=>setClosed(true)}/></CMModal>):kind==='regional'?<CMModal wide cinematic onlineBroadcast><CopaRegionalTorneio copa="riosp" ficha={regional} roomId={state.roomId!} meuUid={uid} souDono={q.has('host')} aoCampeao={noop} aoFechar={noop}/></CMModal>:kind==='liberta'?<CMModal wide cinematic onlineBroadcast><LibertaSalaTorneio ficha={liberta} roomId={state.roomId!} meuUid={uid} souDono={q.has('host')} aoCampeao={noop} aoFechar={noop}/></CMModal>:<CopaDaSala ficha={fixture} roomId={state.roomId!} meuUid={uid} souDono={q.has('host')} aoFechar={noop}/>}</Shell><ChatWidget/></EscCtxBancada.Provider>
 }
 createRoot(document.getElementById('root')!).render(<App/> )

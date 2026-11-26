@@ -1,4 +1,4 @@
-import {useOwnerLayout,OwnerChampionBanner} from './owner-online-visual'
+import {useOwnerLayout,OwnerChampionBanner,CampeaoCinemaDe} from './owner-online-visual'
 // 🏆 A CARA DE CADA CAMPEONATO (23/10, mockups `campeonatos-paletas-trofeus.png` e `tunel-final-cores.png`, Diego:
 // *"cor do campeonato, pode fazer o túnel da final e o campeão"*). Cada competição tem paleta, frase e troféu
 // próprios, inspirados na de verdade (sem logo oficial) — Liga Legends e Copa dos 8 são nossas.
@@ -8,6 +8,8 @@ import {useOwnerLayout,OwnerChampionBanner} from './owner-online-visual'
 // Zero mensagem nova: tudo sai do que cada aparelho já tem.
 import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import {CAMPEAO_CINEMA_MS} from './campeao-cinema'
+import {ehBasquete} from './marca'
 import { tr } from './lang'
 import { playCampeao, playEliminado } from './sound'
 import { legendAvatar } from './legend-avatars'
@@ -199,12 +201,13 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
 }) {
   const owner=useOwnerLayout()
   const c = nomeComp ? { ...COMPS[comp], nome: nomeComp } : COMPS[comp]
-  const DUR = 5600
+  const cinema=owner&&!ehBasquete()
+  const DUR = cinema?CAMPEAO_CINEMA_MS:5600
   const [saindo, setSaindo] = useState(false)
   useEffect(() => {
     const para = souVice && !souCampeao ? (playEliminado(), () => {}) : playCampeao(souCampeao, DUR)
-    const t1 = setTimeout(() => setSaindo(true), DUR - 450)
-    const t2 = setTimeout(onDone, DUR)
+    const t1 = cinema?undefined:setTimeout(() => setSaindo(true), DUR - 450)
+    const t2 = cinema?undefined:setTimeout(onDone, DUR)
     return () => { para(); clearTimeout(t1); clearTimeout(t2) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -212,6 +215,7 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
   const vis = lendas.slice(0, 3)
   // 🖥️ 23/10: no computador a festa ocupa a tela inteira (antes era a coluna de celular no meio)
   const pc = useTelaPC()
+  if(cinema)return <CampeaoCinemaDe title={tr(c.nome[0],c.nome[1])} name={nome} crest={crest} mascot={mascote} legends={lendas} onDone={onDone}/>
   if(owner)return createPortal(<div className="ov3-celebration" role="dialog" aria-label={tr('Comemoração do título','Title celebration')} onClick={onDone}><OwnerChampionBanner title={tr(c.nome[0],c.nome[1])} name={nome} crest={crest} trophy={<Trofeu comp={comp} size={210}/>} mascot={mascote} legends={lendas} own={souCampeao} line={linha} extra={<>{penaltis&&<span>{tr('NOS PÊNALTIS!','ON PENALTIES!')}</span>}{artilheiro&&<span>⚽ {artilheiro.nome} · {artilheiro.n} {tr('gols','goals')}</span>}{garcom&&<span>🅰 {garcom.nome} · {garcom.n} {tr('passes','assists')}</span>}</>}/><button type="button" onClick={e=>{e.stopPropagation();onDone()}}>{tr('Continuar','Continue')}</button></div>,document.body)
   return createPortal(
     <div role="dialog" aria-label={tr('Comemoração do título','Title celebration')} onClick={onDone} style={{ position: 'fixed', inset: 0, zIndex: 100040, display: 'flex', justifyContent: 'center', background: '#000', animation: saindo ? 'fcSai .45s both' : undefined, cursor: 'pointer' }}>

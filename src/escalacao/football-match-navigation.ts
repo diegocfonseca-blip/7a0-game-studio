@@ -15,10 +15,13 @@ export function useFootballMatchNavigation(room:string,enabled:boolean){
 
 let dock:{room:string;node:HTMLElement|null}={room:'',node:null}
 const dockListeners=new Set<()=>void>()
-export function setFootballChatDock(room:string,node:HTMLElement|null){
- if(dock.room===room&&dock.node===node)return
- if(!node&&dock.room!==room)return
- dock={room,node};dockListeners.forEach(fn=>fn())
+const docks:{room:string;node:HTMLElement}[]=[]
+/** Closing a cup restores the league's dock instead of leaving its chat detached. */
+export function registerFootballChatDock(room:string,node:HTMLElement){
+ const entry={room,node}
+ const publish=()=>{const next=docks.at(-1)??{room:'',node:null};if(dock.room!==next.room||dock.node!==next.node){dock=next;dockListeners.forEach(fn=>fn())}}
+ docks.push(entry);publish()
+ return()=>{const at=docks.indexOf(entry);if(at>=0)docks.splice(at,1);publish()}
 }
 export function useFootballChatDock(room:string,enabled:boolean){
  return useSyncExternalStore(fn=>{dockListeners.add(fn);return()=>{dockListeners.delete(fn)}},()=>enabled&&dock.room===room?dock.node:null,()=>null)

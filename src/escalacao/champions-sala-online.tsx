@@ -31,7 +31,7 @@ import './online-match-visual.css'
 import { Penaltis2D } from './campo2d-penaltis-react'
 import type { ConfigPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penaltis'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
-import { ChatWidget, GiroDaRodada, TrocaCampo2DSala, CardCollectPrompt } from './screens'
+import { GiroDaRodada, TrocaCampo2DSala, CardCollectPrompt } from './screens'
 import { startCrowd, stopCrowd } from './sound'
 import { SeloClube } from './selo-clube'
 import { CMModal, ConvocacaoScreen, type Formation } from './copa-mundo'
@@ -459,7 +459,6 @@ export function ChampionsSalaGate({ roomId, souDono, meuUid, classificacao, matc
       )}
       {ficha && aberta && (
         <CMModal wide cinematic onlineBroadcast>
-          <ChatWidget />
           <ChampionsSalaTorneio ficha={ficha} roomId={roomId} meuUid={euUid} souDono={souDono}
             aoCampeao={(nome, clube) => { void gravaCampeao(nome, clube) }} aoFechar={() => setAberta(false)} />
         </CMModal>
