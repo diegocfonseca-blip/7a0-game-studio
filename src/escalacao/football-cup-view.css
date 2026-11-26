@@ -20,3 +20,12 @@
 }
 .fp-cup-main .fp-round-carousel{display:flex;gap:12px;overflow-x:auto;padding:4px 4px 12px;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
 .fp-cup-main .fp-round-carousel>*{flex:0 0 min(310px,82vw);scroll-snap-align:start;min-width:0}
+
+/* Cortes completos da Champions: as 36 linhas continuam abertas. */
+.fp-cup-table .playoff{background:#fff1bf}.fp-cup-table .out{background:#f3dfd8}
+.fp-cup-table .zone-cut td{border-top:2px dashed #0c0c0c88}
+.fp-cup-table tr[data-zone] td:first-child{border-left:4px solid #1b7a3d}
+.fp-cup-table tr[data-zone=playoff] td:first-child{border-left-color:#a87900}
+.fp-cup-table tr[data-zone=out] td:first-child{border-left-color:#c2452f}
+.fp-cup-zones{display:flex;flex-wrap:wrap;gap:6px 12px;list-style:none;padding:0;margin:0 0 12px;font:12px/1.4 Arial,sans-serif}
+.fp-cup-zones li{border-left:4px solid #1b7a3d;padding:3px 6px}.fp-cup-zones .playoff{border-color:#a87900}.fp-cup-zones .out{border-color:#c2452f}
