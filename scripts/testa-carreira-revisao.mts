@@ -8,7 +8,7 @@ import { gasDoElenco, jogosDoElenco, chaveCarry } from '../src/escalacao/condica
 import { planoCansacoBot } from '../src/escalacao/bots-banco'
 import { carregaGuardados } from '../src/escalacao/motor2/carreira'
 import { VERSAO_CRITERIOS_RECEPCAO_M2 } from '../src/escalacao/motor2/versao'
-import { referenciaAtleta } from '../src/escalacao/carreira-economia'
+import { referenciaAtleta, salarioReferencia } from '../src/escalacao/carreira-economia'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from '../src/escalacao/data'
 import { CATALOG_OFICIAL_MODO } from '../src/escalacao/baralho-oficial'
 import { CLUBES_BR_TODOS, cartasDoClube, fechaTime } from '../src/escalacao/brasil-oficial'
@@ -26,9 +26,9 @@ assert.equal(Object.values(CATALOG_OFICIAL_MODO).flat().filter(c=>c.name===novo)
 assert(cartasExtras().some(c=>c.name===novo&&c.club==='Bahia'),'cartinha de campeão inclui o novo atleta')
 const catalogo = Object.fromEntries(SECTORS.map(p=>[p,[...CATALOG[p],...CATALOG_OFICIAL_MODO[p]]])) as typeof CATALOG
 const bahia = CLUBES_BR_TODOS.find(c=>c.nome==='Bahia')!
-assert.equal(fechaTime(cartasDoClube(bahia,catalogo).filter(x=>x.carta.name!==novo)),false,'Bahia precisava de goleiro')
+assert(fechaTime(cartasDoClube(bahia,catalogo)),'catálogo atual cobre o Bahia; necessidade histórica da inclusão não é reaplicada após novos lotes')
 for(const c of CLUBES_BR_TODOS)assert(fechaTime(cartasDoClube(c,catalogo)),`${c.nome}: mínimo por posição`)
-console.log('PASS necessidade do único reforço, XI de todos os clubes e separação das salas/cartinhas')
+console.log('PASS cobertura do catálogo atual, XI dos clubes e separação das salas/cartinhas')
 for (const clube of ['Brasiliense','Portuguesa','Flamengo']) {
   const s = reducer(INITIAL, { type:'START_CAREER_SOLO',teamName:clube,formation:'4-3-3',rivals:5,oficial:{clube} })
   assert(s.oficial)
@@ -47,7 +47,7 @@ for (const clube of ['Brasiliense','Portuguesa','Flamengo']) {
     assert(valorOficial(s,c)>0)
     assert.equal(valorOficial({...s,marketValues:{[ident(c)]:999}},c),valorOficial(s,c),'renovação não vira refém de um lance exagerado')
     assert.equal(c.buyPrice,0,'elenco herdado não finge compra no extrato')
-    assert.equal(salaryOfCard({...c,paid:0,buyPrice:0}),salaryOfCard({...c,paid:999,buyPrice:999}), 'salário independe da taxa de transferência')
+    assert.equal(salaryOfCard({...c,paid:60,buyPrice:60}),6, 'compra efetiva usa preço pago, como a tradicional');assert.equal(salaryOfCard({...c,paid:0,buyPrice:0}),salarioReferencia(referenciaAtleta(c)), 'elenco herdado conserva referência')
   }
   assert.equal(s.clubCash?.m0,s.careerCoins?.[0])
   const world=buildPyramid(s.managers,0,s.seed,s.deckLeague,s.careerPlacements,s.cpuSquads,true)

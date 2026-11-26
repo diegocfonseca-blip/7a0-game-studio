@@ -8,6 +8,7 @@ import {resolveLots,fitEnvelope,rebidWinner,openMinimum,registerOpenBid,dutchSte
 import * as careerSave from './salvamento/service'
 import {eventosFisicos} from './carreira-fisica'
 import { referenciaAtleta, salarioReferencia, faixaCampanha } from './carreira-economia'
+import {carreiraSoloFutebol,gestaoAtiva,preparaGestaoCarreira,carreiraSemLimite} from './carreira-regras'
 import { mercadoAnualOficial, MERCADO_BOTS_OFICIAL_GLOBAL, TRANSFERENCIAS_OFICIAIS, reservaNegociavel, type ClubeMercado } from './mercado-bots-oficial'
 import {pedidoVeiculoLiberado} from './presidencia-veiculos-liberacao'
 import {FOOTBALL_LOCAL_ORDER,footballClockContext,quickFootballMatch,footballTestRoom,footballPlanHost,footballPlanActor,promoteFootballPlans,validFootballPlan,footballPlanQuick,planFor,footballPlanModifiers,mergeFootballFuture,footballContributions,footballClock,type FootballPlan} from './football-live-tactics'
@@ -337,7 +338,8 @@ export function salaryOfCard(c: WonCard): number {
   // emprestado não é seu, e o que você emprestou já saiu do seu elenco. Incógnita
   // (fake/Várzea) também não tem salário.
   if (c.fake || isFillerClub(c.club) || c.emprestado) return 0
-  return c.valorBaseCarreira != null ? salarioReferencia(c.valorBaseCarreira) : Math.round((c.paid ?? 0) / 10)
+  const comprado = c.buyPrice != null ? c.buyPrice > 0 : c.via !== 'bot' && (c.paid ?? 0) > 0
+  return c.valorBaseCarreira != null && !comprado ? salarioReferencia(c.valorBaseCarreira) : Math.round((c.paid ?? 0) / 10)
 }
 export function squadPayroll(squad: WonCard[]): number {
   let f = 0; for (const c of squad) f += salaryOfCard(c); return f
@@ -1129,8 +1131,8 @@ function aplicaEconomiaBots(s: EscState, divDaTemporada: Record<string, string> 
     const nomeK = k.startsWith('m') && /^m\d+$/.test(k) ? (s.managers.find(m => `m${m.id}` === k)?.teamName ?? k) : k
     const tecK = s.oficial || s.botComissao ? s.careerTecnicos?.[nomeK] : null
     const comissao = s.oficial || s.botComissao ? (tecK ? Math.round((s.careerTecnicoPago?.[tecK] ?? 0) / 10) : 0) + salarioPreparador(preparadorDe(s.careerPreparador?.[nomeK]), s.oficial ? div : null) : 0
-    const b = balancoBot(div, ((s.oficial && s.seasonNo >= (s.oficial.economiaDesde ?? Infinity) && s.seasonNo < 4) ? 0 : folhaDoBot(s.oficial && s.seasonNo < (s.oficial.economiaDesde ?? 0) ? squad?.map(c => ({ ...c, valorBaseCarreira: undefined })) : squad) + comissao), cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0,
-      s.oficial ? tvOficial(div, nomeK) : undefined, s.oficial ? caixaInicialOficial(nomeK, div) * 2 : undefined, !!s.oficial && s.seasonNo >= (s.oficial.economiaDesde ?? Infinity))
+    const b = balancoBot(div, ((gestaoAtiva(s) && s.seasonNo < 4) ? 0 : (gestaoAtiva(s) ? (squad??[]).reduce((n,c)=>n+salaryOfCard(c as WonCard),0) : folhaDoBot(s.oficial && s.seasonNo < (s.oficial.economiaDesde ?? 0) ? squad?.map(c => ({ ...c, valorBaseCarreira: undefined })) : squad)) + comissao), cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0,
+      s.oficial ? tvOficial(div, nomeK) : undefined, s.oficial ? caixaInicialOficial(nomeK, div) * 2 : undefined, gestaoAtiva(s))
     cash[k] = b.caixa
     rel[k] = b
   }
@@ -1479,33 +1481,33 @@ function healCpuSquads(s: EscState) {
 
 /** Mínimo posicional antes de listar, sondar ou retirar um atleta de qualquer clube. */
 export function podeRetirarOficial(s: EscState, squad: readonly Card[], pos: Sector, formation: FormationKey = '4-3-3'): boolean {
-  return !s.oficial || squad.filter(c => c.pos === pos && !ehFake(c) && !(c as WonCard).emprestado).length > FORMATIONS[formation][pos]
+  return !(s.oficial || gestaoAtiva(s)) || squad.filter(c => c.pos === pos && !ehFake(c) && !(c as WonCard).emprestado).length > FORMATIONS[formation][pos]
 }
 export function podeLiberarContratoOficial(s: EscState, m: Manager, cardId: string): boolean {
-  if (!s.oficial) return true
+  if (!(s.oficial || gestaoAtiva(s))) return true
   const c = m.squad.find(c => c.id === cardId); if (!c) return false
   const fora = new Set([...(s.contratoRelease ?? []), ...(s.reserveListed?.[m.id] ?? [])]); fora.delete(cardId)
   return podeRetirarOficial(s, m.squad.filter(c => !fora.has(c.id)), c.pos, m.formation)
 }
-/** O Oficial usa o contrato guardado, não o ciclo fictício dos modos antigos. */
+/** As carreiras solo consultam o contrato salvo; o ciclo só supre prazo ausente. */
 export function contratoAtletaFalta(s: EscState, c: Card): number {
   const fim=(c as WonCard).contratoAte
-  return s.oficial && fim != null ? Math.max(0,fim-s.seasonNo+1) : contratoCpuFalta(c.id,s.seed,s.seasonNo)
+  return (s.oficial || carreiraSoloFutebol(s)) && fim != null ? Math.max(0,fim-s.seasonNo+1) : contratoCpuFalta(c.id,s.seed,s.seasonNo)
 }
 /** Disponibilidade do vendedor, comum à sondagem humana e ao mercado dos bots. */
 export function reservaTransferivelOficial(s: EscState, squad: readonly Card[], c: Card, formation: FormationKey = '4-3-3'): boolean {
-  return !!(TRANSFERENCIAS_OFICIAIS && s.oficial && s.sport !== 'basquete' && s.onlineMode !== 'online' && s.seasonNo >= (s.oficial.economiaDesde ?? Infinity)
+  return !!(TRANSFERENCIAS_OFICIAIS && gestaoAtiva(s)
     && reservaNegociavel(squad,c,FORMATIONS[formation],ident))
 }
 /** Mesmo universo nacional negociável para o humano e a gestão automática. */
 export function clubesNacionaisDoMercado(s:EscState){
   const nomes=new Set(s.managers.map(m=>m.teamName))
-  return [...s.managers.filter(m=>!m.isHuman&&['A','B','C','D'].includes(s.careerPlacements?.[m.marketTeam??'m'+m.id]??'')).map(m=>({teamName:m.teamName,squad:m.squad,formation:m.formation,fundo:false})),
-    ...Object.entries(s.cpuSquads??{}).filter(([nome])=>!nomes.has(nome)&&['A','B','C','D'].includes(s.careerPlacements?.[nome]??'')).map(([nome,squad])=>({teamName:nome,squad:squad as WonCard[],formation:'4-3-3' as FormationKey,fundo:true}))]
+  return [...s.managers.filter(m=>!m.isHuman&&['A','B','C','D',...(s.oficial?[]:['V'])].includes(s.careerPlacements?.[m.marketTeam??'m'+m.id]??'')).map(m=>({teamName:m.teamName,squad:m.squad,formation:m.formation,fundo:false})),
+    ...Object.entries(s.cpuSquads??{}).filter(([nome])=>!nomes.has(nome)&&['A','B','C','D',...(s.oficial?[]:['V'])].includes(s.careerPlacements?.[nome]??'')).map(([nome,squad])=>({teamName:nome,squad:squad as WonCard[],formation:'4-3-3' as FormationKey,fundo:true}))]
 }
 /** Clubes nacionais de fundo renovam seus atletas e debitam o custo real. */
 function renovaFundoOficial(s: EscState): void {
-  if(!s.oficial || !s.contratosOn || s.seasonNo < (s.oficial.economiaDesde ?? Infinity))return
+  if(!gestaoAtiva(s) || !s.contratosOn)return
   const cash={...s.clubCash}
   for(const [nome,sq] of Object.entries(s.cpuSquads??{})) {
     if(!s.careerPlacements?.[nome] || s.managers.some(m=>m.teamName===nome))continue
@@ -1519,8 +1521,8 @@ function renovaFundoOficial(s: EscState): void {
 }
 /** Cura de abertura/legado, nunca busca atleta de outro dono nem cria incógnitos. */
 export function reparaMinimoOficial(s: EscState): void {
-  if (!s.oficial || s.onlineMode === 'online') return
-  setActiveCatalog(s.deckLeague,false,s.regionalSala,true)
+  if (!(s.oficial || gestaoAtiva(s)) || s.onlineMode === 'online') return
+  setActiveCatalog(s.deckLeague,false,s.regionalSala,!!s.oficial)
   const usados = ownedRealIdents(s)
   // Um lote em negociação também não está livre.
   for (const p of SECTORS) for (const c of s.deck?.[p] ?? []) usados.add(ident(c))
@@ -1528,16 +1530,21 @@ export function reparaMinimoOficial(s: EscState): void {
     const out = [...sq]
     for (const pos of SECTORS) {
       let faltam = FORMATIONS[form][pos] - out.filter(c => c.pos === pos && !ehFake(c)).length
-      const candidatos = ACTIVE_CATALOG[pos].filter(c => !usados.has(ident(c as Card)) && cartaDeClubeBrasileiro(c) && categoriaOficialOk(div, c))
+      const candidatos = ACTIVE_CATALOG[pos].filter(c => !usados.has(ident(c as Card)) && elegivelGestao(s,div,c))
         .sort((a, b) => referenciaAtleta(a) - referenciaAtleta(b) || (a.lo + a.hi) - (b.lo + b.hi) || ident(a as Card).localeCompare(ident(b as Card)))
       for (const c of candidatos) {
         if (faltam <= 0) break
         if (usados.has(ident(c as Card))) continue
         usados.add(ident(c as Card)); faltam--
         const valor = referenciaAtleta(c)
-        out.push({ ...c, pos, id: `reparo-${nome}-${s.seasonNo}-${pos}-${out.length}`, paid: valor, buyPrice: 0, valorBaseCarreira: valor, via: 'bot', contratoAte: (s.seasonNo ?? 1) + 4 } as WonCard)
-        ;(s.marketLog ??= []).push(`${nome}: ${c.name} integra o elenco mínimo; referência ${valor} moedas, salário ${salarioReferencia(valor)} por temporada.`)
+        out.push({ ...c, pos, id: `reparo-${nome}-${s.seasonNo}-${pos}-${out.length}`, paid: s.oficial ? valor : 0, buyPrice: 0, ...(s.oficial ? {valorBaseCarreira:valor} : {}), via: 'bot', contratoAte: (s.seasonNo ?? 1) + 4 } as WonCard)
+        ;(s.marketLog ??= []).push(s.oficial?`${nome}: ${c.name} integra o elenco mínimo; referência ${valor} moedas, salário ${salarioReferencia(valor)} por temporada.`:`${nome}: ${c.name} integra o elenco mínimo com uma carta real livre, sem taxa de contratação.`)
       }
+    }
+    if (!s.oficial) {
+      const faltam=SECTORS.filter(p=>out.filter(c=>c.pos===p&&!ehFake(c)).length<FORMATIONS[form][p])
+      if(faltam.length){const aviso=`${nome}: falta jogador real de ${faltam.join(', ')} para completar o time. A saída de atletas dessa posição fica bloqueada; é preciso contratar reposição.`;if(!(s.news??[]).includes(aviso))s.news=[aviso,...(s.news??[])].slice(0,20)}
+      return out.filter(c=>!ehFake(c)||out.filter(x=>x.pos===c.pos&&!ehFake(x)).length<FORMATIONS[form][c.pos])
     }
     return out
   }
@@ -1787,7 +1794,8 @@ export function marcaAVender(s: EscState) {
 
 export function completaBancoDosBots(s: EscState) {
   if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
-  if(MERCADO_BOTS_OFICIAL_GLOBAL&&s.oficial&&s.sport!=='basquete'&&s.seasonNo>=(s.oficial.economiaDesde??Infinity)){
+  if(MERCADO_BOTS_OFICIAL_GLOBAL&&gestaoAtiva(s)){
+    if(!s.oficial&&!s.cpuSquads)return // the full world is materialized once by SEED_CPU_SQUADS
     return mercadoMundialDosBotsOficiais(s)
   }
   const minhaDiv = divisaoDaCarreira(s)
@@ -1879,26 +1887,27 @@ export function completaBancoDosBots(s: EscState) {
 }
 /** Uma janela anual para todos os clubes nacionais, inclusive fora da divisão do humano. */
 function mercadoMundialDosBotsOficiais(s: EscState){
+  garanteContratosGestao(s)
   if(s.oficialMercadoBotsSeason===s.seasonNo)return
-  setActiveCatalog(s.deckLeague,false,s.regionalSala,true)
+  setActiveCatalog(s.deckLeague,false,s.regionalSala,!!s.oficial)
   const clubes:ClubeMercado<WonCard>[]=[],ocupados=new Set<string>()
   for(const m of s.managers)for(const c of m.squad)if(!c.fake)ocupados.add(ident(c))
   for(const sq of Object.values(s.cpuSquads??{}))for(const c of sq)if(!c.fake)ocupados.add(ident(c))
   const add=(chave:string,nome:string,squad:WonCard[],need:Record<Sector,number>)=>{
     const div=s.careerPlacements?.[chave]
-    if(!div||!['A','B','C','D'].includes(div))return
+    if(!div||!['A','B','C','D',...(s.oficial?[]:['V'])].includes(div))return
     const salario=s.seasonNo>=4?squad.reduce((n,c)=>n+salaryOfCard(c),0):0
-    const tecnico=s.careerTecnicos?.[nome],comissao=s.seasonNo>=4?(Math.round((s.careerTecnicoPago?.[tecnico??'']??0)/10)+salarioPreparador(preparadorDe(s.careerPreparador?.[nome]),div)):0
+    const tecnico=s.careerTecnicos?.[nome],comissao=s.seasonNo>=4?(Math.round((s.careerTecnicoPago?.[tecnico??'']??0)/10)+salarioPreparador(preparadorDe(s.careerPreparador?.[nome]),s.oficial?div:null)):0
     const renovar=s.contratosOn?squad.filter(c=>!c.fake&&!c.cria&&c.contratoAte!=null&&c.contratoAte<=s.seasonNo).reduce((n,c)=>n+Math.max(1,Math.ceil(valorOficial(s,c)/2)),0):0
-    clubes.push({chave,nome,squad,need,div,caixa:s.clubCash?.[chave]??caixaInicialOficial(nome,div),compromissos:salario+comissao+renovar,perfil:perfilDoClube(nome,s.seed)})
+    clubes.push({chave,nome,squad,need,div,caixa:s.clubCash?.[chave]??(s.oficial?caixaInicialOficial(nome,div):DIV_BASE_CASH[div]??100),compromissos:salario+comissao+renovar,perfil:perfilDoClube(nome,s.seed)})
   }
   for(const m of s.managers)if(!m.isHuman&&!m.dormindo&&!m.marketCpu&&!m.auctionOnly)add('m'+m.id,m.teamName,m.squad,FORMATIONS[m.formation])
   const nomes=new Set(s.managers.map(m=>m.teamName))
   for(const [nome,sq] of Object.entries(s.cpuSquads??{}))if(!nomes.has(nome))add(nome,nome,sq as WonCard[],{GOL:1,LAT:2,ZAG:2,MEI:3,ATA:3})
   const resultado=mercadoAnualOficial({clubes,catalogo:SECTORS.flatMap(pos=>ACTIVE_CATALOG[pos].map(c=>({...c,pos}) as WonCard)),ocupados,seed:s.seed,season:s.seasonNo,identidade:ident,
     transferencias:TRANSFERENCIAS_OFICIAIS,protegidos:new Set(s.managers.flatMap(m=>m.squad.filter(c=>(s.aliciarJogadores??[]).includes(c.id)).map(ident)).concat(s.aliciarFundo?[ident(s.aliciarFundo.card)]:[])),
-    elegivel:(div,c)=>cartaDeClubeBrasileiro(c)&&categoriaOficialOk(div,c),preco:c=>Math.max(s.marketValues?.[ident(c)]??0,justoDaCarta(s,c)),salario:c=>s.seasonNo>=4?salarioReferencia(referenciaAtleta(c)):0,
-    contratar:(c,clube,preco,n)=>({...c,id:`bo-mercado-${s.seasonNo}-${clube.chave}-${n}`,valorBaseCarreira:referenciaAtleta(c),paid:preco,buyPrice:preco,via:'monte' as const,...(s.contratosOn?{contratoAte:s.seasonNo+4}:{})})})
+    elegivel:(div,c)=>elegivelGestao(s,div,c),preco:c=>Math.max(s.marketValues?.[ident(c)]??0,justoDaCarta(s,c)),salario:c=>s.seasonNo>=4?Math.round(Math.max(s.marketValues?.[ident(c)]??0,justoDaCarta(s,c))/10):0,
+    contratar:(c,clube,preco,n)=>({...c,id:`bo-mercado-${s.seasonNo}-${clube.chave}-${n}`,...(s.oficial?{valorBaseCarreira:referenciaAtleta(c)}:{}),paid:preco,buyPrice:preco,via:'monte' as const,...(s.contratosOn?{contratoAte:s.seasonNo+4}:{})})})
   const cash={...s.clubCash},sq={...s.cpuSquads}
   for(const clube of resultado.clubes){
     cash[clube.chave]=clube.caixa
@@ -2290,7 +2299,7 @@ function semeiaTecnicos(s: EscState, largadaOficial = false): void {
     const tt = tecnicoPorNome(n)
     // Brasil Oficial: categoria é da pessoa, não da divisão real do clube.
     // Um acesso/queda não desfaz contrato nem troca técnico já contratado.
-    if (!s.oficial && tt && tt.div !== div) { delete map[nomeClube]; curou = true }
+    if (!s.oficial && !carreiraSoloFutebol(s) && tt && tt.div !== div) { delete map[nomeClube]; curou = true }
   }
   // 🕵️ OS CLUBES QUE GANHAM TÉCNICO = OS DA SUA DIVISÃO DE VERDADE (13/09).
   // Palavras do Diego: *"eu subi pra série D e depois pra série C e continuou os
@@ -2324,7 +2333,7 @@ function semeiaTecnicos(s: EscState, largadaOficial = false): void {
   const gente = new Set(s.managers.filter(m => m.isHuman).map(m => m.teamName))
   let soltou = false
   for (const nomeClube of Object.keys(map)) {
-    if (s.oficial || gente.has(nomeClube) || naMinhaDiv.has(nomeClube)) continue
+    if (s.oficial || carreiraSoloFutebol(s) || gente.has(nomeClube) || naMinhaDiv.has(nomeClube)) continue
     delete map[nomeClube]; delete desde[nomeClube]; delete ctAll[nomeClube]; soltou = true
   }
   const usados = new Set(Object.values(map).filter((x): x is string => !!x))
@@ -3154,10 +3163,21 @@ type BidMap = Map<string, Bid[]>
 
 /** A regra é por clube comprador, inclusive nas revendas. Reaver o próprio listado preserva a posse. */
 export function contratacaoOficialPermitida(s: EscState, m: Manager, c: Card): boolean {
-  if (!s.oficial || s.onlineMode === 'online' || c.seller === m.id) return true
+  if (!(s.oficial || gestaoAtiva(s)) || s.onlineMode === 'online' || c.seller === m.id) return true
   const div = s.careerPlacements?.[m.marketTeam ?? `m${m.id}`] ?? divOficialDe(s) ?? 'D'
-  return cartaDeClubeBrasileiro(c) && categoriaOficialOk(div, c)
+  return elegivelGestao(s,div,c)
 }
+function elegivelGestao(s:EscState,div:string,c:Pick<Card,'fame'|'promessa'|'club'>):boolean{
+ return s.oficial?cartaDeClubeBrasileiro(c)&&categoriaOficialOk(div,c):!s.escadaOn||!!s.escadaLivre||escadaAllows((['A','B','C','D','V'].includes(div)?div:'V') as EscadaDiv,c)
+}
+/** Stored contracts for background clubs, preserving traditional signing prices. */
+function garanteContratosGestao(s:EscState):void{
+ if(!gestaoAtiva(s)||s.oficial||!s.contratosOn)return
+ const completa=(c:Card)=>{const w=c as WonCard;if(ehFake(c)||w.cria||w.emprestado||w.contratoAte!=null)return;let h=s.seed>>>0;for(const ch of ident(c))h=Math.imul(h^ch.charCodeAt(0),31)>>>0;w.contratoAte=s.seasonNo+4+h%5}
+ for(const m of s.managers)for(const c of m.squad)completa(c)
+ for(const sq of Object.values(s.cpuSquads??{}))for(const c of sq)completa(c)
+}
+
 /** Prospective, idempotente. Nunca altera resultados, preço pago ou contratos já registrados. */
 export function garanteEconomiaOficial(s: EscState): void {
   if (!s.oficial || s.onlineMode === 'online') return
@@ -8818,7 +8838,7 @@ export const MARCAS_DE_MODO = ['footballPlans','footballNextPlans','pregaoAberto
  *  pagos por temporada (`copaPrizeDone`: a Copa do Mundo da T-mesma não pagava), marcas de temporada da economia dos bots etc.
  *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
  *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
-export const ZERA_NA_CARREIRA_NOVA = ['careerMatchInjury','careerNeighborhood','careerTransferHistory','careerMemory','careerCupLive','careerCupActive','careerMuseums', 'careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
+export const ZERA_NA_CARREIRA_NOVA = ['careerManagementSince','oficialMercadoBotsSeason','careerMatchInjury','careerNeighborhood','careerTransferHistory','careerMemory','careerCupLive','careerCupActive','careerMuseums', 'careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
@@ -9151,6 +9171,7 @@ export function formacaoLiberadaNoEstado(s: Pick<EscState, 'careerTecnicos' | 'c
 export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   if (s !== state && s.oficial && ['START_CAREER_SOLO', 'RESUME_CAREER_SOLO', 'RESTORE_CAREER', 'LOAD_STATE', 'FINISH_CEREMONY', 'SEED_CPU_SQUADS', 'MONTE_PICK', 'ADVANCE_REVEAL', 'CONFIRM_MESMO_TIME', 'RESERVE_AUCTION_ONLINE'].includes(action.type)) garanteEconomiaOficial(s)
+  if(s!==state&&['START_CAREER_SOLO','RESUME_CAREER_SOLO','RESTORE_CAREER','LOAD_STATE','FINISH_CEREMONY','SEED_CPU_SQUADS','CONFIRM_MESMO_TIME','RESERVE_AUCTION_ONLINE','CAREER_ADVANCE'].includes(action.type)){preparaGestaoCarreira(s);garanteContratosGestao(s)}
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
   if (s !== state && s.copaMode === 'champions') abreChampionsDiretoSePrecisa(s)
   if (s !== state && s.copaMode === 'relampago') abreRelampagoSePrecisa(s)
@@ -10524,6 +10545,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // criada DAQUI PRA FRENTE — carreira antiga não ganha a flag e continua
       // fora dos rankings (global e da home). Ver sport.ts.
       s.agenciaOn = agenciaLiberada() || undefined
+      s.careerManagementSince = s.sport !== 'basquete' && !action.co2 ? 1 : undefined
       s.botComissao = previaCentral() || undefined // 🤖 18/11: carreira nova — bots com preparador e pagando a comissão (só na conta do Diego até ele liberar)
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
       // 🪜 ESCADA DE CATEGORIAS: SÓ carreira NOVA (de qualquer conta, desde 03/08).
@@ -10697,6 +10719,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.simV = 8
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined
+
       s.botComissao = previaCentral() || undefined // 🤖 18/11: carreira nova — bots com preparador e pagando a comissão (só na conta do Diego até ele liberar)
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
       s.escadaOn = escadaLiberada() || undefined
@@ -12183,7 +12206,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // respeitando a régua da divisão DELE (escada). Com o real dentro, o
       // incógnito mais fraco da posição sai. Roda ANTES do sorteio de contratos,
       // então carta nova de rival já nasce com contrato normal.
-      if (s.careerOnline && s.onlineMode !== 'online' && !s.oficial) {
+      if (s.careerOnline && s.onlineMode !== 'online' && !s.oficial && !gestaoAtiva(s)) {
         const idR = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
         const usados = new Set<string>()
         for (const m of s.managers) for (const c of m.squad) if (!c.fake) usados.add(idR(c))
@@ -12249,7 +12272,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // conserto vira PERMANENTE no save: toda ficha de fundo que não fecha os 11
       // ganha jogador do catálogo livre (bom jogador pra baixo, o mais fraco) e, só
       // se não houver ninguém, um incógnito. Ficha completa não é tocada.
-      if (s.careerOnline && s.onlineMode !== 'online' && s.cpuSquads && !s.oficial) {
+      if (s.careerOnline && s.onlineMode !== 'online' && s.cpuSquads && !s.oficial && !gestaoAtiva(s)) {
         const NEED_F: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
         const idF = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
         const usadosF = new Set<string>()
@@ -12300,7 +12323,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         // 🎯 a fila de sobras REAIS vem primeiro que o perna-de-pau (ver `fillToEleven`)
         const sobras = sobrasReais(s)
         for (const m of s.managers) if (m.marketCpu && m.marketTeam) {
-          sq[m.marketTeam] = s.oficial ? [...m.squad] : fillToEleven(m.squad, m.formation, frng, sobras)
+          sq[m.marketTeam] = s.oficial || gestaoAtiva(s) ? [...m.squad] : fillToEleven(m.squad, m.formation, frng, sobras)
           cash[m.marketTeam] = s.oficial ? Math.round(m.money) : Math.max(0, Math.round(m.money))
         }
         s.cpuSquads = sq
@@ -13509,13 +13532,13 @@ function reducerBase(state: EscState, action: Action): EscState {
         // leilão. Duplicata não acontece: assim que a carta passa a ser de alguém, a
         // receita de fundo para de oferecê-la (ela casa por nome|clube|ano).
         const dono = s.managers.find(m => !m.isHuman && (!action.clube || m.teamName===action.clube) && m.squad.some(c => c.id === action.cardId))
-        const elencoDono = dono?.squad ?? (s.oficial ? s.cpuSquads?.[action.clube??''] : action.squad) ?? []
+        const elencoDono = dono?.squad ?? (s.oficial || gestaoAtiva(s) ? s.cpuSquads?.[action.clube??''] : action.squad) ?? []
         const alvo = dono?.squad.find(c => c.id === action.cardId)
-          ?? (s.oficial ? elencoDono.find(c=>c.id===action.cardId) : action.clube && action.card && action.card.id === action.cardId ? action.card : null)
+          ?? (s.oficial || gestaoAtiva(s) ? elencoDono.find(c=>c.id===action.cardId) : action.clube && action.card && action.card.id === action.cardId ? action.card : null)
         if (!alvo || ehFake(alvo) || alvo.cria || (alvo as WonCard).emprestado) return s
         if (contratoAtletaFalta(s,alvo)>0&&!reservaTransferivelOficial(s,elencoDono,alvo,dono?.formation))return s
         const comprador = s.managers[s.youIdx]
-        if (s.oficial && (!contratacaoOficialPermitida(s, comprador, alvo) || !podeRetirarOficial(s, dono?.squad ?? s.cpuSquads?.[action.clube??''] ?? action.squad ?? [], alvo.pos, dono?.formation))) {
+        if ((s.oficial || gestaoAtiva(s)) && (!contratacaoOficialPermitida(s, comprador, alvo) || !podeRetirarOficial(s, dono?.squad ?? s.cpuSquads?.[action.clube??''] ?? action.squad ?? [], alvo.pos, dono?.formation))) {
           s.news = ['Sondagem indisponível: categoria fora da sua divisão ou clube sem reserva para repor a posição.', ...(s.news ?? [])].slice(0, 20); return s
         }
         if (!sondarLiberado(alvo, myApoioPerk()?.tier)) return s
@@ -13854,7 +13877,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'OFICIAL_COPA_FISICA': {
-      if (!s.oficial || s.onlineMode === 'online' || action.season !== s.seasonNo) return state
+      if (!gestaoAtiva(s) || action.season !== s.seasonNo) return state
       const anterior = s.oficialFisica?.season === action.season ? s.oficialFisica : {season:action.season,cal:{}}
       const copas = {...anterior.copas}
       let mudou = false
@@ -13863,7 +13886,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.oficialFisica = {...anterior,copas}; return s
     }
     case 'OFICIAL_CALENDARIO_FISICO': {
-      if (!s.oficial || s.onlineMode === 'online' || action.season !== s.seasonNo) return state
+      if (!gestaoAtiva(s) || action.season !== s.seasonNo) return state
       s.oficialFisica = { ...(s.oficialFisica?.season === action.season ? s.oficialFisica : {}), season: action.season, cal: action.cal, clubes: action.clubes }; return s
     }
     case 'SEED_CPU_SQUADS': {
@@ -13873,7 +13896,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!s.careerOnline || s.cpuSquads || s.sport === 'basquete') return s
       s.cpuSquads = action.squads
       healCpuSquads(s)
-      reparaMinimoOficial(s) // só reais livres, com referência econômica
+      reparaMinimoOficial(s) // só reais livres, preservando a economia de cada modo
+      if(gestaoAtiva(s)&&!s.oficial)completaBancoDosBots(s)
       // 🔒 a ficha veio pré-calculada pelo cliente — se ela pegou o elenco de
       // alguém desatualizado (arremate ainda não aplicado), tira o jogador que já tem dono
       return s
@@ -14066,15 +14090,16 @@ function reducerBase(state: EscState, action: Action): EscState {
         // rivais (CPU): sem leilão pra repor, então sempre renovam (paga do clubCash do time)
         const cashR = { ...(s.clubCash ?? {}) }
         for (const m of s.managers) {
-          if (m.isHuman || (!s.oficial && !m.rival)) continue
+          if (m.isHuman || (!s.oficial && !gestaoAtiva(s) && !m.rival)) continue
           const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < s.seasonNo)
           for (const c of expirados) {
             const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
-            cashR['m' + m.id] = s.oficial ? (cashR['m' + m.id] ?? 0) - custo : Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
+            cashR['m' + m.id] = s.oficial || gestaoAtiva(s) ? (cashR['m' + m.id] ?? 0) - custo : Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
             ;(c as WonCard).contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
           }
         }
         s.clubCash = cashR
+        garanteContratosGestao(s)
         renovaFundoOficial(s)
       }
       s.reserveListMesmo = undefined
@@ -14252,8 +14277,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const cid of s.aliciarJogadores ?? []) {
           const dono = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === cid))
           const card = dono?.squad.find(c => c.id === cid)
-          if (dono && card && !card.fake && !card.emprestado && podeRetirarOficial(s, dono.squad, card.pos, dono.formation) && (!s.oficial || contratoAtletaFalta(s,card)<=0 || reservaTransferivelOficial(s,dono.squad,card,dono.formation))) {
-            const transferencia=s.oficial&&contratoAtletaFalta(s,card)>0
+          if (dono && card && !card.fake && !card.emprestado && podeRetirarOficial(s, dono.squad, card.pos, dono.formation) && (!(s.oficial || gestaoAtiva(s)) || contratoAtletaFalta(s,card)<=0 || reservaTransferivelOficial(s,dono.squad,card,dono.formation))) {
+            const transferencia=(s.oficial||gestaoAtiva(s))&&contratoAtletaFalta(s,card)>0
             dono.squad = dono.squad.filter(c => c.id !== cid)
             listedCards.push({ ...card, seller: dono.id, semContrato: transferencia?undefined:true, ...(transferencia?{paid:Math.max(s.marketValues?.[ident(card)]??0,justoDaCarta(s,card))}:{}) })
             marketSellers[card.pos].push(dono.id) // o dono pode brigar de volta no setor
@@ -14264,9 +14289,9 @@ function reducerBase(state: EscState, action: Action): EscState {
           // (`MEI-42`) tem a mesma forma do id do baralho e poderia bater com outro
           // lote. A identidade (nome|clube|ano) é a mesma, que é o que importa.
           const f = s.aliciarFundo
-          const elencoFundo=f?(s.cpuSquads?.[f.clube]??(s.oficial?[]:f.squad)):[]
+          const elencoFundo=f?(s.cpuSquads?.[f.clube]??(s.oficial||gestaoAtiva(s)?[]:f.squad)):[]
           const alvoFundo=f?elencoFundo.find(c=>c.id===cid):undefined
-          if (f && f.cardId === cid && alvoFundo && !alvoFundo.fake && podeRetirarOficial(s, elencoFundo, alvoFundo.pos) && (!s.oficial || contratoAtletaFalta(s,alvoFundo)<=0 || reservaTransferivelOficial(s,elencoFundo,alvoFundo))) {
+          if (f && f.cardId === cid && alvoFundo && !alvoFundo.fake && podeRetirarOficial(s, elencoFundo, alvoFundo.pos) && (!(s.oficial || gestaoAtiva(s)) || contratoAtletaFalta(s,alvoFundo)<=0 || reservaTransferivelOficial(s,elencoFundo,alvoFundo))) {
             // 🐛 15/10 (Fabulous EC, "comprei o Pelé e apareceram 5 Garrinchas"): o id de fundo
             // se REPETE entre clubes diferentes (`ATA-25` do clube X e do clube Y), então dois
             // sondados de temporadas diferentes nasciam com o MESMO `sond-ATA-25` — e a tela, que
@@ -14277,7 +14302,7 @@ function reducerBase(state: EscState, action: Action): EscState {
             for (const c of listedCards) usados.add(String(c.id))
             let novoId = `sond-${s.seasonNo}-${cid}`
             for (let n = 2; usados.has(novoId); n++) novoId = `sond-${s.seasonNo}-${cid}~${n}`
-            const transferencia=s.oficial&&contratoAtletaFalta(s,alvoFundo)>0
+            const transferencia=(s.oficial||gestaoAtiva(s))&&contratoAtletaFalta(s,alvoFundo)>0
             listedCards.push({ ...alvoFundo, id: novoId, semContrato: transferencia?undefined:true,...(transferencia?{paid:Math.max(s.marketValues?.[ident(alvoFundo)]??0,justoDaCarta(s,alvoFundo))}:{}) })
             // 🎯 O CLUBE SONDADO ENTRA NO LEILÃO INTEIRO (Diego 13/09): *"esse time
             // sondado tem direito a participar da leva inteira do leilão também, seja
@@ -14360,7 +14385,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const cashR = { ...(s.clubCash ?? {}) }
         const soltos: WonCard[] = []
         for (const m of s.managers) {
-          if (m.isHuman || (!s.oficial && !m.rival)) continue
+          if (m.isHuman || (!s.oficial && !gestaoAtiva(s) && !m.rival)) continue
           const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < s.seasonNo)
           for (const c of expirados) {
             const oficial = valorOficial(s, c)
@@ -14370,7 +14395,7 @@ function reducerBase(state: EscState, action: Action): EscState {
             const filledPos = m.squad.filter(x => x.pos === c.pos && !x.fake).length
             const podeSoltar = filledPos - 1 >= need
             if (!podeSoltar || (ctrRng() < quer && (cashR['m' + m.id] ?? 0) >= custo)) {
-              cashR['m' + m.id] = s.oficial ? (cashR['m' + m.id] ?? 0) - custo : Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
+              cashR['m' + m.id] = s.oficial || gestaoAtiva(s) ? (cashR['m' + m.id] ?? 0) - custo : Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
               ;(c as WonCard).contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
             } else {
               m.squad = m.squad.filter(x => x.id !== c.id)
@@ -14379,6 +14404,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           }
         }
         s.clubCash = cashR
+        garanteContratosGestao(s)
         renovaFundoOficial(s)
         for (const pos of SECTORS) {
           const best = soltos.filter(c => c.pos === pos).sort((a, b) => valorOficial(s, b) - valorOficial(s, a))[0]
@@ -14596,7 +14622,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!s.careerDivision) return s
       if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção (cada aparelho virando sozinho desencontraria a pirâmide)
       if (s.onlineMode !== 'online') { // 🔒 27/10: carreira grátis (solo) — sem plano, para no fim da 50 (ou +10 pra quem já estava acima); a tela mostra o porquê e os planos
-        if (!s.oficial && travaCarreiraGratis(s.seasonNo, !!action.pago, s.careerGratisAte)) return s // 🇧🇷 Oficial: sem limite de temporada (18/11)
+        if (!carreiraSemLimite(s) && !s.oficial && travaCarreiraGratis(s.seasonNo, !!action.pago, s.careerGratisAte)) return s // 🇧🇷 Oficial: sem limite de temporada (18/11)
         s.careerGratisAte = marcaGratis(s.seasonNo, !!action.pago, s.careerGratisAte)
       }
       setActiveCatalog(s.deckLeague, false, undefined, !!s.oficial) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
@@ -15859,13 +15885,15 @@ function saveAtualizado(save: EscState): EscState {
   const s = sincronizaNiveis(faxinaCaixa(save))
   try {
     const antes = { d: s.condicaoDesde, r: s.condicaoDesdeR }
-    const copia: EscState = { ...s, ...(s.oficial ? {oficial:{...s.oficial}, cpuSquads:s.cpuSquads ? Object.fromEntries(Object.entries(s.cpuSquads).map(([name,cs]) => [name, cs.map(c => ({...c}))])) : undefined} : {}), managers: s.managers?.map(m => ({ ...m, ...(s.oficial ? {squad:m.squad.map(c=>({...c}))} : {}) })) ?? s.managers }
+    const copia: EscState = { ...s, ...(s.oficial || carreiraSoloFutebol(s) ? {...(s.oficial?{oficial:{...s.oficial}}:{}), cpuSquads:s.cpuSquads ? Object.fromEntries(Object.entries(s.cpuSquads).map(([name,cs]) => [name, cs.map(c => ({...c}))])) : undefined} : {}), managers: s.managers?.map(m => ({ ...m, ...(s.oficial || carreiraSoloFutebol(s) ? {squad:m.squad.map(c=>({...c}))} : {}) })) ?? s.managers }
+    const mexeuGestao=preparaGestaoCarreira(copia)
+    garanteContratosGestao(copia)
     ligaCondicaoSeCabe(copia)
     curaContratosVencidos(copia)
     garanteEconomiaOficial(copia)
     const mexeuGas = copia.condicaoDesde !== antes.d || copia.condicaoDesdeR !== antes.r
     const mexeuCtr = copia.managers?.some((m, i) => m.squad !== s.managers[i]?.squad)
-    return copia.oficial || mexeuGas || mexeuCtr ? copia : s
+    return copia.oficial || mexeuGestao || mexeuGas || mexeuCtr ? copia : s
   } catch { return s }
 }
 export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos, descongelaContrato as __descongelaContrato, resolveQuickCopaTie as __resolveQuickCopaTie, seedQuickCopa as __seedQuickCopa, seedNbaCup as __seedNbaCup, sincronizaNiveis as __sincronizaNiveis } // 🔬 só pra teste
@@ -18181,7 +18209,7 @@ export function sanitize(state: EscState): EscState {
   const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
   // 🔨 PREGÃO ABERTO (17/10): mesma regra — os tetos dos robôs (das duas mesas) ficam só no aparelho do dono
   const pa = state.pa ? { ...state.pa, tetos: {}, ...(state.pa.m2 ? { m2: { ...state.pa.m2, tetos: {} } } : {}) } : state.pa
-  return { ...state, ...(state.onlineMode==='online'?{careerMatchInjury:undefined,careerNeighborhood:undefined}:{}), careerMuseums:undefined, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
+  return { ...state, ...(state.onlineMode==='online'?{careerManagementSince:undefined,careerMatchInjury:undefined,careerNeighborhood:undefined}:{}), careerMuseums:undefined, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
 }
 // 🧳 A SALA NÃO LEVA A CARREIRA DE NINGUÉM NA MALA (24/09, sala do Final Boss FC).
 // Diego: *"deu erro, travou a sala, os valores e etc"* — Tocaia, jogo rápido online.
@@ -18199,6 +18227,7 @@ export function sanitize(state: EscState): EscState {
 // carreira dele continua intacta em memória e no save dela. Carreira ONLINE não passa
 // por aqui (lá esses campos são o jogo). Trava: `npm run bagagem`.
 export const SEM_BAGAGEM_DE_CARREIRA: Partial<EscState> = {
+  careerManagementSince:undefined,
   careerMatchInjury:undefined,
   careerNeighborhood: undefined,
   cpuSquads: undefined,

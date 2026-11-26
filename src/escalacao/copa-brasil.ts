@@ -32,7 +32,7 @@ import {CDB_OFICIAL, cdbOficialPorFim} from './economia-oficial'
 //   Final (2→1, jogo único, travada)
 
 import type { Div, SimTeam, Goal, SeasonScorer, SeasonAssist, RoundLineups, PoolCard, Tac, CopaResult, CopaRound, GolCopaM2 } from './pyramidseason'
-import { mulberry, shuffle, poisson, rollForm, lineupAt, TACS, GOAL_TUNE, teamKey, mid, pickAssist, taticaOficialCopa, fisicaDaCopa, rollFormCopa, jogoCopaM2, pensCopaM2, golCopaSemCarta } from './pyramidseason'
+import { mulberry, shuffle, poisson, lineupAt, TACS, GOAL_TUNE, teamKey, mid, pickAssist, taticaOficialCopa, fisicaDaCopa, rollFormCopa, jogoCopaM2, pensCopaM2, golCopaSemCarta } from './pyramidseason'
 import type { EntradaM2 } from './motor2/carreira'
 import type { VersaoM2 } from './motor2/versao'
 
@@ -416,6 +416,8 @@ export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: S
     ? { t: withXI(ligaVice), div: 'A' }
     : { t: withXI(ligaChamp), div: 'A' }
   const copaEnt: Entrant = { t: copaChampion, div: 'A' } // divisão só decorativa aqui pro tipo bater
+  const fisica=fisicaDaCopa(),fisicaId=`copa:${seed}:${seasonNo}:S:1:${ligaEnt.t.name}:${copaEnt.t.name}`
+  ligaEnt.t=fisica.prepara(ligaEnt.t,fisicaId);copaEnt.t=fisica.prepara(copaEnt.t,fisicaId)
   const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0x5C0DA) >>> 0)
   const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
   // jogo único, sem acumular artilharia entre jogadores (é só 1 partida) —
@@ -445,8 +447,8 @@ export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: S
     escolhidos.forEach((a, i) => { if (a) { evs[i].assist = a.name; passes.push(a) } })
     return evs
   }
-  const th = TACS[Math.floor(rng() * 3)] as Tac, ta = TACS[Math.floor(rng() * 3)] as Tac
-  const fh = rollForm(ligaEnt.t.xi, th, ta, rng), fa = rollForm(copaEnt.t.xi, ta, th, rng)
+  const th = taticaOficialCopa(ligaEnt.t,SLOT_SUPER,TACS[Math.floor(rng() * 3)] as Tac), ta = taticaOficialCopa(copaEnt.t,SLOT_SUPER,TACS[Math.floor(rng() * 3)] as Tac)
+  const fh = rollFormCopa(ligaEnt.t, th, ta, rng), fa = rollFormCopa(copaEnt.t, ta, th, rng)
   const lkH = 0.85 + rng() * 0.30, lkA = 0.85 + rng() * 0.30
   fh.atk *= lkH; fh.def *= lkH; fa.atk *= lkA; fa.def *= lkA
   const qual = (atk: number) => Math.max(0.5, Math.min(capElite, atk / 66))
@@ -493,7 +495,8 @@ export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: S
     if (r) r.assists++
     else linhasA.set(k, { name: c.name, teamName: t.name, teamId: t.teamId, div: 'A', assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: c.id, club: c.club, year: c.year })
   }
-  return { a: ligaEnt.t, b: copaEnt.t, aDiv: 'A', bDiv: 'A', aggA: hg, aggB: ag, pens, win, goals, legs: [[hg, ag]], legGoals: [goals], scorers: [...linhas.values()], assists: [...linhasA.values()], legM2: m2 ? [m2] : undefined }
+  fisica.jogou(fisicaId,ligaEnt.t,copaEnt.t)
+  return { legFisicaIds:[fisicaId],legFisicaInicio:[fisica.inicio(fisicaId)],legFisicaClubes:[fisica.clubes(fisicaId)],a: ligaEnt.t, b: copaEnt.t, aDiv: 'A', bDiv: 'A', aggA: hg, aggB: ag, pens, win, goals, legs: [[hg, ag]], legGoals: [goals], scorers: [...linhas.values()], assists: [...linhasA.values()], legM2: m2 ? [m2] : undefined }
 }
 
 export const SUPERCOPA_PAY = { vice: 8, camp: 20 }
