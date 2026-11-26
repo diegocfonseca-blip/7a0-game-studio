@@ -33,6 +33,7 @@ import type { ConfigPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penalti
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { ChatWidget, GiroDaRodada, TrocaCampo2DSala, CardCollectPrompt } from './screens'
 import { startCrowd, stopCrowd } from './sound'
+import { corDoClubeReal } from './cores-clubes-reais' // 🎽 26/11: camisa do clube no Campo 2D
 import { SeloClube } from './selo-clube'
 import { CMModal, ConvocacaoScreen, type Formation } from './copa-mundo'
 import { RelogioConvocacao, SEG_CONVOCA_SALA } from './relogio-convocacao'
@@ -578,7 +579,7 @@ export function ChampionsSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao
 
   const live = (h: number, a: number, ev: GolRegional[], pen?: CupPenaltyPresentation) => (
     <PlacarQueGruda min={Math.min(93, liveMin)} fim={liveDone} home={entrants[h].pais} away={entrants[a].pais} goals={golsAte(ev)} youIsHome={isYou(h)}>
-      <LiveScoreCard broadcastTransition={cupPilot?abertura:undefined} penaltyPanel={pen?.panel} neutro={!isYou(h)&&!isYou(a)} disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={GREEN} awayColor="#C2452F"
+      <LiveScoreCard broadcastTransition={cupPilot?abertura:undefined} penaltyPanel={pen?.panel} neutro={!isYou(h)&&!isYou(a)} disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={c2d ? corDoClubeReal(entrants[h].pais) : GREEN} awayColor={c2d ? corDoClubeReal(entrants[a].pais) : "#C2452F"}
         homeOwner={dono(h)} awayOwner={dono(a)} homeEmblem={sel(h, 58)} awayEmblem={sel(a, 58)}
         youIsHome={isYou(h)} goals={ev} roundKey={step} roundMs={roundMs} finished={liveDone} footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} elencos={{ casa: entrants[h].xi, fora: entrants[a].xi }} />
     </PlacarQueGruda>

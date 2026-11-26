@@ -1,3 +1,4 @@
+import { corDoClubeReal } from './cores-clubes-reais'
 import {QuickMatchLayout,AuctionIdentity,AuctionPositions} from './shared-game-ui'
 import * as careerSaves from './salvamento/service'
 import { SaveHistory, SaveCopies } from './salvamento/dialogs'
@@ -216,6 +217,8 @@ const GOLD = '#FFC400'
 // 🛡️ Diego (11/08): cor tem que bater com a do ESCUDO do time, não sortear separado
 // — puxa o fundo (c1) do mesmo gerador de escudo, qualquer nome (real ou fictício).
 const copaSideColor = (name: string): string => escudoDe(name).c1
+// 🎽 26/11: no Só Super Mundial o rival pode ser um CLUBE DE VERDADE (`clubeReal`) — veste a cor dele; bot comum segue no azul de sempre
+const corDoRealOuBot = (st: EscState, id: number): string => { const r = st.liberta?.times.find(t => t.id === id)?.clubeReal; return r ? corDoClubeReal(r) : '#3A7CA5' }
 type CopaFill = { bg: string; ink: string; holo: number }
 const _lum = (r: number, g: number, b: number) => 0.3 * r + 0.59 * g + 0.11 * b
 const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return _lum((n >> 16) & 255, (n >> 8) & 255, n & 255) > 150 ? '#0c0c0c' : '#ffffff' }
@@ -8810,7 +8813,7 @@ export function EscSeason() {
                 const oppId = homeIsYou ? legAwayId : legHomeId
                 const oppIsHuman = state.managers.some(m => m.id === oppId && m.isHuman)
                 // 🎨 mesmo padrão da liga: amigo = cor do tier DELE (gratuito = bege)
-                const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+                const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : corDoRealOuBot(state, oppId) // 🎽 26/11: clube de verdade do Super Mundial veste a camisa dele
                 const hl = myTie.lastHighlights ?? []
                 const goals = hl.filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
                 return (
@@ -8905,7 +8908,7 @@ export function EscSeason() {
         // 🎨 amigo online joga com a cor do TIER dele (gratuito = bege) — nunca uma
         // cor emprestada. CPU segue o azul neutro.
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
-        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : corDoRealOuBot(state, oppId) // 🎽 26/11: clube de verdade do Super Mundial veste a camisa dele
         const nameOf = (id: number) => (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id) ?? state.champions?.times.find(t => t.id === id))?.name ?? '?'
         const scorer = (text: string) => { const k = nomeGolKings(text); if (k) return k; const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
         const goals = myLast.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
@@ -10418,7 +10421,7 @@ export function EscLiberta() {
         const homeIsYou = meuJogo.homeId === you.id
         const oppId = homeIsYou ? meuJogo.awayId : meuJogo.homeId
         const oppIsHuman = humano(oppId)
-        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : corDoRealOuBot(state, oppId) // 🎽 26/11: clube de verdade do Super Mundial veste a camisa dele
         const goals = meuJogo.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === meuJogo.homeId }))
         return <LiveScoreCard enhancedOnline={privateVisual} key={`lb-${lb.rodada}`}
           homeName={nomeDe(meuJogo.homeId)} awayName={nomeDe(meuJogo.awayId)}
@@ -10820,7 +10823,7 @@ export function EscChampions() {
         const homeIsYou = meuJogo.homeId === you.id
         const oppId = homeIsYou ? meuJogo.awayId : meuJogo.homeId
         const oppIsHuman = humanoId(oppId)
-        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : corDoRealOuBot(state, oppId) // 🎽 26/11: clube de verdade do Super Mundial veste a camisa dele
         const goals = meuJogo.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === meuJogo.homeId }))
         return <PlacarOnlineQueEncolhe key={`ch-${passo}`}
           homeName={nomeDe(meuJogo.homeId)} awayName={nomeDe(meuJogo.awayId)}

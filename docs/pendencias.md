@@ -2,6 +2,13 @@
 
 Nome corrigido de Arena de Pernambuco para **Arruda**, a pedido de Diego, no catálogo compartilhado por agenda e estádio do Brasil Oficial. Consulta `estadioDoClube("Santa Cruz")` conferida; sem alteração de saves.
 
+## 26/11 — 🎽 CORES ERRADAS DOS CLUBES DE VERDADE NO CAMPO 2D (print do Diego, Libertadores da sala: Flamengo verde × Palmeiras vermelho)
+- Causa: as copas convocadas (Libertadores, Super Mundial, Champions e regionais da sala) mandavam o verde/vermelho FIXO de casa × fora pro
+  `LiveScoreCard`. Conserto (no branch, esperando o OK pra publicar): `cores-clubes-reais.ts` → `corDoClubeReal` (selos do Leilão de Clubes →
+  tabela nova dos 61 que faltavam, pela camisa titular → escudo genérico). Vale no Campo 2D das 4 copas convocadas, no rival-clube-de-verdade do
+  Só Super Mundial (antes azul de bot) e na carreira internacional (antes cor chutada pelo nome). Placar normal das copas convocadas continua
+  verde × vermelho (igual à Copa do Mundo). Camisa parecida: o 2D já troca o visitante. Trava `npm run cores-clubes`.
+
 ## 26/11 — 🌍 SUPER MUNDIAL + LIGA + CHAMPIONS nas salas — 🔒 SÓ DIEGO E FUTPOINT (`SUPER_MUNDIAL_GERAL`, sport.ts)
 Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions… 2 de cada… publicar é só na minha e no do Footpoint"*.
 - ✅ **🌍 Liga + Super Mundial (convocando)** — FEITO no branch (falta OK visual + publicar): acabou a liga, cada um escolhe um dos 32
