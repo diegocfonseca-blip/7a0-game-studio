@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## Copa do Mundo por convite nas duas carreiras — 26/11/2026
+
+Diego pediu Copa a cada **4 temporadas**, sem desbloqueio por temporada mínima na tradicional. As duas carreiras usam agenda desde T1 (1,5,9…), mantendo o requisito do ranking de clubes. Tradicional conserva escolha entre seleções permitidas pela posição, agora apresentada como convites e com recusa; Brasil Oficial conserva o convite de um país associado à posição. Migrar agenda antiga preservando títulos, edições encerradas e torneio em andamento; próximas edições a cada quatro temporadas desde a última edição registrada/ativa. Não mudar T40 dos internacionais de clubes, online, OVR, economia nem motor. Escopo e testes: `docs/auditorias/copa-mundo-convites-20261126.md`.
+
 ## Paridade das regras da carreira — 26/11/2026
 
 Diego autorizou as pendências 2–7 da auditoria e excluiu a 1: **não aplicar referência salarial à tradicional**. Compra de 60 no Oficial também deve pagar salário 6; só elenco herdado usa referência. Contrato registrado, gestão mundial dos bots, proteção de XI, manutenção do técnico, integração física das copas e ausência de teto T50 no futebol passam a ser compartilhados. `careerManagementSince` ativa prospectivamente a tradicional, sem alterar temporada antiga em curso; diferenças esportivas, início por leilão, SAF/segundo clube e internacional próprio permanecem. Catálogo/OVRs preservados, sem SQL nem recarga automática. Escopo, testes e compatibilidade: `docs/auditorias/paridade-regras-carreiras-20261126.md`.
