@@ -1,3 +1,7 @@
+## 26/11 — Vídeos opcionais: preparação sem ativação pública
+
+Diego escolheu vídeos para monetização automática. Site já tem tag AdSense/ads.txt, mas ele não sabe se possui aprovação H5 Games Ads. Controlador opt-in e testes preparados separadamente, sem import no jogo, anúncios reais, recompensa econômica ou mudança de banco. Falta confirmar acesso Google, revisar recompensa/posição do botão e integrar à pausa/áudio reais. Pedido de candidatura pronto e detalhes em `docs/videos-opcionais-20261126.md`.
+
 ## 26/11 — Champions convocando: apresentação e encerramento
 
 Correção da disputa dos controles entre a liga e a copa aberta: táticas, navegação e transmissão ficam dentro do modal. Chat da Champions único, com restauração da lateral ao fechar. Tabela completa marca 1–8 oitavas, 9–24 playoff, 25–36 eliminação e legenda. Cinema do campeão deixa de ser cortado pelo timer da festa antiga; preserva a competição/tabela após terminar ou pular. Sem alteração do motor ou banco. Provas e regressões: `docs/auditorias/champions-layout-20261126.md`.
