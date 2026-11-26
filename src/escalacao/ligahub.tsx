@@ -108,7 +108,7 @@ export type LinhaCampeao = {
   human_results?: ResultadoHumano[] | null
 }
 
-export type TituloSalaRapida = 'copa' | 'libertadores' | 'mundial' | 'regional' | 'supermundial' /* 🌍 26/11: Liga + Super Mundial */ // 🏟️ regional = Rio × SP / Sul × Minas / Nordeste (11/10)
+export type TituloSalaRapida = 'copa' | 'libertadores' | 'mundial' | 'regional' | 'supermundial' /* 🌍 26/11: Liga + Super Mundial */ | 'champions' /* ⭐ 26/11: Liga + Champions convocando */ // 🏟️ regional = Rio × SP / Sul × Minas / Nordeste (11/10)
 export type ResultadoHumanoEntrada = {
   managerId: number
   teamName: string
@@ -194,7 +194,7 @@ type PlacarSalaRapida = {
 
 // 🏆 TAÇAS DO LADO DO NOME (28/10, mockup `barra-trofeus-salas.png` aprovado): pequenas, todas do mesmo
 // tamanho, em fila logo depois do nome. Só aparece o que a pessoa GANHOU — quem não ganhou nada fica sem taça.
-const TACA_DO_TITULO: Record<TituloSalaRapida, CompId> = { copa: 'copa8', libertadores: 'liberta', mundial: 'mundo', regional: 'riosp', supermundial: 'supermundial' }
+const TACA_DO_TITULO: Record<TituloSalaRapida, CompId> = { copa: 'copa8', libertadores: 'liberta', mundial: 'mundo', regional: 'riosp', supermundial: 'supermundial', champions: 'champions' }
 const ORDEM_TACAS: CompId[] = ['liga', 'champions', 'relampago', 'supermundial', 'copa8', 'liberta', 'mundo', 'riosp']
 export function tacasDoResultado(r: { league_champion: boolean; cup_titles?: TituloSalaRapida[] | null; comp?: 'champions' | 'relampago' | 'supermundial' }, soma: Partial<Record<CompId, number>>) {
   const mais = (c: CompId) => { soma[c] = (soma[c] ?? 0) + 1 }
@@ -222,7 +222,7 @@ export function rankingSalaRapida(rows: LinhaCampeao[], membros: MembroSala[], h
   const normal = (v: string | null | undefined) => (v ?? '').trim()
   const nova = (key: string, nome: string, time = nome): PlacarSalaRapida => ({
     key, nome, time, pts: 0, liga: 0, classificacao: 0, rebaixamento: 0,
-    copas: { copa: 0, libertadores: 0, mundial: 0, regional: 0, supermundial: 0 }, tacas: {},
+    copas: { copa: 0, libertadores: 0, mundial: 0, regional: 0, supermundial: 0, champions: 0 }, tacas: {},
   })
   for (const m of membros) {
     if (atuais.has(m.user_id)) continue
@@ -692,7 +692,7 @@ function SalaTrofeusRapida({ ranking, rows }: { ranking: PlacarSalaRapida[]; row
       for (const r of row.human_results) {
         const feitos: string[] = []
         if (r.league_champion) feitos.push(r.comp === 'supermundial' ? tr('Super Mundial', 'Super Club World Cup') : r.comp === 'champions' ? 'Champions' : r.comp === 'relampago' ? tr('Relâmpago', 'Lightning') : tr('Liga', 'League'))
-        for (const c of r.cup_titles ?? []) feitos.push(c === 'supermundial' ? tr('Super Mundial', 'Super Club World Cup') : c === 'mundial' ? tr('Mundial', 'World Cup') : c === 'regional' ? tr('Copa regional', 'Regional cup') : c === 'libertadores' ? 'Libertadores' : tr('Copa', 'Cup'))
+        for (const c of r.cup_titles ?? []) feitos.push(c === 'champions' ? 'Champions' : c === 'supermundial' ? tr('Super Mundial', 'Super Club World Cup') : c === 'mundial' ? tr('Mundial', 'World Cup') : c === 'regional' ? tr('Copa regional', 'Regional cup') : c === 'libertadores' ? 'Libertadores' : tr('Copa', 'Cup'))
         if (r.qualified) feitos.push(tr('Top 8', 'Top 8'))
         if (r.relegated) feitos.push(tr('rebaixado', 'relegated'))
         if (feitos.length) itens.push(`${r.display_name || r.team_name}: ${feitos.join(' · ')}`)
