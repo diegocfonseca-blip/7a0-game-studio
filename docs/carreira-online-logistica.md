@@ -83,6 +83,14 @@ Igual à Liga Draft: só o aparelho do DONO salva a carreira; os outros só rece
 mesmo time e qualquer ação vai pro dono. Gaveta do clube (coisas só dele) grava com carimbo de hora e o banco só aceita a mais nova.
 Nada de "o último que entrou manda / o outro só assiste".
 
+## 📲 Extras aprovados (Diego, 26/11)
+- **Resumo da turma** na Central (cartões: divisão/posição, último jogo, jogando/fora há X dias, etiquetas) — mockup `carreira-online-central-turma.png`.
+- **TUITER** (*"Twitter com U"*, paródia igual às marcas do fornecedor): rede da turma com cara de Twitter (branco, azul #1D9BF0,
+  passarinho amarelo com martelo), posts de 80 letras (banco barra palavrão/link), @ responder, reações; posts automáticos do
+  O Martelo e das copas; bots postam com selo BOT. Abas Para você · Só a turma · Meus. Mockup `carreira-online-tuiter.png` (aguarda OK).
+- ⚔️ Clássico da turma · 🏆 Galeria da turma (+ Sala de Troféus do clube) · 🥇 Prêmios da turma no fim (só zoeira, sem dinheiro).
+- 🤝 Troca/venda entre amigos: **DEPOIS** (*"deixa pra depois"*). Sem ranking global; vale a tabela da carreira.
+
 ## Ordem de trabalho
 1. Alcance de quem faltou (`co2` + simulação das rodadas perdidas) — trava nova: aparelho que volta = mesmo estado do que ficou.
 2. A virada (leilão de todos no aparelho do comandante · ausente fica com o time · sobe/cai · T2) — trava: 3 clubes, 2 temporadas.
