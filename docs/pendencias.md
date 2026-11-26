@@ -46,7 +46,11 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
   Quem faltou alcança pela foto da virada. Plano/estado: `docs/carreira-online-virada-plano.md`.
 - ⏳ **SQL `docs/sql/carreira-online-virada-20261126.sql` NÃO APLICADO** (tabela da foto da virada). Aplicar fora do pico.
 - 🐛 consertado no mesmo dia: os aparelhos dos amigos não liam o modo (Dinâmica/Livre) nem a escalação congelada da copa.
-- ⏳ falta: relógio de 60 s da Dinâmica na virada, alcançar rodadas perdidas, sondar de amigo, bots 0–5 no leilão, teste com 2 contas.
+- ✅ (26/11) quem volta depois de rodadas fora ALCANÇA sozinho (`CO2_ALCANCA_RODADAS`: joga as rodadas que perdeu com as gavetas do
+  banco, mesmo placar que a turma viu) · ⚡ Dinâmica: relógio de 60 s na virada (aviso; o dono abre, confirma se ainda tem tempo).
+- ⚠️ caso raro aberto: quem perdeu a VIRADA inteira alcança as rodadas da temporada velha com as gavetas da nova (prêmios do fim
+  dele podem sair um pouco diferentes; elenco/divisão vêm da foto e ficam certos).
+- ⏳ falta: sondar de amigo, bots 0–5 no leilão, anúncio de competição nova (pausa C), teste com 2 contas.
 - Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).
 - Testes da v2 verdes depois da publicação do Codex (`npm run carreira-online` e `npm run carreira-online-fluxo`).
 

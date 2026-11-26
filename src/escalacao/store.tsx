@@ -6632,6 +6632,7 @@ type Action =
   | { type: 'CO2_ESPELHO'; newState: EscState; meuId: number } // 🌐 v2: leilão do dono na MINHA tela (o que eu aperto vai pra ele)
   | { type: 'CO2_FECHA' } // 🔄 26/11 virada: este aparelho fechou o próprio clube (a tela sobe a gaveta com o `fechamento`)
   | { type: 'CO2_ABRE_VIRADA'; fechamentos: Record<number, Fechamento | undefined> } // 🔄 26/11 virada: o DONO põe os fechamentos de todos e abre o leilão de todos
+  | { type: 'CO2_ALCANCA_RODADAS'; gavetas: GavetaPublica[]; ate: number } // 🔄 26/11: fiquei fora umas rodadas — jogo aqui, de uma vez, as que a turma já jogou (com as gavetas do banco)
   | { type: 'CO2_ALCANCA'; newState: EscState; meuId: number } // 🔄 26/11: eu faltei na virada — junto a foto do leilão de todos (do banco) com o meu clube fechado
   | { type: 'CO2_ASSUME'; newState: EscState; meuId: number } // 🌐 v2: acabou a fase de todos — a partir daqui o MEU aparelho toca o MEU clube
   | { type: 'CO2_ABRE'; save: EscState } // 🌐 v2: reabre o MEU clube (save do aparelho ou da nuvem do jogo)
@@ -9840,6 +9841,21 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     // 🌐 CARREIRA ONLINE v2: os clubes dos OUTROS (elenco, formação, nome) entram na lista; o MEU nunca é tocado. As
     // entradas de simulação deles ficam em `co2.gavetas` e a tela mistura na hora de simular (`mesclaEntradas`).
+    // 🔄 26/11 QUEM NÃO JOGOU NÃO PERDE O CLUBE (Diego): enquanto ele estava fora, o time dele jogou sozinho nos outros
+    // aparelhos, com a última gaveta que ele subiu. Ao voltar, este aparelho joga as mesmas rodadas com as MESMAS gavetas
+    // (a minha do banco vale pras rodadas que já passaram — `congelaMeu`) e chega no mesmo placar que todo mundo viu.
+    case 'CO2_ALCANCA_RODADAS': {
+      if (!s.co2 || s.co2.comanda || s.co2.espelho || s.screen !== 'season') return s
+      const alvo = Math.min(38, Math.max(0, Math.floor(action.ate)))
+      if ((s.round ?? 0) >= alvo) return s
+      let cur = reducer(s, { type: 'CO2_GAVETAS', gavetas: action.gavetas, ate: alvo - 1 })
+      for (let i = 0; i < 40 && (cur.round ?? 0) < alvo; i++) {
+        const antes = cur.round ?? 0
+        cur = reducer(cur, { type: 'PLAY_ROUND' })
+        if ((cur.round ?? 0) === antes) break // algo segurou a rodada (aviso pendente): para aqui, a tela mostra
+      }
+      return cur
+    }
     // 🔄 26/11 VIRADA da carreira online: cada aparelho fecha o PRÓPRIO clube (contas do fim + janela de contratos, já
     // feitas no OPEN_RESERVE_LIST local) e trava. A tela sobe o `fechamento` na gaveta. Nada aqui mexe em outro clube.
     case 'CO2_FECHA': {

@@ -233,6 +233,24 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   }
   useEffect(() => { void puxaGavetas() }, [sn.clubes]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 📴 26/11 (Diego: *"quem não jogou não perde o clube… o time joga sozinho e ele alcança ao voltar"*): voltei e a turma já
+  // jogou rodadas que eu não joguei → jogo todas aqui de uma vez, com as gavetas do banco (o mesmo que os outros usaram)
+  const alcancaRef = useRef('')
+  useEffect(() => {
+    if (!sala || comanda || state.screen !== 'season') return
+    const alvo = sala.temporada > (state.seasonNo ?? 1) ? 38 : sala.temporada === (state.seasonNo ?? 1) ? sala.rodada : -1
+    if (alvo <= round) return
+    const chave = `${sala.temporada}:${alvo}:${round}`
+    if (alcancaRef.current === chave) return
+    alcancaRef.current = chave
+    void (async () => {
+      const rows = await co2LeGavetas()
+      const ordem = co2Agora().mundo?.ordem ?? []
+      const gav = rows.map(r => r.publico as unknown as GavetaPublica).filter(g => g && typeof g.mgrId === 'number' && ordem[g.mgrId] != null)
+      dispatch({ type: 'CO2_ALCANCA_RODADAS', gavetas: gav, ate: alvo })
+    })()
+  }, [sala, round, comanda, state.screen, state.seasonNo]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // ▶️ a rodada começou no dono → congela as gavetas e joga a rodada aqui também (o motor é o mesmo em todo aparelho)
   const jogandoRef = useRef(-1)
   useEffect(() => {
@@ -401,12 +419,26 @@ export function Co2ViradaEspera() {
     return out
   }
   useEffect(() => { void le() }, [sn.clubes, subiu]) // eslint-disable-line react-hooks/exhaustive-deps
+  // ⏱️ ⚡ Dinâmica (26/11, Diego: *"60 s… o relógio é aviso e o DONO avança, com confirmação antes do tempo — igual o draft"*):
+  // o dono liga um relógio de 60 s na sala quando fecha o clube dele; todo mundo vê. Na 🧭 Livre não tem relógio.
+  const sala = sn.sala
+  const dinamica = sn.mundo?.modo === 'dinamica'
+  const [agora, setAgora] = useState(() => Date.now())
+  useEffect(() => { const t = setInterval(() => setAgora(Date.now()), 1000); return () => clearInterval(t) }, [])
+  const relogioRef = useRef(false)
+  useEffect(() => {
+    if (!comanda || !dinamica || !sala || sala.fase !== 'virada' || sala.prazo || relogioRef.current) return
+    relogioRef.current = true
+    void co2Mundo('virada', null, null, null, 60)
+  }, [comanda, dinamica, sala])
+  const restante = dinamica && sala?.prazo ? Math.max(0, Math.round((new Date(sala.prazo).getTime() - agora) / 1000)) : null
   const ordem = sn.mundo?.ordem ?? []
   const clubes = sn.clubes.map(c => ({ nome: c.nome, id: ordem.indexOf(c.user_id) })).filter(c => c.id >= 0)
   const faltam = clubes.filter(c => !fechados[c.id])
   const abrir = async () => {
     const f = await le()
     const fora = clubes.filter(c => !f[c.id]).map(c => c.nome)
+    if (restante != null && restante > 0 && fora.length && !window.confirm(tr(`Ainda faltam ${restante} s no relógio. Abrir o leilão agora?`, `There are still ${restante} s on the clock. Open the auction now?`))) return
     if (fora.length && !window.confirm(tr(`${fora.join(', ')} ainda não fechou. Vai ficar fora do leilão e os contratos vencidos renovam sozinhos. Abrir mesmo assim?`, `${fora.join(', ')} hasn't closed yet. They'll sit out the auction and expired contracts renew by themselves. Open anyway?`))) return
     dispatch({ type: 'CO2_ABRE_VIRADA', fechamentos: f })
   }
@@ -418,6 +450,7 @@ export function Co2ViradaEspera() {
           <p style={{ fontWeight: 700, fontSize: 12, margin: '4px 0 0', color: 'rgba(255,255,255,.8)' }}>{tr('Seu clube está fechado. O leilão é de todos e quem abre é o dono.', 'Your club is closed. The auction is for everyone and the owner opens it.')}</p>
         </div>
         <div style={{ ...caixa(), padding: 12 }}>
+          {restante != null && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 22, margin: '0 0 6px', textAlign: 'center', color: restante > 0 ? INK : '#B23B2E' }}>⏱️ {restante > 0 ? `0:${String(restante).padStart(2, '0')}` : tr('tempo esgotado', 'time is up')}</p>}
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 6px', textTransform: 'uppercase' }}>{tr('Quem já fechou', 'Who has closed')} · {clubes.length - faltam.length}/{clubes.length}</p>
           {clubes.map(c => (
             <p key={c.id} style={{ fontWeight: 800, fontSize: 13, margin: '3px 0' }}>{fechados[c.id] ? '✅' : '⏳'} {c.nome}</p>
@@ -428,7 +461,7 @@ export function Co2ViradaEspera() {
           <div>
             <button disabled={subiu !== 'ok'} onClick={() => void abrir()} style={botao(subiu === 'ok' ? GOLD : '#eee')}>🔨 {tr('Abrir o leilão de todos', 'Open everyone\'s auction')}</button>
             <p style={{ fontWeight: 700, fontSize: 11, margin: '6px 2px 0', color: 'rgba(0,0,0,.55)', textAlign: 'center', lineHeight: 1.4 }}>
-              {faltam.length ? tr('Quem não fechou fica fora do leilão: não perde o clube, e contrato vencido renova sozinho.', 'Whoever hasn\'t closed sits out the auction: they keep the club, and expired contracts renew by themselves.') : tr('Todo mundo fechou.', 'Everyone has closed.')}
+              {restante === 0 && faltam.length ? tr('O tempo acabou: o relógio só avisa, quem abre é você. ', 'Time is up: the clock only warns, you open it. ') : ''}{faltam.length ? tr('Quem não fechou fica fora do leilão: não perde o clube, e contrato vencido renova sozinho.', 'Whoever hasn\'t closed sits out the auction: they keep the club, and expired contracts renew by themselves.') : tr('Todo mundo fechou.', 'Everyone has closed.')}
             </p>
           </div>
         ) : (

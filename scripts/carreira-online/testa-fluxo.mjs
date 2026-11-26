@@ -194,6 +194,19 @@ for (let r = 0; r < 5; r++) {
 }
 const t2 = resultado(aparelhos[0])
 ok(aparelhos.every(s => s.round === 5 && resultado(s) === t2), 'T2: depois de 5 rodadas, as tabelas são IGUAIS nos 3 aparelhos')
+// 📴 o 2 some 5 rodadas (o time dele joga sozinho nos outros aparelhos, com a última gaveta que ele subiu) e depois alcança
+let gavetaVelha2 = JSON.parse(JSON.stringify(minhaGaveta(aparelhos[2].managers[aparelhos[2].youIdx], entradasDe(aparelhos[2]))))
+let ultimas = null
+for (let r = 0; r < 5; r++) {
+  for (const k of [0, 1]) { const s = aparelhos[k]; aparelhos[k] = reducer(s, { type: 'SET_TACTIC', mgrId: s.managers[s.youIdx].id, tactic: TACS[(r + k + 1) % 3] }) }
+  ultimas = [0, 1].map(k => JSON.parse(JSON.stringify(minhaGaveta(aparelhos[k].managers[aparelhos[k].youIdx], entradasDe(aparelhos[k]))))).concat([gavetaVelha2])
+  for (const k of [0, 1]) aparelhos[k] = reducer(reducer(aparelhos[k], { type: 'CO2_GAVETAS', gavetas: ultimas, ate: aparelhos[k].round }), { type: 'PLAY_ROUND' })
+}
+ok(aparelhos[2].round === 5 && aparelhos[0].round === 10, 'o 2 ficou parado na rodada 5 enquanto a turma foi pra 10')
+aparelhos[2] = reducer(aparelhos[2], { type: 'CO2_ALCANCA_RODADAS', gavetas: ultimas, ate: 10 })
+const t3 = resultado(aparelhos[0])
+ok(aparelhos[2].round === 10, `quem voltou alcança a rodada da turma (rodada ${aparelhos[2].round})`)
+ok(aparelhos.every(s => resultado(s) === t3), 'quem voltou vê as MESMAS tabelas que a turma viu')
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ fluxo da carreira online v2 ok')
 await vite.close()
 process.exit(falhas ? 1 : 0)
