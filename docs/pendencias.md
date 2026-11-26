@@ -2567,17 +2567,17 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
-## 🏆 RANKING GLOBAL SEPARADO POR MODO (26/11, Diego: *"Tem q separar. Msm e C a msm regra do tradicional"*) — no branch, falta publicar
+## 🏆 RANKING GLOBAL SEPARADO POR MODO (26/11, Diego: *"Tem q separar. Msm e C a msm regra do tradicional"*) — ✅ PUBLICADO 26/11 (*"Sim"*)
 - Banco PARTE 1 ✅ aplicada (`20261126120000_ranking_por_modo.sql`): coluna `modo` na `esc_pyramid_rank_snap` (padrão 'tradicional'),
   115 fotos / 20 carreiras do Oficial já marcadas, e as funções `esc_pyramid_rank_modo` · `_career_rank_modo` · `_my_rank_modo`. Sem efeito
   pra ninguém ainda.
 - Jogo (branch): toda foto grava o `modo`; dentro de carreira do Brasil Oficial a aba Rank → Global mostra só o Oficial, com a MESMA regra
   (sua carreira de agora no lugar da melhor + a linha fininha da melhor). Linha nova embaixo do título: "🇧🇷 Só carreiras do Brasil Oficial"
   / "🛠️ Só carreiras da Tradicional".
-- ⏳ NA PUBLICAÇÃO: aplicar a PARTE 2 (`20261126120100_ranking_por_modo_filtro.sql`) — remarca as fotos do Oficial gravadas pelo jogo antigo e
+- ✅ PARTE 2 aplicada junto com a publicação (26/11): conferido — Tradicional 5.402 técnicos, Oficial 17. Era: aplicar a PARTE 2 (`20261126120100_ranking_por_modo_filtro.sql`) — remarca as fotos do Oficial gravadas pelo jogo antigo e
   faz as funções de sempre (v1, v2, perfil) lerem só a Tradicional. O "📊 Ranking da carreira" do perfil passa a ser só da Tradicional.
 - ⚠️ Carreira do Oficial de quem só salva no aparelho e ainda está no jogo antigo pode gravar foto como 'tradicional' por até 3 dias depois
-  da publicação: rodar o `update` da parte 2 de novo depois desse prazo.
+  da publicação: rodar o `update` da parte 2 de novo depois desse prazo (lembrete agendado pra 29/11).
 - Reverter: `update esc_pyramid_rank_snap set modo = 'tradicional'` volta pro ranking único.
 
 ## 🧭 3 CARREIRAS: POR QUE ALGUÉM JOGARIA A TRADICIONAL? — análise (26/11, esperando resposta do Diego)
