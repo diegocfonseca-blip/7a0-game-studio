@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ouro:#FFC400;--verde:#1B7A3D;--verm:#E8503A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1280px;height:800px;overflow:hidden;background:#0d1411;font-family:system-ui,Arial,sans-serif;color:#0C0C0C;position:relative}
+.top{height:56px;display:flex;align-items:center;padding:0 28px;border-bottom:1px solid #223;color:#F4ECD6;font-family:Oswald;font-weight:800;font-size:22px;gap:10px}
+.top i{display:inline-grid;place-items:center;width:30px;height:30px;background:#F4ECD6;color:#000;border-radius:7px;font-style:normal;font-size:14px}
+.strip{display:flex;align-items:center;gap:14px;margin:14px 28px 0;background:#151d19;border:2px solid #2a332e;border-radius:14px;padding:10px 14px}
+.strip h2{font-family:Oswald;color:#F4ECD6;font-size:22px;font-weight:900}
+.chip{font-family:Oswald;font-weight:800;font-size:12px;border:2px solid #000;border-radius:8px;padding:3px 8px;background:#fff}
+.chip.on{background:var(--ouro)}.chip.ok{background:#1f2a24;color:#9fdab3;border-color:#3b5a47}
+.meta{color:#b8c2bb;font-size:12px;font-weight:700}
+.cx{margin-left:auto;background:var(--ouro);border:3px solid #000;border-radius:10px;padding:4px 12px;box-shadow:3px 3px 0 #000;text-align:center}
+.cx b{font-family:Oswald;font-size:22px;display:block;line-height:1}.cx small{font-size:9px;font-weight:900}
+.grid{display:grid;grid-template-columns:1fr 330px;gap:18px;margin:14px 28px 0}
+.panel{background:#FBF6E9;border:3px solid #000;border-radius:16px;box-shadow:4px 4px 0 #000;overflow:hidden}
+.ph{font-family:Oswald;font-weight:800;font-size:17px;padding:10px 16px;border-bottom:3px solid #000;display:flex;justify-content:space-between;align-items:center}
+.mesa{display:grid;grid-template-columns:300px 1fr;gap:22px;padding:18px}
+.carta{width:300px;height:410px;border:5px solid #000;border-radius:16px;box-shadow:6px 6px 0 #000;background:repeating-linear-gradient(135deg,#e9dfc4 0 14px,#e2d6b8 14px 28px);position:relative;padding:14px;display:flex;flex-direction:column}
+.carta .pos{position:absolute;top:12px;left:12px;background:#000;color:#fff;font-family:Oswald;font-weight:800;padding:2px 8px;border-radius:6px;font-size:14px}
+.carta .cat{position:absolute;top:12px;right:12px;background:#fff;border:2px solid #000;border-radius:8px;font-size:12px;font-weight:800;padding:2px 7px}
+.carta .q{margin:58px auto 0;width:150px;height:150px;border-radius:50%;border:4px dashed #9a8f73;display:grid;place-items:center;font-family:Oswald;font-size:70px;color:#9a8f73;font-weight:900}
+.carta .nm{margin-top:auto;font-family:Oswald;font-weight:800;font-size:30px}.carta .cl{color:#6b6250;font-weight:800;font-size:14px}
+.lance{border:4px solid #000;border-radius:14px;background:linear-gradient(90deg,#FFC400,#FFD84D);box-shadow:4px 4px 0 #000;padding:12px 16px;display:flex;align-items:center;gap:14px;transition:none}
+.lance.red{background:linear-gradient(90deg,#E8503A,#f07a63);color:#fff}
+.lance .v{font-family:Oswald;font-weight:900;font-size:54px;line-height:1}
+.lance .who small{font-size:11px;font-weight:900;letter-spacing:.6px;opacity:.75;display:block}
+.lance .who b{font-family:Oswald;font-size:24px}
+.rel{margin-left:auto;background:#fff;color:#000;border:3px solid #000;border-radius:12px;padding:6px 14px;text-align:center;min-width:92px}
+.rel b{font-family:Oswald;font-size:30px;display:block;line-height:1}.rel small{font-size:10px;font-weight:900}
+.lista{margin-top:12px;border:3px solid #000;border-radius:12px;background:#fff;overflow:hidden;height:126px}
+.lista div{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:1px solid #ddd;font-weight:800;height:41px}
+.lista div:first-child{background:#e6f3ea}
+.tag{font-family:Oswald;font-weight:700;font-size:13px;border:2px solid #000;border-radius:7px;padding:1px 8px;background:#F4ECD6}
+.tag.eu{background:var(--ouro)}
+.bts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.bt{position:relative;border:3px solid #000;border-radius:12px;background:var(--ouro);box-shadow:3px 3px 0 #000;font-family:Oswald;font-weight:900;font-size:24px;text-align:center;padding:10px 0}
+.bt.press{transform:translate(3px,3px);box-shadow:0 0 0 #000;background:#ffdb4d}
+.key{position:absolute;top:5px;right:6px;font-family:system-ui;font-size:10px;font-weight:900;background:#000;color:#fff;border-radius:4px;padding:1px 5px}
+.dica{text-align:center;font-size:11.5px;font-weight:800;color:#555;margin-top:8px}
+.kbd{position:absolute;left:530px;top:640px;background:#000;color:#fff;font-family:Oswald;font-weight:900;font-size:28px;border:3px solid #fff;border-radius:10px;padding:6px 16px;opacity:0;z-index:4}
+.mart .r{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid #e3dac4;height:74px}
+.mini{width:44px;height:58px;border:3px solid #000;border-radius:7px;display:grid;place-items:center;font-family:Oswald;font-weight:900;font-size:11px;overflow:hidden}
+.mini img{width:100%;height:100%;object-fit:cover}
+.lenda{background:linear-gradient(140deg,#FFC400,#fff1a8 45%,#E0A800)}.craque{background:linear-gradient(140deg,#7C3AED,#c4a6ff)}
+.bom{background:linear-gradient(140deg,#2b6cb0,#9cc6ef)}.pro{background:linear-gradient(140deg,#9a8f73,#e2d6b8)}
+.r b{font-family:Oswald;font-size:16px;display:block;line-height:1.1}.r small{font-size:11px;font-weight:800;color:#6b6250}
+.r .p{font-family:Oswald;font-weight:900;font-size:18px;text-align:right}.r .p small{display:block;font-family:system-ui;font-size:10.5px}
+.martbox{height:300px;overflow:hidden;position:relative}
+.prec div{display:flex;justify-content:space-between;padding:6px 14px;font-weight:800;font-size:13.5px;border-bottom:1px solid #e3dac4}
+.prec .x{color:var(--verm)}
+.prec #precA,.prec #precZ{display:block;padding:0;border:0}
+.palco{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,196,0,.35),rgba(0,0,0,.85) 58%);z-index:6;opacity:0}
+.vendido{position:absolute;left:0;right:0;top:44px;text-align:center;font-family:Oswald;font-weight:900;color:#fff;font-size:58px;letter-spacing:2px;text-shadow:4px 4px 0 #000;z-index:8;opacity:0}
+.flip{position:absolute;left:0;top:0;width:300px;height:410px;z-index:7;transform-origin:50% 50%;perspective:1400px}
+.flip .in{position:absolute;inset:0;transform-style:preserve-3d}
+.flip .f,.flip .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px}
+.flip .b{transform:rotateY(180deg)}
+.flip .b img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,196,0,.9))}
+.quem{position:absolute;left:50%;top:668px;transform:translateX(-50%);display:flex;gap:12px;align-items:center;background:#fff;border:4px solid #000;border-radius:14px;box-shadow:5px 5px 0 #000;padding:10px 18px;z-index:8;opacity:0;white-space:nowrap}
+.quem b{font-family:Oswald;font-size:26px}.quem .pr{background:var(--ouro);border:3px solid #000;border-radius:10px;font-family:Oswald;font-weight:900;font-size:26px;padding:2px 12px}
+.quem small{font-weight:800;color:#555;font-size:13px}
+.leg{position:absolute;left:28px;bottom:14px;z-index:9;background:var(--ouro);border:3px solid #000;border-radius:10px;box-shadow:3px 3px 0 #000;font-family:Oswald;font-weight:800;font-size:17px;padding:5px 14px;opacity:0}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:9;pointer-events:none}
+</style></head><body>
+<div class="top"><i>LL</i>LEILÃO LEGENDS</div>
+<div class="strip">
+  <span style="font-size:24px">🔨</span><h2>PREGÃO ABERTO</h2>
+  <span class="chip">GOL</span><span class="chip">LAT</span><span class="chip">ZAG</span><span class="chip">MEI</span><span class="chip on">ATA</span><span class="chip ok" id="vagas">3 vagas</span>
+  <span class="meta" id="nCarta">carta 9 de 71 · ordem embaralhada</span>
+  <div class="cx"><b id="caixa">100 🪙</b><small>SEU CAIXA</small></div>
+</div>
+<div class="grid">
+  <div class="panel">
+    <div class="ph">JOGADOR NA MESA <span class="meta" style="color:#555">🎁 sem monte: vaga vazia no fim ganha jogador de graça</span></div>
+    <div class="mesa">
+      <div style="position:relative;width:300px;height:410px">
+        <div class="carta" id="mesaCarta"><span class="pos" id="mPos">ATA</span><span class="cat">❓ categoria</span><div class="q">?</div><div class="nm" id="mNome">Romário</div><div class="cl" id="mClube">Vasco · 2000</div></div>
+      </div>
+      <div>
+        <div class="lance" id="lance"><div class="v" id="lv">1 🪙</div><div class="who"><small>LANCE ATUAL</small><b id="lw">ABRE EM 1</b></div><div class="rel"><b id="rt">⏱ 5s</b><small id="rs">&nbsp;</small></div></div>
+        <div class="lista" id="lista"></div>
+        <div class="bts"><div class="bt" id="k1">+1<span class="key">1</span></div><div class="bt" id="k2">+2<span class="key">2</span></div><div class="bt" id="k5">+5<span class="key">5</span></div><div class="bt" id="k0">+10<span class="key">0</span></div></div>
+        <p class="dica">⌨️ No computador dá pra dar lance pelo teclado: <b>1 · 2 · 5 · 0</b></p>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="panel mart"><div class="ph">🔨 ÚLTIMAS MARTELADAS</div>
+      <div class="martbox"><div id="martIn" style="position:absolute;left:0;right:0;top:0">
+        <div class="r" id="novaLinha" style="opacity:0"><div class="mini lenda"><img src="carta.png"></div><div><b>Romário</b><small>ATA · Vasco 2000</small></div><div class="p" id="npr">0 🪙<small id="nwho">—</small></div></div>
+        <div class="r"><div class="mini craque">CRAQUE</div><div><b>Cafu</b><small>LAT · São Paulo 1993</small></div><div class="p">17 🪙<small>Meu Time</small></div></div>
+        <div class="r"><div class="mini pro">PROF.</div><div><b>Neto</b><small>MEI · Corinthians 1990</small></div><div class="p">20 🪙<small>Neymarzetti</small></div></div>
+        <div class="r"><div class="mini bom">BOM</div><div><b>Gamarra</b><small>ZAG · Corinthians 1998</small></div><div class="p">9 🪙<small>Leite de Verdade</small></div></div>
+        <div class="r"><div class="mini pro">PROF.</div><div><b>Dodô</b><small>ATA · São Paulo 1997</small></div><div class="p">6 🪙<small>Labubu FC</small></div></div>
+      </div></div>
+    </div>
+    <div class="panel prec"><div class="ph" id="precT">⚽ QUEM AINDA PRECISA DE ATA</div><div id="precA">
+      <div><span>Meu Time</span><span>3 vagas</span></div>
+      <div><span id="nyName">Neymarzetti</span><span id="nyV">2 vagas</span></div>
+      <div><span>Labubu FC</span><span>1 vaga</span></div>
+      <div style="border:0" class="x"><span>Leite de Verdade FC</span><span>já fechou</span></div></div>
+      <div id="precZ" style="display:none"><div><span>Meu Time</span><span>2 vagas</span></div><div><span>Labubu FC</span><span>2 vagas</span></div><div><span>Leite de Verdade FC</span><span>1 vaga</span></div><div style="border:0" class="x"><span>Neymarzetti</span><span>já fechou</span></div></div>
+    </div>
+  </div>
+</div>
+<div class="kbd" id="kbd">tecla 2</div>
+<div class="palco" id="palco"></div>
+<div class="vendido" id="vend">🔨 VENDIDO!</div>
+<div class="flip" id="flip"><div class="in" id="flipIn">
+  <div class="f carta" style="position:absolute;inset:0;padding:14px;display:flex;flex-direction:column"><span class="pos">ATA</span><span class="cat">❓ categoria</span><div class="q">?</div><div class="nm">Romário</div><div class="cl">Vasco · 2000</div></div>
+  <div class="b"><img src="carta.png"></div>
+</div></div>
+<div class="quem" id="quem"><small>levou</small><b>NEYMARZETTI</b><span class="pr">25 🪙</span><small>· 2º lance: Meu Time (23)</small></div>
+<div class="leg" id="leg"></div>
+<div class="flash" id="flash"></div>
+<script>
+const $=id=>document.getElementById(id)
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)), lerp=(a,b,k)=>a+(b-a)*k
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2
+const back=k=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(k-1,3)+c1*Math.pow(k-1,2)}
+const seg=(t,a,b)=>cl((t-a)/(b-a),0,1)
+// lances: [tempo, quem, valor, eu?]
+const L=[[1.0,'LABUBU FC',3],[1.7,'NEYMARZETTI',8],[2.5,'MEU TIME',10,1,'k2'],[3.3,'LEITE DE VERDADE FC',13],[4.0,'NEYMARZETTI',18],[4.8,'MEU TIME',23,1,'k5'],[5.6,'NEYMARZETTI',25]]
+const LEG=[[0,4.9,'1 · Tudo numa tela só, carta grande na mesa'],[4.9,5.8,'2 · Lance pelo teclado (aqui: tecla 5 = +5)'],[5.8,10.4,'3 · Uma… duas… três…'],[10.4,15.2,'4 · Palco: a carta de verdade vira no meio da tela'],[15.2,18.4,'5 · Vai pras "Últimas marteladas" e atualiza quem ainda precisa'],[18.4,20,'6 · Próxima carta na mesa']]
+const H=800, CARD={x:49, y:233} // posição da carta da mesa
+window.TOTAL=20
+window.render=function(t){
+  // legenda
+  const lg=LEG.find(x=>t>=x[0]&&t<x[1]); const leg=$('leg'); leg.textContent=lg?lg[2]:''; leg.style.opacity=lg?1:0
+  // lances
+  const feitos=L.filter(x=>t>=x[0]); const ult=feitos[feitos.length-1]
+  const mesaNova=t>=18.4
+  if(mesaNova){ $('lv').textContent='1 🪙'; $('lw').textContent='ABRE EM 1'; $('lista').innerHTML='<p style="text-align:center;padding-top:44px;font-weight:800;color:#888">ninguém deu lance ainda</p>' }
+  else if(ult){ $('lv').textContent=ult[2]+' 🪙'; $('lw').textContent=ult[1];
+    $('lista').innerHTML=feitos.slice(-3).reverse().map(x=>`<div><span class="tag${x[3]?' eu':''}">${x[1]}</span>${x[2]} 🪙</div>`).join('') }
+  // relógio
+  const base=mesaNova?18.4:(ult?ult[0]:0); let s=Math.max(0,5-(t-base)); if(t>=10.6&&!mesaNova) s=0
+  $('rt').textContent='⏱ '+Math.ceil(s)+'s'; const sec=5-Math.ceil(s)
+  $('rs').innerHTML=mesaNova||s>3?'&nbsp;':s>2?'UMA…':s>1?'DUAS…':'TRÊS…'
+  $('lance').classList.toggle('red',!mesaNova&&s<=2&&t>6)
+  // tecla apertada
+  for(const k of ['k1','k2','k5','k0']) $(k).classList.remove('press')
+  let kb=0; for(const x of L) if(x[4]&&t>=x[0]-.25&&t<x[0]+.2){ $(x[4]).classList.add('press'); $('kbd').textContent='tecla '+(x[4]==='k2'?'2':'5'); kb=1 }
+  $('kbd').style.opacity=kb
+  $('caixa').textContent=(t>=15.4?100:100)+' 🪙'
+  // palco
+  const pIn=seg(t,10.6,11.0), pOut=seg(t,14.9,15.4)
+  $('palco').style.opacity=pIn*(1-pOut)
+  $('vend').style.opacity=seg(t,10.8,11.1)*(1-pOut); $('vend').style.transform=`scale(${lerp(1.6,1,back(seg(t,10.8,11.2)))})`
+  $('flash').style.opacity=t>10.6&&t<10.9?(1-seg(t,10.6,10.9))*.6:0
+  // carta: sobe da mesa pro centro (11.0–11.7), vira (11.7–12.5), fica, encolhe pras marteladas (15.2–16.0)
+  const flip=$('flip'), fin=$('flipIn')
+  const cx=(1280-300)/2, cy=(H-410)/2+10
+  const up=ease(seg(t,11.0,11.7)), dn=ease(seg(t,15.2,16.0))
+  const tx=941+12, ty=56+14+56+14+3+46+12  // alvo: miniatura da linha nova
+  let x=lerp(CARD.x,cx,up), y=lerp(CARD.y,cy,up), sc=lerp(1,1.25,up)
+  if(dn>0){ x=lerp(cx,tx-128,dn); y=lerp(cy,ty-176,dn); sc=lerp(1.25,44/300,dn) }
+  const vis=t>=11.0&&t<16.0
+  flip.style.opacity=vis?1:0
+  flip.style.transform=`translate(${x}px,${y}px) scale(${sc})`
+  fin.style.transform=`rotateY(${180*ease(seg(t,11.7,12.5))}deg)`
+  $('mesaCarta').style.visibility=(t>=11.0&&t<18.4)?'hidden':'visible'
+  $('quem').style.opacity=seg(t,12.5,12.9)*(1-pOut); $('quem').style.transform=`translateX(-50%) translateY(${lerp(40,0,ease(seg(t,12.5,12.9)))}px)`
+  // linha nova nas marteladas
+  const nl=$('novaLinha'); const lin=seg(t,15.8,16.3)
+  $('martIn').style.top=lerp(-74,0,ease(lin))+'px'; nl.style.opacity=t>=15.8?1:0
+  $('npr').innerHTML='25 🪙<small>Neymarzetti</small>'
+  // quem precisa: Neymarzetti cai de 2 pra 1
+  const upd=t>=16.4; $('nyV').textContent=upd?'1 vaga':'2 vagas'; $('nyV').style.color=upd&&t<17.4?'#1B7A3D':''
+  // próxima carta
+  $('nCarta').textContent=mesaNova?'carta 10 de 71 · ordem embaralhada':'carta 9 de 71 · ordem embaralhada'
+  $('mNome').textContent=mesaNova?'Mauro Galvão':'Romário'; $('mClube').textContent=mesaNova?'Grêmio · 1996':'Vasco · 2000'; $('mPos').textContent=mesaNova?'ZAG':'ATA'
+  if(mesaNova){ const k=back(seg(t,18.4,18.9)); $('mesaCarta').style.transform=`translateX(${lerp(-60,0,k)}px)`; $('mesaCarta').style.opacity=seg(t,18.4,18.7) } else { $('mesaCarta').style.transform='';$('mesaCarta').style.opacity=1 }
+  document.querySelectorAll('.chip')[4].classList.toggle('on',!mesaNova); document.querySelectorAll('.chip')[2].classList.toggle('on',mesaNova)
+  $('vagas').textContent=mesaNova?'2 vagas':'3 vagas'; $('precT').textContent=mesaNova?'⚽ QUEM AINDA PRECISA DE ZAG':'⚽ QUEM AINDA PRECISA DE ATA'; $('precA').style.display=mesaNova?'none':''; $('precZ').style.display=mesaNova?'':'none'
+}
+window.render(0)
+</script>
+</body></html>
