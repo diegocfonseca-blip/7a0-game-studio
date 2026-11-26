@@ -75,6 +75,11 @@ Construir primeiro a ⚡ Dinâmica (mais perto do que já existe nas salas), dep
   "o contrato de fulano acabou"; cada um mexe no time; o relógio é aviso e o dono avança (confirmação antes do tempo).
 - Pausas da ⚡ Dinâmica: começo de competição nova (60 s) · dia dos contratos (60 s) · leilão.
 
+## 📱💻 Mesma conta em 2 aparelhos (Diego, 26/11: *"gosto de como é na liga draft… só não quero novela"*)
+Igual à Liga Draft: só o aparelho do DONO salva a carreira; os outros só recebem. Celular e PC da mesma conta abertos juntos veem o
+mesmo time e qualquer ação vai pro dono. Gaveta do clube (coisas só dele) grava com carimbo de hora e o banco só aceita a mais nova.
+Nada de "o último que entrou manda / o outro só assiste".
+
 ## Ordem de trabalho
 1. Alcance de quem faltou (`co2` + simulação das rodadas perdidas) — trava nova: aparelho que volta = mesmo estado do que ficou.
 2. A virada (leilão de todos no aparelho do comandante · ausente fica com o time · sobe/cai · T2) — trava: 3 clubes, 2 temporadas.
