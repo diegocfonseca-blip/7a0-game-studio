@@ -63,6 +63,15 @@ passa… até quantos times, 20 seria o ideal?"*
 **🧭 Livre** (a proposta anterior): o que é seu no seu tempo; jogo da rodada, leilão e virada juntos, com ✋ Pronto e o dono mandando seguir.
 Construir primeiro a ⚡ Dinâmica (mais perto do que já existe nas salas), depois a 🧭 Livre.
 
+## ✍️ Contratos e caixa (Diego, 26/11)
+- **Renovação automática = escolha de cada um, LIGADA por padrão** (dá pra desligar). O dono passou e a pessoa não decidiu:
+  ligada → renova sozinho; desligada → o contrato acaba e a vaga é completada com Cria da Base (nunca fake).
+- **Caixa a cada -500 = o melhor jogador vai embora** (regra da tradicional, `START_CAREER_CRISE`; no Brasil Oficial ela já roda, é a
+  mesma tela). No online ela está desligada (`onlineMode === 'online'`) → ligar na carreira online, com o ausente trocando pela Cria da Base.
+- **Dia dos contratos**: um dia FIXO da temporada, igual pra todos (todo contrato termina no mesmo momento). Pausa de 60 s com banner
+  "o contrato de fulano acabou"; cada um mexe no time; o relógio é aviso e o dono avança (confirmação antes do tempo).
+- Pausas da ⚡ Dinâmica: começo de competição nova (60 s) · dia dos contratos (60 s) · leilão.
+
 ## Ordem de trabalho
 1. Alcance de quem faltou (`co2` + simulação das rodadas perdidas) — trava nova: aparelho que volta = mesmo estado do que ficou.
 2. A virada (leilão de todos no aparelho do comandante · ausente fica com o time · sobe/cai · T2) — trava: 3 clubes, 2 temporadas.
