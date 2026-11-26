@@ -37,7 +37,14 @@ try{
  check(remote.round===23&&revision===2,'servidor recebe rodada 23 uma vez')
  await pc.evaluate(seed=>{window.qaPrepare=window.saveQA.saves.prepare(seed)},seed);await pc.waitForFunction(()=>window.saveQA.saves.conflictNotice())
  check(await pc.evaluate(()=>window.saveQA.saves.conflictNotice().cloud.round)===23,'PC busca a revisão mais recente antes de continuar')
- await pc.evaluate(()=>window.saveQA.saves.conflictNotice().choose('cancel'));await pc.evaluate(()=>window.qaPrepare)
+ await pc.evaluate(()=>window.saveQA.photo('conflict'))
+ for(const width of [390,1440]){
+  await pc.setViewportSize({width,height:900});const dialog=pc.getByRole('alertdialog');await dialog.waitFor();const text=await dialog.innerText()
+  check(text.indexOf('Na nuvem')<text.indexOf('Neste aparelho'),'informações seguem botões: nuvem antes do aparelho em '+width+'px')
+  const buttons=await dialog.getByRole('button').allTextContents();check(buttons[0].includes('nuvem')&&buttons[1].includes('aparelho'),'botões mantêm ordem na janela de '+width+'px')
+  await pc.screenshot({path:out+'/conflito-'+width+'.png'})
+ }
+ await pc.getByRole('button',{name:'Cancelar e manter tudo',exact:true}).click();await pc.evaluate(()=>window.qaPrepare)
  check(remote.round===23,'cancelar conflito não sobrescreve rodada 23')
  check(await pc.evaluate(async({uid,seed})=>(await window.saveQA.local.read(uid,seed)).round,{uid,seed})===10,'cancelar preserva avanço local da rodada 10')
  await pc.evaluate(seed=>{window.qaPrepare=window.saveQA.saves.prepare(seed)},seed);await pc.waitForFunction(()=>window.saveQA.saves.conflictNotice());await pc.evaluate(()=>window.saveQA.saves.conflictNotice().choose('cloud'));await pc.evaluate(async()=>{window.qaCurrent=await window.qaPrepare})

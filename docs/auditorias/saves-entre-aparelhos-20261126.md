@@ -15,7 +15,7 @@ Diego mostrou listas com 6/6 e 3/4 fichas, conflito com temporada2/rodada9 e car
 - Lista informa rodada, cópia da nuvem com data/hora, avanço local divergente ou ausência de cópia confirmada na nuvem; distingue consulta ainda não realizada. Contraste explícito do modal e nome.
 - Informa as fichas de nuvem do plano confirmado separadamente das cópias locais preservadas. Não concede vagas nem altera planos/limpeza.
 - Abertura explícita da lista força atualização do manifesto pequeno, sem esperar o cache de15s. Só a carreira escolhida baixa o payload.
-- Conflito mostra o registro local disponível e explica divergência com mesma rodada. Não recomenda automaticamente a cópia com maior rodada ou data.
+- Conflito mostra o registro local disponível e explica divergência com mesma rodada. Pedido posterior de Diego: informações na mesma ordem dos botões, nuvem primeiro e aparelho depois; botões amarelos preservados. Não recomenda automaticamente a cópia com maior rodada ou data.
 - Salvar sem sair/estado da nuvem no rodapé novo, usando a faixa já existente; topo continua sem duplicação. Mesma rotina de gravação manual, três tentativas idempotentes, revisão e confirmação do servidor.
 
 Não altera protocolo/RPC/SQL, direitos, formato dos payloads, autosave da nuvem, lógica de conflito, restauração ou exclusão. Não sobrescreve progresso aberto com atualização de outro aparelho. Sem recarga automática e sem alteração de contas reais.
@@ -28,4 +28,4 @@ Build completo e `npm run recarga` obrigatórios. Reversão deste pacote é do c
 
 Teste acompanhado: Diego acionou Sair e salvar no celular; consulta somente leitura confirmou revisão nova na rodada23 e a fotografia posterior do PC mostrou a mesma edição da nuvem. O envio funciona ao salvar. Não se conclui, retrospectivamente, se houve falta de toque ou falha anterior ao envio.
 
-Regressão de dois aparelhos: `SAVE_QA_BASE=http://127.0.0.1:5439 node scripts/teste-salvamento/aparelhos.mjs`, com15 verificações, incluindo resumo atualizado após promoção/reabertura e Salvar acessível sem sair. Capturas são de componentes reais na bancada, não de contas reais.
+Regressão de dois aparelhos: `SAVE_QA_BASE=http://127.0.0.1:5439 node scripts/teste-salvamento/aparelhos.mjs`, com19 verificações, incluindo resumo atualizado após promoção/reabertura e Salvar acessível sem sair. Capturas são de componentes reais na bancada, não de contas reais.

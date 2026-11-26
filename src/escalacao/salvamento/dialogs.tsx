@@ -49,8 +49,8 @@ export function SaveDialogs() {
       <Box bg="#F4ECD6" className="p-4" style={{ color: '#0C0C0C', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2 id="save-conflict-title" className="text-xl font-black uppercase">{t('Dois avanços desta carreira', 'Two versions of this career')}</h2>
         <p className="text-sm my-3">{t('Há avanços diferentes desta carreira. As cópias serão preservadas. Qual você quer continuar?', 'There are different versions of this career. The copies will be kept. Which do you want to continue?')}</p>
-        <p className="text-sm mb-2"><b>{t('Neste aparelho', 'This device')}</b>: {t('temporada', 'season')} {c.local.seasonNo} · {t('rodada', 'round')} {c.local.round}{c.local.savedAt&&<><br/><span className="text-xs">{new Date(c.local.savedAt).toLocaleString()}</span></>}</p>
-        <p className="text-sm mb-4"><b>{c.source === 'device' ? t('Em outra aba deste aparelho','Another tab on this device') : t('Na nuvem', 'Cloud')}</b>: {t('temporada', 'season')} {c.cloud.seasonNo} · {t('rodada', 'round')} {c.cloud.round}<br /><span className="text-xs">{new Date(c.cloud.savedAt).toLocaleString()}</span></p>
+        <p className="text-sm mb-2"><b>{c.source === 'device' ? t('Em outra aba deste aparelho','Another tab on this device') : t('Na nuvem', 'Cloud')}</b>: {t('temporada', 'season')} {c.cloud.seasonNo} · {t('rodada', 'round')} {c.cloud.round}<br /><span className="text-xs">{new Date(c.cloud.savedAt).toLocaleString()}</span></p>
+        <p className="text-sm mb-4"><b>{t('Neste aparelho', 'This device')}</b>: {t('temporada', 'season')} {c.local.seasonNo} · {t('rodada', 'round')} {c.local.round}{c.local.savedAt&&<><br/><span className="text-xs">{new Date(c.local.savedAt).toLocaleString()}</span></>}</p>
         <div className="grid gap-3">
           <Btn onClick={() => c.choose('cloud')}>{c.source === 'device' ? t('Continuar do avanço da outra aba','Continue from the other tab') : t('Continuar da nuvem', 'Continue from cloud')}</Btn>
           <Btn onClick={() => c.choose('local')}>{t('Continuar deste aparelho', 'Continue from this device')}</Btn>
