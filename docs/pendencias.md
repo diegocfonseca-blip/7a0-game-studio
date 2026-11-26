@@ -27,7 +27,7 @@ Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions�
   (Liga +) — migration `20261126160000_tacas_online_super_mundial.sql`, APLICADA. Prints em `scripts/mockups/super-mundial/`.
   ⚠️ Achado à parte: `npm run relampago` (manchete em inglês no teste) e `testa-libertadores.mts` (classificação do Brasil Oficial)
   já falhavam ANTES, também na main — não é deste trabalho.
-- ✅ **⭐ Liga + Champions (convocando)** — PUBLICADO 26/11 só pra Diego e Futpoint (`SUPER_MUNDIAL_GERAL` libera pra todos): acabou a liga, cada um escolhe um dos 36
+- ✅ **⭐ Liga + Champions (convocando)** — 🟢 LIBERADO PRA TODOS em 26/11 com selo NOVO (`CHAMPIONS_SALA_GERAL = true`, sport.ts; `false` volta a ser só Diego/Futpoint). Usa as opções de sempre da liga: 10 ou 20 times, e com 20, 38 ou 19 rodadas: acabou a liga, cada um escolhe um dos 36
   clubes da Champions 2025–26 na ordem da tabela e convoca 11 das cartas dele. Fase de liga numa tabela só (8 jogos, 4 em casa e 4 fora,
   calendário da Só Champions), 1º–8º direto, 9º–24º playoff (9×24…16×17, sem sorteio), ida e volta até a semi com a volta na casa do
   melhor, final única. Motor `champions-sala.ts`, tela `champions-sala-online.tsx` (adaptada da Liberta da sala), palco
