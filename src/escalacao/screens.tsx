@@ -1,6 +1,6 @@
 import {QuickMatchLayout,AuctionIdentity,AuctionPositions} from './shared-game-ui'
 import * as careerSaves from './salvamento/service'
-import { SaveHistory } from './salvamento/dialogs'
+import { SaveHistory, SaveCopies } from './salvamento/dialogs'
 import {MatchPresentationClockContext,useMatchPresentationClock,matchPresentationMinute,matchPresentationRemaining,type MatchPresentationClock} from './match-presentation-clock'
 import {footballRoundStatus,footballNextFixture} from './football-round-status'
 import { LinhaComunidadeChat } from './links-comunidade' // 📲🎮 23/11: WhatsApp + Discord no chat
@@ -108,6 +108,7 @@ import { pedaco } from './recarga'
 const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate }))))
 const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
 const LibertaSalaLazy = lazy(pedaco(() => import('./liberta-sala-online').then(m => ({ default: m.LibertaSalaGate })))) // 🏆 Liga + Libertadores com clubes reais (19/11)
+const MundialSalaLazy = lazy(pedaco(() => import('./mundial-sala-online').then(m => ({ default: m.MundialSalaGate })))) // 🌍 Liga + Super Mundial com os clubes de 2025 (26/11)
 import { CampinhoKings } from './kings-campinho'
 import { pokeModo, pokeDe, nomeDoLote } from './pokemon-modo' // ⚡ modo Pokémon (25/10, só a conta do Diego)
 import { ChipsTipo, ArtePoke, TimePokemon } from './pokemon-arte'
@@ -1973,7 +1974,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   const [cloudUnavailable,setCloudUnavailable]=useState(false)
   // ☁️ 03/11: abriu a lista → confere a nuvem (só o carimbo, uns bytes) e redesenha se outro aparelho salvou depois.
   // Antes a lista era só a foto do aparelho na hora: quem abria logo depois de atualizar via a carreira velha.
-  useEffect(() => { let vivo = true; const off=careerSaves.subscribe(()=>{if(vivo)setList(listAllCareers())}); syncCareersWithCloud().then(ok => { if (vivo) { setList(listAllCareers());setLoadingSaves(false);setCloudUnavailable(!ok&&!!careerSaves.account()) } }, () => { if(vivo){setLoadingSaves(false);setCloudUnavailable(true)} }); return () => { vivo = false; off() } }, [])
+  useEffect(() => { let vivo = true; const off=careerSaves.subscribe(()=>{if(vivo)setList(listAllCareers())}); syncCareersWithCloud(true).then(ok => { if (vivo) { setList(listAllCareers());setLoadingSaves(false);setCloudUnavailable(!ok&&!!careerSaves.account()) } }, () => { if(vivo){setLoadingSaves(false);setCloudUnavailable(true)} }); return () => { vivo = false; off() } }, [])
   // 💾 17/10: a ficha extra comprada na Loja vem do banco; quando chega, a tela redesenha com o limite novo
   const [, setExtras] = useState(0)
   useEffect(() => { carregaFichasExtras().then(setExtras, () => {}) }, [])
@@ -2002,12 +2003,14 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   const t = useT() // 🌐 BR/EN
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
-      <div className="ov3-surface" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
+      <div className="ov3-surface" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', color: INK, border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>{t('🪜 Minhas Carreiras', '🪜 My Careers')}</p>
           <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {careerSlotLimit(list.length)}</span>
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
+        <p style={{fontSize:11,color:'#4a4740',lineHeight:1.4,margin:'0 0 12px'}}>{t('A lista reúne carreiras deste aparelho e da nuvem. Só as enviadas à nuvem podem continuar em outro aparelho.','This list includes device and cloud careers. Only careers uploaded to the cloud can continue on another device.')}</p>
+        {careerSaves.cloudRights()?.paid && <p style={{fontSize:11,color:'#4a4740',lineHeight:1.4,margin:'0 0 12px'}}>{t(`Seu plano inclui ${careerSaves.cloudRights()!.slots} fichas na nuvem. Cópias antigas deste aparelho continuam preservadas.`,`Your plan includes ${careerSaves.cloudRights()!.slots} cloud slots. Older copies on this device are kept.`)}</p>}
         {historySeed !== null && <SaveHistory seed={historySeed} onClose={() => setHistorySeed(null)} onRestored={() => { setHistorySeed(null); setList(listAllCareers()) }} />}
         <AvisoCarreiraGratis />
         {avisoTroca && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Não foi possível confirmar a ação. Confira a conexão e o espaço do aparelho e tente novamente.', '⚠️ Could not confirm the action. Check your connection and device storage, then try again.')}</p>}
@@ -2023,12 +2026,13 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
             <div className="ov3-surface" key={String(slot.save.seed ?? i)} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${DIV_COLOR[div] ?? '#8B8168'}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: active ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
               {active && <span style={{ position: 'absolute', top: -9, left: 12, background: GOLD, color: INK, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, border: `2px solid ${INK}`, ...OSWALD }}>{t('▶ última jogada', '▶ last played')}</span>}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn}</p>
+                <p style={{ color: INK, fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 9.5, fontWeight: 900, color: '#fff', background: DIV_COLOR[div] ?? '#8B8168', padding: '2px 7px', borderRadius: 6, ...OSWALD }}>SÉRIE {div}</span>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>{t('Temporada', 'Season')} {slot.save.seasonNo ?? 1}</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>{t('Temporada', 'Season')} {slot.save.seasonNo ?? 1} · {t('rodada','round')} {slot.save.round ?? 0}</span>
                 </div>
                 <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 {t('caixa', 'till')} {caixa} · {t('jogou', 'played')} {agoLabel(slot.at)}</span>
+                <SaveCopies seed={slot.save.seed}/>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
                 <button disabled={busy} onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('▶️ Continuar', '▶️ Continue')}</button>
@@ -7851,6 +7855,7 @@ export function EscSeason() {
   // Copa dos 8 — só o nome e a arte mudam. Antes aparecia "Copa dos 8" no lugar.
   const chS = state.copaMode === 'liga_champions' || state.copaMode === 'champions'
   const relS = state.copaMode === 'relampago' // ⚡ Mata-mata Relâmpago (28/10): sem liga, tudo jogo único
+  const supS = state.copaMode === 'supermundial' // 🌍 Só Super Mundial (26/11): o mata-mata dele roda aqui, tudo jogo único
   const copaHolo = libS ? NOITE_HOLO : PURPLE_HOLO
   // 🌐 BR/EN (11/09): valia só pro basquete; agora a temporada do futebol também lê o idioma
   const LS = (pt: string, en: string) => seasonLang === 'en' ? en : pt
@@ -8512,7 +8517,7 @@ export function EscSeason() {
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
           {copaLive && qc ? (cupNow
             ? `🏆 NBA CUP · ${qc.phase === 'quartas' ? LS('QUARTAS', 'QUARTERS') : qc.phase === 'semis' ? LS('SEMIFINAL', 'SEMIFINAL') : LS('FINAL', 'FINAL')}`
-            : `${chS ? '⭐ CHAMPIONS' : libS ? '🌎 LIBERTA' : relS ? LS('⚡ RELÂMPAGO', '⚡ LIGHTNING') : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA', 'CUP')}`} · ${qc.phase === 'playin' ? 'PLAY-IN' : qc.phase === 'repescao' ? LS('REPESCÃO', 'PLAYOFF') : qc.phase === 'r32' ? LS('RODADA DE 32', 'R32') : qc.phase === 'oitavas' ? (bbS ? LS('1ª RODADA', 'FIRST ROUND') : LS('OITAVAS', 'R16')) : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : LS('QUARTAS', 'QUARTERS')) : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}`) : `${LS('RODADA', 'ROUND')} ${Math.min(privateVisual ? Math.max(1, state.round) : state.round + 1, totalRounds)}/${totalRounds}`}
+            : `${chS ? '⭐ CHAMPIONS' : libS ? '🌎 LIBERTA' : supS ? LS('🌍 SUPER MUNDIAL', '🌍 SUPER CWC') : relS ? LS('⚡ RELÂMPAGO', '⚡ LIGHTNING') : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA', 'CUP')}`} · ${qc.phase === 'playin' ? 'PLAY-IN' : qc.phase === 'repescao' ? LS('REPESCÃO', 'PLAYOFF') : qc.phase === 'r32' ? LS('RODADA DE 32', 'R32') : qc.phase === 'oitavas' ? (bbS ? LS('1ª RODADA', 'FIRST ROUND') : LS('OITAVAS', 'R16')) : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : LS('QUARTAS', 'QUARTERS')) : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}`) : `${LS('RODADA', 'ROUND')} ${Math.min(privateVisual ? Math.max(1, state.round) : state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
           // ⭐ Só Champions: não existe liga, então nada de "15º · 0 pts" — mostra a perna
@@ -8728,7 +8733,7 @@ export function EscSeason() {
                 // túnel, na paleta da competição — o MESMO relógio, nada a mais
                 if (qc.phase === 'final' && qc.ties.length === 1 && !bbS && !kingsS && !cupNow) {
                   const t0 = qc.ties[0]
-                  return <TunelFinal comp={chS ? 'champions' : libS ? 'liberta' : relS ? 'relampago' : 'copa8'} seg={seg} total={total} espera={espera}
+                  return <TunelFinal comp={chS ? 'champions' : libS ? 'liberta' : supS ? 'supermundial' : relS ? 'relampago' : 'copa8'} seg={seg} total={total} espera={espera}
                     casa={{ nome: nameOf(t0.aId), crest: <Escudo nome={nameOf(t0.aId)} size={96} /> }} fora={{ nome: nameOf(t0.bId), crest: <Escudo nome={nameOf(t0.bId)} size={96} /> }} />
                 }
                 // ⚡ Relâmpago: a 1ª abertura é o SORTEIO DA CHAVE com suspense (mesmo relógio da abertura de sempre)
@@ -8737,14 +8742,14 @@ export function EscSeason() {
               })()
         const pilotPenalty=(tie:QuickCopaTie)=>footballPilot&&copaMin>=93&&tie.pens&&!tie.ot?<section className="fp-cup-penalties" aria-label={LS('Disputa de pênaltis','Penalty shootout')}><p>{LS('DECISÃO NOS PÊNALTIS','PENALTY SHOOTOUT')}</p><PensShootout campo={tie===meuTiePen?penCampo.estado:undefined} shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m=>m.id===tie.aId)?.squad} bSquad={state.managers.find(m=>m.id===tie.bId)?.squad} lento={copaTemGenteQ(tie)}/></section>:undefined
         return (
-          <TemaCompCtx.Provider value={temaFora || cupNow ? null : chS ? 'champions' : libS ? 'liberta' : relS ? 'relampago' : 'copa8'}>{/* ⚡ Relâmpago: a taça e as cores dele */}
+          <TemaCompCtx.Provider value={temaFora || cupNow ? null : chS ? 'champions' : libS ? 'liberta' : supS ? 'supermundial' : relS ? 'relampago' : 'copa8'}>{/* ⚡ Relâmpago: a taça e as cores dele */}
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
-            {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : relS ? LS('⚡ MATA-MATA RELÂMPAGO', '⚡ LIGHTNING KNOCKOUT') : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : aberturaOn && !manual ? LS(`Próxima fase começa em ${aberturaLeft}s`, `Next round starts in ${aberturaLeft}s`) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
+            {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : supS ? 'club-world' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : supS ? 'SUPER MUNDIAL' : relS ? LS('⚡ MATA-MATA RELÂMPAGO', '⚡ LIGHTNING KNOCKOUT') : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : aberturaOn && !manual ? LS(`Próxima fase começa em ${aberturaLeft}s`, `Next round starts in ${aberturaLeft}s`) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
               {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{relS ? LS('Mata-mata Relâmpago: sem liga, a chave foi sorteada depois do leilão. Ida e volta em todas as fases e a final em jogo único — empate no placar somado vai pros pênaltis.', 'Lightning Knockout: no league, the draw was made after the auction. Two legs in every round and a single-match final — level on aggregate goes to penalties.') : libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : kingsS ? LS('Kings League Brasil: o 1º da liga vai direto pra SEMI. Quartas: 2º × 7º, 3º × 6º e 4º × 5º. Semis: 1º × quem passar do 4º × 5º, e os outros dois. TUDO jogo único, empate = SHOOTOUT.', 'Kings League Brasil: 1st goes straight to the SEMI. Quarters: 2nd × 7th, 3rd × 6th and 4th × 5th. Semis: 1st × the 4th-5th winner, and the other two. ALL single games, level = SHOOTOUT.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
               {!footballPilot&&copaTransition}
             </CompetitionStage> : <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
               <ApoioSheen holo={1} dur={3.2} />
-              <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{cupNow ? '🏆 NBA CUP' : chS ? '⭐ CHAMPIONS LEAGUE' : libS ? '🌎 LIBERTADORES' : relS ? LS('⚡ MATA-MATA RELÂMPAGO', '⚡ LIGHTNING KNOCKOUT') : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))}`} · {phaseLabel.toUpperCase()}</p>
+              <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{cupNow ? '🏆 NBA CUP' : chS ? '⭐ CHAMPIONS LEAGUE' : libS ? '🌎 LIBERTADORES' : supS ? '🌍 SUPER MUNDIAL' : relS ? LS('⚡ MATA-MATA RELÂMPAGO', '⚡ LIGHTNING KNOCKOUT') : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))}`} · {phaseLabel.toUpperCase()}</p>
               <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.8)', zIndex: 2 }}>{legLabel}</p>
             </Box>}
             {firstLegPending && !privateVisual && (
@@ -10283,6 +10288,9 @@ export function EscLiberta() {
   const numerosAntesLb=useNumerosAntes(`${state.seed}|liberta|${state.liberta?.rodada??0}`)
   const you = state.managers[state.youIdx]
   const lb = state.liberta
+  // 🌍 26/11: a MESMA tela serve a fase de grupos do Só Super Mundial (turno único, 3 rodadas, outro nome)
+  const RODADAS_LB = lb?.rodadas ?? LIBERTA_RODADAS
+  const supM = !!lb?.superMundial
   const online = state.onlineMode === 'online'
   const cinemaOnline = online && !state.careerOnline && state.sport !== 'basquete'
   const canAdvance = !online || state.isHost
@@ -10322,7 +10330,7 @@ export function EscLiberta() {
   // autoplay: só quem conduz dispara a rodada seguinte (os outros recebem o
   // resultado já sincronizado e animam localmente).
   useEffect(() => {
-    if (!canAdvance || manual || !lb || lb.fase !== 'grupos' || lb.rodada >= LIBERTA_RODADAS) return
+    if (!canAdvance || manual || !lb || lb.fase !== 'grupos' || lb.rodada >= RODADAS_LB) return
     const t = setTimeout(() => dispatch({ type: 'PLAY_LIBERTA_RODADA' }), lb.rodada === 0 ? Math.round(2200 / speedFactor) : groupClock?matchPresentationRemaining(groupClock):roundMs)
     return () => clearTimeout(t)
   }, [lb?.rodada, lb?.fase, canAdvance, manual, roundMs, speedFactor, dispatch, groupClock])
@@ -10346,7 +10354,7 @@ export function EscLiberta() {
     c.pts - a.pts || c.w - a.w || (c.gf - c.ga) - (a.gf - a.ga) || c.gf - a.gf || a.name.localeCompare(c.name))
   const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
   const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/); return mm ? mm[1] : text.replace(/^⚽\s*/, '').replace(/\.$/, '') }
-  const acabou = lb.rodada >= LIBERTA_RODADAS
+  const acabou = lb.rodada >= RODADAS_LB
 
   // uma tabelinha de grupo (4 linhas). `destaque` = o SEU grupo (fundo creme).
   const tabelaGrupo = (g: number, destaque: boolean) => {
@@ -10383,7 +10391,7 @@ export function EscLiberta() {
     <Shell presentationClock={groupClock} wide desk2={continentalDesk} className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between gap-2">
         <span className={`font-black text-sm${footballAccess.available?' fp-round-badge':''}`} style={{ ...OSWALD, color: NOITE }}>
-          🌎 LIBERTADORES · {acabou && (!privateVisual || revealed) ? LB('GRUPOS ENCERRADOS', 'GROUPS OVER') : `${LB('RODADA', 'ROUND')} ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
+          {supM ? "🌍 SUPER MUNDIAL" : "🌎 LIBERTADORES"} · {acabou && (!privateVisual || revealed) ? LB('GRUPOS ENCERRADOS', 'GROUPS OVER') : `${LB('RODADA', 'ROUND')} ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, RODADAS_LB)}/${RODADAS_LB}`}
         </span>
         {meuTime && (
           <span className="font-black text-sm" style={OSWALD}>
@@ -10393,9 +10401,9 @@ export function EscLiberta() {
       </div>
     }>
       {continentalDesk&&<div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setContinentalTarget}/><FootballSidebarTarget name="leaders"/><FootballSidebarTarget name="rival-preview"/><FootballChatTarget/></div>}
-{privateVisual ? <CompetitionStage kind="liberta" title="LIBERTADORES" phase={acabou && revealed ? LB('Grupos encerrados', 'Groups over') : LB(`Fase de grupos · rodada ${Math.max(1, lb.rodada)}/6`, `Group stage · round ${Math.max(1, lb.rodada)}/6`)} detail={LB('32 clubes · 8 grupos · os dois primeiros avançam às oitavas', '32 clubs · 8 groups · the top two reach the round of 16')} status={meuTime ? LB(`Seu clube está no grupo ${GRUPO_LETRA[meuGrupo]}`, `Your club is in group ${GRUPO_LETRA[meuGrupo]}`) : LB('Acompanhe os clubes classificados da sala', 'Follow the room\'s qualified clubs')} /> : <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
+{privateVisual ? <CompetitionStage kind="liberta" title={supM ? "SUPER MUNDIAL" : "LIBERTADORES"} phase={acabou && revealed ? LB('Grupos encerrados', 'Groups over') : LB(`Fase de grupos · rodada ${Math.max(1, lb.rodada)}/${RODADAS_LB}`, `Group stage · round ${Math.max(1, lb.rodada)}/6`)} detail={LB('32 clubes · 8 grupos · os dois primeiros avançam às oitavas', '32 clubs · 8 groups · the top two reach the round of 16')} status={meuTime ? LB(`Seu clube está no grupo ${GRUPO_LETRA[meuGrupo]}`, `Your club is in group ${GRUPO_LETRA[meuGrupo]}`) : LB('Acompanhe os clubes classificados da sala', 'Follow the room\'s qualified clubs')} /> : <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
         <ApoioSheen holo={1} dur={3.2} />
-        <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{LB('🌎 LIBERTADORES · FASE DE GRUPOS', '🌎 LIBERTADORES · GROUP STAGE')}</p>
+        <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{(supM ? LB('🌍 SUPER MUNDIAL · FASE DE GRUPOS', '🌍 SUPER CLUB WORLD CUP · GROUP STAGE') : LB('🌎 LIBERTADORES · FASE DE GRUPOS', '🌎 LIBERTADORES · GROUP STAGE'))}</p>
         <p className="font-black text-[11px] relative" style={{ color: 'rgba(255,255,255,.82)', zIndex: 2 }}>
           {LB('32 clubes · 8 grupos de 4 · passam os 2 primeiros', '32 clubs · 8 groups of 4 · top 2 go through')}
         </p>
@@ -10419,7 +10427,7 @@ export function EscLiberta() {
       })() : (
         <FootballMatchPlaceholder><Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>
-            {acabou ? LB('🏁 Fim da fase de grupos!', '🏁 Group stage over!') : meuTime ? LB('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LB('📺 Você não se classificou — acompanhe a Libertadores por aqui.', '📺 You did not qualify — follow the Libertadores here.')}
+            {acabou ? LB('🏁 Fim da fase de grupos!', '🏁 Group stage over!') : meuTime ? (supM ? LB('🌍 Aguardando o pontapé inicial do Super Mundial…', '🌍 Waiting for the Super Club World Cup kick-off…') : LB('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…')) : LB('📺 Você não se classificou — acompanhe a Libertadores por aqui.', '📺 You did not qualify — follow the Libertadores here.')}
           </p>
         </Box></FootballMatchPlaceholder>
       )}
@@ -10432,7 +10440,7 @@ export function EscLiberta() {
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
           onSkip={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
-          nextLabel={!(lb.rodada === 0 || revealed) ? LB('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : lb.rodada === 0 ? LB('🌎 Começar a Libertadores', '🌎 Start the Libertadores') : LB('▶️ Próxima rodada', '▶️ Next round')} />
+          nextLabel={!(lb.rodada === 0 || revealed) ? LB('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : lb.rodada === 0 ? (supM ? LB('🌍 Começar o Super Mundial', '🌍 Start the Super Club World Cup') : LB('🌎 Começar a Libertadores', '🌎 Start the Libertadores')) : LB('▶️ Próxima rodada', '▶️ Next round')} />
       )}
       {cinemaOnline && !state.isHost && !acabou && (
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
@@ -10474,7 +10482,7 @@ export function EscLiberta() {
       {/* 📣 giro da Libertadores (o mesmo lugar de sempre das manchetes) */}
       {state.news.length > 0 && (
         <Box bg="#fff" className={footballPilot?"p-3 fp-competition-news":"p-3"} shadow={4}>
-          <p className="font-black text-[11px] uppercase mb-1" style={{ ...OSWALD, color: NOITE }}>{LB('📣 Giro da Libertadores', '📣 Libertadores round-up')}</p>
+          <p className="font-black text-[11px] uppercase mb-1" style={{ ...OSWALD, color: NOITE }}>{(supM ? LB('📣 Giro do Super Mundial', '📣 Super Club World Cup round-up') : LB('📣 Giro da Libertadores', '📣 Libertadores round-up'))}</p>
           {state.news.slice(0, 3).map((n, i) => <p key={i} className="text-[11px] font-semibold text-black/70 leading-snug">{n}</p>)}
         </Box>
       )}
@@ -10509,7 +10517,7 @@ export function EscLiberta() {
       </div>
       </>)}
       <p className="text-[10px] font-bold text-black/45 text-center" style={privateVisual ? {color:CREAM} : undefined}>{enL ? <>🟢 the <b>top 2</b> of each group reach the round of 16 — 16 clubs.</> : <>🟢 os <b>2 primeiros</b> de cada grupo vão pras oitavas — 16 clubes.</>}</p>
-      {privateVisual && <details open={footballPilot||undefined} className={`ll26-bracket-history${footballPilot?' fp-competition-stats':''}`}><summary>{LB('ESTATÍSTICAS DA LIBERTADORES', 'LIBERTADORES STATS')}</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">{LB('As estatísticas atualizam após o apito final.', 'Stats update after the final whistle.')}</p>}</details>}
+      {privateVisual && <details open={footballPilot||undefined} className={`ll26-bracket-history${footballPilot?' fp-competition-stats':''}`}><summary>{(supM ? LB('ESTATÍSTICAS DO SUPER MUNDIAL', 'SUPER CLUB WORLD CUP STATS') : LB('ESTATÍSTICAS DA LIBERTADORES', 'LIBERTADORES STATS'))}</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">{LB('As estatísticas atualizam após o apito final.', 'Stats update after the final whistle.')}</p>}</details>}
 
       {footballPilot&&<section className="ll26-round-list fp-competition-games"><h3>{LB('TODOS OS JOGOS · RODADA','ALL MATCHES · ROUND')} {lb.rodada}</h3><div>{lb.lastResults.map(r=><RoundMatchPresentation key={`${r.homeId}-${r.awayId}`} startedAt={groupStartedAt} roundKey={lb.rodada} roundMs={roundMs} finished={revealed} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={24}/>} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={24}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals??r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>)}</div></section>}
       {!cinemaOnline && manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
@@ -10518,7 +10526,7 @@ export function EscLiberta() {
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
           onSkip={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
-          nextLabel={!(lb.rodada === 0 || revealed) ? LB('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : lb.rodada === 0 ? LB('🌎 Começar a Libertadores', '🌎 Start the Libertadores') : LB('▶️ Próxima rodada', '▶️ Next round')} />
+          nextLabel={!(lb.rodada === 0 || revealed) ? LB('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : lb.rodada === 0 ? (supM ? LB('🌍 Começar o Super Mundial', '🌍 Start the Super Club World Cup') : LB('🌎 Começar a Libertadores', '🌎 Start the Libertadores')) : LB('▶️ Próxima rodada', '▶️ Next round')} />
       )}
       {!cinemaOnline && online && !state.isHost && !acabou && (
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
@@ -13755,7 +13763,8 @@ export function EscEnd() {
   const soChampions = state.copaMode === 'champions'
   // ⚡ Relâmpago (28/10): também não tem liga — o fim é só do mata-mata (mesmo bloco da Só Champions)
   const soRelampago = state.copaMode === 'relampago'
-  const semLiga = soChampions || soRelampago
+  const soSuperMundial = state.copaMode === 'supermundial' // 🌍 26/11: também sem liga — o título é o do Super Mundial
+  const semLiga = soChampions || soRelampago || soSuperMundial
   // 👑 11/11 (Diego: *"quem fica em primeiro na tabela não é campeão. Campeão é só quem ganha a final"*): na Kings a liga é só a fase
   // de classificação — o 1º NÃO ganha taça, festa nem título. O campeão sai do mata-mata.
   const semTituloLiga = semLiga || kEnd
@@ -13785,7 +13794,7 @@ export function EscEnd() {
     if (qc?.champion && qc.phase === 'done') {
       const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
       const linha = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : ''
-      out.push({ key: 'copa', comp: state.copaMode === 'relampago' ? 'relampago' : state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha, vice: fin ? (fin.aId === qc.champion.id ? fin.bId : fin.aId) : undefined })
+      out.push({ key: 'copa', comp: state.copaMode === 'supermundial' ? 'supermundial' : state.copaMode === 'relampago' ? 'relampago' : state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha, vice: fin ? (fin.aId === qc.champion.id ? fin.bId : fin.aId) : undefined })
     }
     return out
   })()
@@ -13982,6 +13991,8 @@ export function EscEnd() {
   // já copia essa marca pra lista de salas, o `liga_modo`/novo leilão já carregam ela). Todo lugar que indexa COPAS_REGIONAIS
   // passa por `ehCopaRegional`, que diz NÃO pra 'liberta' — então ela nunca vira regional por engano.
   const [libertaNaLiga, setLibertaNaLiga] = useState(false)
+  // 🌍 LIGA + SUPER MUNDIAL (26/11): a mesma porta da Libertadores da sala, com a marca `regionalNaLiga: 'mundial'`
+  const [mundialNaLiga, setMundialNaLiga] = useState(false)
   const [mundoChecado, setMundoChecado] = useState(false)
   // 🌍 a noite só acaba DEPOIS da Copa (Diego 01/09: *"a votação é somente quando
   // acabar tudo, a liga e a Copa do Mundo — mesma coisa o jornal"*). Enquanto
@@ -13991,12 +14002,12 @@ export function EscEnd() {
   // piscar o jornal na cara e sumir.
   const [mundoPendente, setMundoPendente] = useState(false)
   // 🚪 a liga recolhe embaixo do portão enquanto a Copa do Mundo não acaba (19/09)
-  const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga || libertaNaLiga) && !copaPending && !libPending && mundoPendente
+  const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga || libertaNaLiga || mundialNaLiga) && !copaPending && !libPending && mundoPendente
   // 🔜 o cartão da colocação dizia "Ano que vem tem pregão de novo" com a Copa do Mundo/regional ainda por
   // vir — parecia que o jogo tinha ACABADO e o pessoal saía antes da convocação (Diego 13/10).
-  const proxNomeFim = mundoEsperando ? (libertaNaLiga ? 'Libertadores' : regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga === 16 ? LE('Copa América', 'Copa América') : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
+  const proxNomeFim = mundoEsperando ? (mundialNaLiga ? LE('Super Mundial', 'Super Club World Cup') : libertaNaLiga ? 'Libertadores' : regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga === 16 ? LE('Copa América', 'Copa América') : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string; chave?: string } | null>(null)
-  useEffect(() => { if (mundoNaLiga || regionalNaLiga || libertaNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga, libertaNaLiga])
+  useEffect(() => { if (mundoNaLiga || regionalNaLiga || libertaNaLiga || mundialNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga, libertaNaLiga, mundialNaLiga])
   useEffect(() => {
     if (!online || !state.roomId || bbEnd) return // 🏀 basquete nunca abre Copa do Mundo/regional depois da liga
     let vivo = true
@@ -14013,10 +14024,12 @@ export function EscEnd() {
         const draftSala = !!(state.ligaDraft || state.minhaLigaDraft)
         const reg = !draftSala && ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null
         const lib = !draftSala && d?.reg === 'liberta' // 🏆 19/11
+        const mun = !draftSala && d?.reg === 'mundial' // 🌍 26/11
         if (draftSala) setEuroNaLiga(undefined)
-        setMundoNaLiga(!draftSala && String(d?.flag) === 'true' && !reg && !lib)
+        setMundoNaLiga(!draftSala && String(d?.flag) === 'true' && !reg && !lib && !mun)
         setRegionalNaLiga(reg)
         setLibertaNaLiga(lib)
+        setMundialNaLiga(mun)
         setMundoChecado(true)
       }, () => {})
     return () => { vivo = false }
@@ -14026,7 +14039,8 @@ export function EscEnd() {
   const libEnd = state.copaMode === 'liga_liberta'
   const chEnd = state.copaMode === 'liga_champions' || state.copaMode === 'champions'
   const relEnd = state.copaMode === 'relampago' // ⚡ Mata-mata Relâmpago (28/10)
-  const copaNome = libEnd ? 'Libertadores' : chEnd ? 'Champions League' : relEnd ? LE('Mata-mata Relâmpago', 'Lightning Knockout') : kEnd ? 'Kings League' : bbEnd ? 'Playoffs' : LE('Copa dos 8', 'Cup of 8')
+  const supEnd = state.copaMode === 'supermundial' // 🌍 Só Super Mundial (26/11)
+  const copaNome = supEnd ? LE('Super Mundial', 'Super Club World Cup') : libEnd ? 'Libertadores' : chEnd ? 'Champions League' : relEnd ? LE('Mata-mata Relâmpago', 'Lightning Knockout') : kEnd ? 'Kings League' : bbEnd ? 'Playoffs' : LE('Copa dos 8', 'Cup of 8')
   // até onde VOCÊ foi na Copa (pro resuminho do topo)
   const myCopaRun = (() => {
     const qc = state.quickCopa
@@ -14471,6 +14485,22 @@ export function EscEnd() {
             })} />
         </Suspense></CercaDaCopa>
       )}
+      {/* 🌍 LIGA + SUPER MUNDIAL (26/11): a mesma porta da Libertadores da sala */}
+      {online && state.roomId && mundialNaLiga && !copaPending && !libPending && (
+        <CercaDaCopa><Suspense fallback={null}>
+          <MundialSalaLazy roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
+            matchSeed={state.seed}
+            seasonNo={state.seasonNo ?? 1}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao ? { ...st.campeao, chave: st.chave } : null) }}
+            aoRemover={(id, nome) => {
+              if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
+            }}
+            classificacao={table.map(t => {
+              const m = state.managers.find(mm => mm.id === t.id)
+              return { id: t.id, nome: t.name, humano: !!m?.isHuman }
+            })} />
+        </Suspense></CercaDaCopa>
+      )}
       {online && state.roomId && regionalNaLiga && !copaPending && !libPending && (
         <CercaDaCopa><Suspense fallback={null}>
           <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
@@ -14520,7 +14550,7 @@ export function EscEnd() {
           nova nem passa por aqui (`careerOnline` vai pro PyramidSeasonScreen). */}
       {/* ⭐ Só Champions: o jornal tem EDIÇÃO CHAMPIONS (`montaEdicaoChampions`) — pedido do Diego 25/09 */}
       {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
-        <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && libertaNaLiga ? { ...campeaoDoMundo, copa: 'Libertadores' } : campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
+        <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && mundialNaLiga ? { ...campeaoDoMundo, copa: 'Super Mundial' } : campeaoDoMundo && libertaNaLiga ? { ...campeaoDoMundo, copa: 'Libertadores' } : campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
       )}
       {online && state.roomId && !state.careerOnline && !state.bafo2 && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
@@ -14530,7 +14560,7 @@ export function EscEnd() {
         const chTab = soChampions && state.champions ? championsTabela(state.champions) : null
         const chCamp = semLiga ? state.quickCopa?.champion ?? null : null
         // ⚡ Relâmpago: a "posição" é até onde cada um chegou na chave (campeão 1º, vice 2º…); sem liga não há rebaixado nem classificado
-        const relPos = soRelampago && state.quickCopa ? posicaoNaChave(state.quickCopa) : null
+        const relPos = (soRelampago || soSuperMundial) && state.quickCopa ? posicaoNaChave(state.quickCopa) : null // 🌍 Só Super Mundial: até onde chegou no mata-mata
         const posDe = (id: number) => relPos ? (relPos.get(id) ?? 99) - 1 : chTab ? chTab.findIndex(t => t.id === id) : table.findIndex(t => t.id === id)
         // 🚪 vão TODOS os times da partida com o carimbo `humano`: o LigaHub só aproveita o que não é gente
         // agora se a mesma partida já o tinha anotado como de alguém (quem apertou SAIR depois do apito, 14/10)
@@ -14538,7 +14568,7 @@ export function EscEnd() {
           const pos = posDe(m.id)
           const cupTitles: TituloSalaRapida[] = []
           if (!chTab && !relPos && copaDone && state.quickCopa?.champion?.id === m.id) cupTitles.push(libEnd ? 'libertadores' : 'copa')
-          if (campeaoDoMundo?.nome === m.teamName) cupTitles.push(libertaNaLiga ? 'libertadores' : regionalNaLiga ? 'regional' : 'mundial')
+          if (campeaoDoMundo?.nome === m.teamName) cupTitles.push(mundialNaLiga ? 'supermundial' : libertaNaLiga ? 'libertadores' : regionalNaLiga ? 'regional' : 'mundial')
           return {
             managerId: m.id,
             teamName: m.teamName,
@@ -14547,7 +14577,7 @@ export function EscEnd() {
             relegated: chTab || relPos ? false : pos >= 0 && pos + 1 >= zoneBot(table.length),
             leagueChampion: chTab || relPos ? chCamp?.id === m.id : champ.id === m.id,
             cupTitles,
-            ...(relPos ? { comp: 'relampago' as const } : chTab ? { comp: 'champions' as const } : {}), // 🏆 taça certa no perfil (28/10)
+            ...(relPos ? { comp: soSuperMundial ? 'supermundial' as const : 'relampago' as const } : chTab ? { comp: 'champions' as const } : {}), // 🏆 taça certa no perfil (28/10)
             humano: m.isHuman,
             // 🃏 22/11: as chaves das cartinhas que este time ganhou — o resgate da tela inicial (`esc_titulos_sem_carta`) lê daqui
             cartas: [

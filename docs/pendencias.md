@@ -1,3 +1,35 @@
+## 26/11 — 🌍 SUPER MUNDIAL + LIGA + CHAMPIONS nas salas — 🔒 SÓ DIEGO E FUTPOINT (`SUPER_MUNDIAL_GERAL`, sport.ts)
+Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions… 2 de cada… publicar é só na minha e no do Footpoint"*.
+- ✅ **🌍 Liga + Super Mundial (convocando)** — FEITO no branch (falta OK visual + publicar): acabou a liga, cada um escolhe um dos 32
+  clubes do Mundial de 2025 e convoca 11 das cartas dele. 8 grupos em turno único (regra das confederações), chave das oitavas
+  de 2025, tudo em jogo único. Motor `mundial-sala.ts`, tela `mundial-sala-online.tsx` (adaptada da Liberta da sala), palco
+  `football-cup-mundial.tsx`, marca da sala `regionalNaLiga: 'mundial'`, relógio `esc_regional_clock` (6+1 passos, sem SQL).
+  Título na sala = `supermundial` (taça do Mundial). Trava `npm run mundial-sala`. Bancada `scripts/teste-mundial-sala/`, prints em
+  `scripts/mockups/super-mundial/`.
+- ✅ **Cartas só do modo** (`cartas-mundial-clubes.ts`, ~240): 13 clubes sem carta + Al-Hilal/Inter Miami sem zagueiro. Fora do
+  leilão e do pacote do campeão. Detalhe e fontes: `docs/super-mundial-cartas.md`. Escudo neutro nos clubes sem arte.
+- ✅ **🌍 Só Super Mundial (com o seu time)** — FEITO no branch: copaMode `supermundial`, sem liga; os times de GENTE da sala (até 32,
+  os rivais-bot do leilão ficam de fora) + os clubes reais de 2025 completando, cada um com as PRÓPRIAS cartas (`elencoConvidado` →
+  `xiDaMaquinaClube`; força do XI real levada pra régua 58–80 dos bots). Reusa a máquina da Libertadores com o seu time (tela
+  'liberta' com `rodadas: 3` + `superMundial`) e o mata-mata da Copa em jogo único. Pregão aberto não vale (igual à Só Champions).
+  Trava `npm run super-mundial` (4 e 20 pessoas, do leilão ao campeão).
+  🔁 26/11 (Diego: *"dar uma analisada na força dos bots… parecido conforme a regra da Copa do Mundo"*): o clube real joga com os 11
+  MELHORES dele, na mesma conta de força do time de gente (`forcaClubeReal`); quem nunca foi campeão do mundo de clubes perde 1 em cada
+  carta (igual às seleções pequenas da máquina na Copa); e a força vai pra régua da sala (Real 80 · grandes 76–79 · Auckland 58),
+  porque sem régua o XI de verdade (Real 95) atropelava qualquer time de leilão (74–80). Campeões do mundo: `CAMPEOES_DO_MUNDO_CLUBES`.
+- ✅ **🏆 Troféu de verdade + perfil (26/11)**: CompId `supermundial` com o DISCO de ouro do troféu de 2025 (FIFA + Tiffany: mapa-múndi
+  gravado e planetas — fontes FIFA/ESPN), paleta própria, túnel, festa do campeão e taça do perfil (`trofeus-perfil.tsx`). Perfil →
+  "Títulos no online" ganhou a taça do Super Mundial: `esc_tacas_online` conta `comp='supermundial'` (Só) + `cup_titles 'supermundial'`
+  (Liga +) — migration `20261126160000_tacas_online_super_mundial.sql`, APLICADA. Prints em `scripts/mockups/super-mundial/`.
+  ⚠️ Achado à parte: `npm run relampago` (manchete em inglês no teste) e `testa-libertadores.mts` (classificação do Brasil Oficial)
+  já falhavam ANTES, também na main — não é deste trabalho.
+- ⏳ **⭐ Liga + Champions (convocando)** — A FAZER (próximo). Faltam cartas pra 13 dos 36 (todos do baralho Europa): Atalanta,
+  Olympiacos, Brugge, Qarabağ, Bodø/Glimt, Pafos, Union SG, Athletic Bilbao, København, Eintracht Frankfurt, Slavia Praha,
+  Villarreal e Kairat. Os outros 23 já fecham time. Antes: os 36 da Champions 2025–26 (campeão PSG nos pênaltis contra o Arsenal, 30/05/26),
+  fase de liga de 8 jogos, 9º–24º no playoff, mata-mata ida e volta, final única. Vai precisar de cartas pra clubes pequenos
+  (Kairat, Pafos, Bodø/Glimt, Qarabağ, Union SG, Slavia, København…). Lista dos 36 e tabela final: pt.wikipedia "Liga dos Campeões
+  da UEFA de 2025–26".
+- Trocar o modo de uma liga que está com o Super Mundial: bloqueado com aviso (igual à Liberta da sala; o servidor não conhece).
 ## 25/11 — melhorias nas duas carreiras
 
 Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos os componentes compartilhados de Central, Mercado, Finanças, técnico, formações/trocas, memória, cenas, lesões e save. A tradicional passa a usar o painel organizado do Clube com mapa grande e ações claras. Corrigida sobreposição dos botões de saída sobre as áreas do Mercado no desktop, nos dois modos. Bancadas agora iniciam a tradicional pelo leilão nativo, com testes de save, cenas e lesões. Sem nova economia/OVR, migração de modo ou mudança em online/basquete/F1. Capturas apresentadas; Diego confirmou “ok” à publicação conjunta em produção, encerrando a fase de prévia local após o bloqueio anterior. Evidências e limites: [paridade](auditorias/paridade-carreiras-20261125.md).
