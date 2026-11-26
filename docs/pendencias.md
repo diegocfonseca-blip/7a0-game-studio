@@ -23,13 +23,13 @@ Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions�
   (Liga +) — migration `20261126160000_tacas_online_super_mundial.sql`, APLICADA. Prints em `scripts/mockups/super-mundial/`.
   ⚠️ Achado à parte: `npm run relampago` (manchete em inglês no teste) e `testa-libertadores.mts` (classificação do Brasil Oficial)
   já falhavam ANTES, também na main — não é deste trabalho.
-- ✅ **⭐ Liga + Champions (convocando)** — FEITO no branch (26/11, falta OK visual + publicar): acabou a liga, cada um escolhe um dos 36
+- ✅ **⭐ Liga + Champions (convocando)** — PUBLICADO 26/11 só pra Diego e Futpoint (`SUPER_MUNDIAL_GERAL` libera pra todos): acabou a liga, cada um escolhe um dos 36
   clubes da Champions 2025–26 na ordem da tabela e convoca 11 das cartas dele. Fase de liga numa tabela só (8 jogos, 4 em casa e 4 fora,
   calendário da Só Champions), 1º–8º direto, 9º–24º playoff (9×24…16×17, sem sorteio), ida e volta até a semi com a volta na casa do
   melhor, final única. Motor `champions-sala.ts`, tela `champions-sala-online.tsx` (adaptada da Liberta da sala), palco
   `football-cup-champions.tsx`, marca `regionalNaLiga: 'champions'`, opção `liga_champsala` (lobby, prateleira Convocando, selo teste),
   relógio `esc_regional_clock` com 16+1 passos (o teto do banco, sem SQL). Título = `cup_titles 'champions'` (taça da Champions);
-  `esc_tacas_online` soma as duas formas — migration `20261126180000_tacas_online_champions_convocando.sql` (A APLICAR no publicar).
+  `esc_tacas_online` soma as duas formas — migration `20261126180000_tacas_online_champions_convocando.sql` (APLICADA 26/11).
   Cartas só do modo: `cartas-champions-clubes.ts` (182, baralho Europa, sem pessoa repetida; xarás Éderson/Pêpê/Jorginho).
   ⚠️ Não entra a regra "mesmo país não se enfrenta na fase de liga". Trava `npm run champions-sala`. Prints `scripts/mockups/champions-sala/`.
 - Trocar o modo de uma liga que está com o Super Mundial: bloqueado com aviso (igual à Liberta da sala; o servidor não conhece).
