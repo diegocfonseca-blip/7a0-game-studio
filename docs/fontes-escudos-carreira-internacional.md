@@ -14,3 +14,14 @@ O índice correspondente fica em `src/escalacao/escudos-internacionais.ts`.
 O escudo de Shakhtar foi conferido no arquivo `donezk.png` (a imagem traz
 “Шахтар”). Os escudos do clube criado pelo usuário continuam independentes
 dos escudos dessas instituições.
+
+## ⭐🌍 26/11 — Champions da sala e Super Mundial
+
+Os clubes da Liga + Champions (2025–26) e do Super Mundial (2025) que apareciam com o escudo neutro ganharam o oficial,
+no mesmo padrão (WebP de até 160 px, recortado no desenho, fora do bundle), indexados em `escudos-internacionais.ts`.
+
+| Fonte pública | Instituições |
+|---|---|
+| [luukhopman/football-logos](https://github.com/luukhopman/football-logos) (`history/2025-26`) | Atalanta, Athletic Bilbao, Eintracht Frankfurt, Union SG, Brugge, Slavia Praga, Copenhagen, Bodø/Glimt, Salzburg |
+| [FCLOGO/fclogo.top](https://github.com/FCLOGO/fclogo.top) | Urawa Reds, Al Ain, Ulsan HD, Wydad, Espérance, Monterrey, Pachuca, LAFC, Seattle Sounders, Auckland City |
+| pt.wikipedia (Wikimedia Commons) | Kairat, Pafos, Qarabağ |
