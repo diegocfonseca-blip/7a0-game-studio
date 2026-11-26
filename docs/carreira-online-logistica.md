@@ -67,6 +67,8 @@ Construir primeiro a ⚡ Dinâmica (mais perto do que já existe nas salas), dep
 - **Renovar ou deixar sair = decisão de cada um, no dia dos contratos** (jogando ou não). 🔁 Corrigido pelo Diego no mesmo dia: NÃO existe
   chave de "renovação automática". Se a pessoa NÃO escolheu nada até o dono avançar → **renova sozinho**. Quem escolheu "deixar sair"
   perde o jogador e a vaga é completada com Cria da Base (nunca fake).
+  🏷️ **Aviso SUTIL (Diego, 26/11)**: uma linha miúda na tela do dia dos contratos ("se você não escolher, renova sozinho") e, pra quem
+  não estava, um recado discreto ao voltar ("enquanto você estava fora, renovamos Fulano e Ciclano"). Nada de banner grande.
 - **Caixa a cada -500 = o melhor jogador vai embora** (regra da tradicional, `START_CAREER_CRISE`; no Brasil Oficial ela já roda, é a
   mesma tela). No online ela está desligada (`onlineMode === 'online'`) → ligar na carreira online, com o ausente trocando pela Cria da Base.
 - **Dia dos contratos**: um dia FIXO da temporada, igual pra todos (todo contrato termina no mesmo momento). Pausa de 60 s com banner
