@@ -1,3 +1,4 @@
+import {gestaoAtiva,carreiraSoloFutebol} from './carreira-regras'
 import {fatosDoBairro} from './cenas-bairro-fatos'
 import {LesaoAoVivo} from './lesao-ao-vivo'
 import {faseDaLesao} from './lesao-partida'
@@ -431,14 +432,14 @@ export interface PlanoClubeOficial { fisicaAtiva?: boolean; taticas: Record<numb
 /** Contexto explícito: copas consomem as mesmas escolhas do clube que a liga. */
 const contextosOficiais=new WeakMap<object,{elencos?:Record<string,Card[]>}>()
 export function vinculaPlanosOficiais(world: Record<Div, SimTeam[]>, state: EscState): Record<Div, SimTeam[]> {
-  if (!state.oficial || state.onlineMode === 'online') return world
-  const fisicaAtiva=state.seasonNo >= (state.oficial.economiaDesde ?? Infinity)
+  if (!(state.oficial || gestaoAtiva(state)) || state.onlineMode === 'online') return world
+  const fisicaAtiva=gestaoAtiva(state)&&(!!state.oficial||condicaoAtiva(state))
   const jogosFisicos=state.oficialFisica?.season === state.seasonNo ? Object.keys(state.oficialFisica.copas??{}) : []
   const out=Object.fromEntries(DIVS.map(d => [d, world[d].map(t => {
     const nome = state.careerTecnicos?.[t.name], tec = nome ? tecnicoPorNome(nome) : undefined
     const faixa = tec ? FAIXA_POR_DIV[tec.div] : undefined
     const inicio = Object.fromEntries(t.squad.map(c => [c.id, t.human ? state.condicaoCarry?.[chaveCarry(c)]?.g ?? 100 : state.botCarry?.[chaveCarry(c)] ?? 100]))
-    const datas = state.oficialFisica?.season === state.seasonNo ? new Set(state.oficialFisica.clubes?.[t.name] ?? state.oficialFisica.cal[t.teamId] ?? (d === 'A' || d === 'B' ? Array.from({length:38},(_,r)=>r) : [])) : undefined
+    const datas = state.oficialFisica?.season === state.seasonNo ? new Set(state.oficialFisica.clubes?.[t.name] ?? state.oficialFisica.cal[t.teamId] ?? (!state.oficial || d === 'A' || d === 'B' ? Array.from({length:38},(_,r)=>r) : [])) : undefined
     const eventos = eventosFisicos(state, t.name, t.squad)
     const gasAgora = !fisicaAtiva ? {} : t.human ? gasDoElenco(state.careerLineup?.[t.teamId], Math.min(38,state.round), t.squad, 0, inicio, preparadorDe(state.careerPreparador?.[t.name])?.banco, datas, eventos) : planoCansacoBot({squad:t.squad,need:t.formation?FORMATIONS[t.formation]:NEED,inicio,seed:(state.seed^Math.imul(state.seasonNo,2654435761))>>>0,seasonNo:state.seasonNo,nome:t.name,banco:preparadorDe(state.careerPreparador?.[t.name])?.banco,rodadas:Math.min(38,state.round),rodadasComJogo:datas,copas:eventos}).gasFim
     return { ...t, planoOficial: { fisicaAtiva, gasAgora, jogosFisicos, jogosCopas: state.oficialFisica?.season===state.seasonNo?state.oficialFisica.copas:undefined, copas: eventosFisicos(state, t.name, t.squad), evento: t.human ? state.eventoTemporada : undefined, desdeR: state.condicaoDesde === state.seasonNo ? state.condicaoDesdeR ?? 0 : 0, inicio: Object.fromEntries(t.squad.map(c => [c.id, t.human ? state.condicaoCarry?.[chaveCarry(c)]?.g ?? 100 : state.botCarry?.[chaveCarry(c)] ?? 100])), taticas: state.careerTactics?.[t.teamId] ?? {}, escalacoes: state.careerLineup?.[t.teamId] ?? {}, banco: preparadorDe(state.careerPreparador?.[t.name])?.banco,
@@ -1931,9 +1932,12 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     })
     return evs
   }
-  const leg = (H: { t: SimTeam; div: Div }, A: { t: SimTeam; div: Div }, homeAdv: boolean) => {
-    const th = TACS[Math.floor(rng() * 3)], ta = TACS[Math.floor(rng() * 3)]
-    const fh = rollForm(H.t.xi, th, ta, rng), fa = rollForm(A.t.xi, ta, th, rng)
+  const fisica=fisicaDaCopa()
+  const leg = (h: { t: SimTeam; div: Div }, a: { t: SimTeam; div: Div }, homeAdv: boolean) => {
+    const fisicaId=`copa:${seed}:${seasonNo}:L:${legSeq+1}:${h.t.name}:${a.t.name}`
+    const H={...h,t:fisica.prepara(h.t,fisicaId)},A={...a,t:fisica.prepara(a.t,fisicaId)}
+    const th = taticaOficialCopa(H.t,38+fase,TACS[Math.floor(rng() * 3)]), ta = taticaOficialCopa(A.t,38+fase,TACS[Math.floor(rng() * 3)])
+    const fh = rollFormCopa(H.t, th, ta, rng), fa = rollFormCopa(A.t, ta, th, rng)
     // na Copa (cruzando divisões) a força vem do ELENCO + um gradiente de prestígio
     // por divisão (A mais forte, D o azarão) — NÃO o boost da liga (que é
     // compensação de filler dentro da série e até favorece a C). Assim a Série A é
@@ -1949,24 +1953,27 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     const hg = poisson(lh, rng), ag = poisson(la, rng)
     const hEvs = credit(H, H.t.xi, hg), aEvs = credit(A, A.t.xi, ag)
     const jogo = ++legSeq
+    fisica.jogou(fisicaId,H.t,A.t)
+    const fisicaDados={fisicaId,inicio:fisica.inicio(fisicaId),clubes:fisica.clubes(fisicaId)}
     const velho = { hg, ag, hEvs: marcaPasses(H, H.t.xi, hEvs, jogo), aEvs: marcaPasses(A, A.t.xi, aEvs, jogo) }
-    if (!m2On || !(H.t.human || A.t.human)) return { ...velho, hg0: hg, ag0: ag, m2: undefined as EntradaM2 | undefined }
+    if (!m2On || !(H.t.human || A.t.human)) return { ...fisicaDados,...velho, hg0: hg, ag0: ag, m2: undefined as EntradaM2 | undefined }
     // ⚽🧠 jogo de gente: o motor novo decide (a conta acima só serviu pra gastar o dado igual)
     desfazCopa(H, velho.hEvs); desfazCopa(A, velho.aEvs)
     const n = jogoCopaM2(seed, seasonNo, 'L', jogo, H.t, A.t, th, ta, versao)
-    return { hg: n.hg, ag: n.ag, hEvs: creditaCopa(H, n.h), aEvs: creditaCopa(A, n.a), hg0: hg, ag0: ag, m2: n.e }
+    return { ...fisicaDados,hg: n.hg, ag: n.ag, hEvs: creditaCopa(H, n.h), aEvs: creditaCopa(A, n.a), hg0: hg, ag0: ag, m2: n.e }
   }
   const playTie = (a: { t: SimTeam; div: Div }, b: { t: SimTeam; div: Div }, single: boolean): CopaTie => {
     let aggA = 0, aggB = 0, velhoA = 0, velhoB = 0
     const goals: Goal[] = []
     const legs: [number, number][] = [] // placar de cada jogo (ida, volta) — [gols A, gols B]
     const legGoals: Goal[][] = [] // gols de cada jogo separados (home = A marcou), pra animar ida e depois volta
+    const legFisicaIds:string[]=[],legFisicaInicio:(JogoFisicoOficial['inicio']|undefined)[]=[],legFisicaClubes:(JogoFisicoOficial['clubes']|undefined)[]=[]
     const legM2: (EntradaM2 | undefined)[] = []
-    const l1 = leg(a, b, true); aggA += l1.hg; aggB += l1.ag; velhoA += l1.hg0; velhoB += l1.ag0; legM2.push(l1.m2) // ida: a joga em casa
+    const l1 = leg(a, b, true); aggA += l1.hg; aggB += l1.ag; velhoA += l1.hg0; velhoB += l1.ag0; legM2.push(l1.m2);legFisicaIds.push(l1.fisicaId);legFisicaInicio.push(l1.inicio);legFisicaClubes.push(l1.clubes) // ida: a joga em casa
     const g1: Goal[] = [...l1.hEvs.map(e => ({ ...e, home: true })), ...l1.aEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
     g1.forEach(e => goals.push(e)); legs.push([l1.hg, l1.ag]); legGoals.push(g1)
     if (!single) {
-      const l2 = leg(b, a, true); aggB += l2.hg; aggA += l2.ag; velhoB += l2.hg0; velhoA += l2.ag0; legM2.push(l2.m2) // volta: b em casa
+      const l2 = leg(b, a, true); aggB += l2.hg; aggA += l2.ag; velhoB += l2.hg0; velhoA += l2.ag0; legM2.push(l2.m2);legFisicaIds.push(l2.fisicaId);legFisicaInicio.push(l2.inicio);legFisicaClubes.push(l2.clubes) // volta: b em casa
       const g2: Goal[] = [...l2.aEvs.map(e => ({ ...e, home: true })), ...l2.hEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
       g2.forEach(e => goals.push(e)); legs.push([l2.ag, l2.hg]); legGoals.push(g2)
     }
@@ -1978,7 +1985,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     const mexeu = legM2.some(Boolean)
     if (aggA === aggB) { pens = mexeu ? pensCopaM2(seed, seasonNo, 'L', legSeq) : pensVelho!; win = pens[0] > pens[1] ? 'a' : 'b' }
     else win = aggA > aggB ? 'a' : 'b'
-    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals, legM2: mexeu ? legM2 : undefined }
+    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals, legFisicaIds,legFisicaInicio,legFisicaClubes,legM2: mexeu ? legM2 : undefined }
   }
   const roundNames = ['Oitavas', 'Quartas', 'Semifinal', 'Final']
   const rounds: CopaRound[] = []
@@ -6952,7 +6959,7 @@ function useJanelaNovaOn(): boolean {
 // vêm da receita da pirâmide). Era copiada nas duas telas; a confirmação do leilão e a virada da janela nova leem a mesma.
 type ClubeSerie = { teamName: string; squad: WonCard[]; fundo?: boolean }
 function clubesDaSerie(state: EscState, mundo: ReturnType<typeof buildPyramid>, divAtual: DivTec): ClubeSerie[] {
-  if(state.oficial)return clubesNacionaisDoMercado(state)
+  if(state.oficial||gestaoAtiva(state))return clubesNacionaisDoMercado(state)
   const pl = state.careerPlacements ?? {}
   const fundoSquad = new Map((mundo[divAtual as Div] ?? []).filter(t => t.teamId < 0).map(t => [t.name, t.squad as unknown as WonCard[]]))
   const rivaisTime = new Set((state.careerRivals ?? []).map(r => newestTeamName(r.team)))
@@ -7120,17 +7127,17 @@ export function MercadoAba({ mgr, ordem,dealFocus,onClearDeal }: { mgr: Manager;
   const norm = (x: string) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   const q = norm(busca.trim())
   // 📝 contrato: a janela roda DEPOIS do seasonNo++ (store, virada), então "fica livre na janela" = falta 1 hoje
-  const contratoJog = (c: WonCard) => { const f = contratoAtletaFalta(state,c); return { livre: state.oficial ? f <= 1 : f === 1, ate: state.oficial && c.contratoAte != null ? c.contratoAte : f === 0 ? sn + 4 : sn + f - 1 } }
+  const contratoJog = (c: WonCard) => { const f = contratoAtletaFalta(state,c); return { livre: state.oficial || carreiraSoloFutebol(state) ? f <= 1 : f === 1, ate: (state.oficial || carreiraSoloFutebol(state)) && c.contratoAte != null ? c.contratoAte : f === 0 ? sn + 4 : sn + f - 1 } }
   const contratoTec = (clube: string) => { const fim = state.careerTecnicoContrato?.[clube]; return { livre: fim == null || fim <= sn, ate: fim ?? sn } }
   let escondidos = 0
-  type Jog = { card: WonCard; livre: boolean; ate: number; chave: string }
+  type Jog = { card: WonCard; livre: boolean; ate: number; chave: string; negociavel:boolean; podeSair:boolean; categoria:boolean }
   const blocos = clubes.map(c => {
     const jogs: Jog[] = []
     for (const x of c.squad) {
       if (ehFake(x) || x.cria || x.emprestado) continue
       if (!sondarLiberado(x, olheiroTier)) { escondidos++; continue }
       const k = contratoJog(x)
-      jogs.push({ card: x, ...k, chave: `${x.name}|${x.club}|${x.year}` })
+      jogs.push({ card: x, ...k, chave: `${x.name}|${x.club}|${x.year}`,negociavel:reservaTransferivelOficial(state,c.squad,x,state.managers.find(m=>m.teamName===c.teamName)?.formation),podeSair:podeRetirarOficial(state,c.squad,x.pos,state.managers.find(m=>m.teamName===c.teamName)?.formation),categoria:contratacaoOficialPermitida(state,mgr,x) })
     }
     jogs.sort((a, b) => Number(b.livre) - Number(a.livre) || SECTORS.indexOf(a.card.pos) - SECTORS.indexOf(b.card.pos))
     const tecNome = tecMap[c.teamName] ?? null
@@ -7190,7 +7197,7 @@ export function MercadoAba({ mgr, ordem,dealFocus,onClearDeal }: { mgr: Manager;
   )
   const filtrando = !!q || !!posF
   const serieDe=(nome:string)=>state.careerPlacements?.[state.managers.find(m=>m.teamName===nome)?.marketTeam??('m'+state.managers.find(m=>m.teamName===nome)?.id)]??state.careerPlacements?.[nome]
-  const visiveis=blocos.filter(c=>(!state.oficial||!soSerie||serieDe(c.teamName)===divAtual)&& (c.jogs.some(j=>passa(j.card.name,j.card.pos,j.livre,c.teamName)) || !!(c.tec&&passa(c.tec.nome,'TEC',c.tec.livre,c.teamName))))
+  const visiveis=blocos.filter(c=>(!(state.oficial||gestaoAtiva(state))||!soSerie||serieDe(c.teamName)===divAtual)&& (c.jogs.some(j=>passa(j.card.name,j.card.pos,j.livre,c.teamName)) || !!(c.tec&&passa(c.tec.nome,'TEC',c.tec.livre,c.teamName))))
   return (
     <div className="ll-mercado" style={{ paddingBottom: 8 }}>
       <header className="ll-mk-hero">
@@ -7249,8 +7256,8 @@ export function MercadoAba({ mgr, ordem,dealFocus,onClearDeal }: { mgr: Manager;
           {pil(soLivres, tr('LIVRES NA PRÓXIMA JANELA', 'FREE NEXT WINDOW'), () => setSoLivres(true))}
           {pil(!soLivres, tr('TODOS OS CONTRATOS', 'ALL CONTRACTS'), () => setSoLivres(false))}
         </div>
-        <p style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, letterSpacing: '.08em', color: '#5a5647', margin: '0 0 7px', textTransform: 'uppercase' }}>{state.oficial&&!soSerie?tr('Brasil · todas as séries','Brazil · all divisions'):divRot} · {visiveis.length} {tr('clubes com alvos','clubs with targets')}</p>
-        {state.oficial&&<div className="ll-mk-scope">{pil(soSerie,tr('MINHA SÉRIE','MY DIVISION'),()=>setSoSerie(true))}{pil(!soSerie,tr('BRASIL TODO','ALL BRAZIL'),()=>setSoSerie(false))}</div>}
+        <p style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, letterSpacing: '.08em', color: '#5a5647', margin: '0 0 7px', textTransform: 'uppercase' }}>{(state.oficial||gestaoAtiva(state))&&!soSerie?tr('Todas as séries','All divisions'):divRot} · {visiveis.length} {tr('clubes com alvos','clubs with targets')}</p>
+        {(state.oficial||gestaoAtiva(state))&&<div className="ll-mk-scope">{pil(soSerie,tr('MINHA SÉRIE','MY DIVISION'),()=>setSoSerie(true))}{pil(!soSerie,state.oficial?tr('BRASIL TODO','ALL BRAZIL'):tr('TODAS AS SÉRIES','ALL DIVISIONS'),()=>setSoSerie(false))}</div>}
         {!visiveis.length&&<p className="ll-mk-empty">{tr('Nenhum alvo com estes filtros. Tente outra posição, contrato ou série.','No targets with these filters. Try another position, contract or division.')}</p>}
         <div className="ll-mk-clubs">{visiveis.slice((pagina-1)*8,pagina*8).map(c => {
           const js = c.jogs.filter(j => passa(j.card.name, j.card.pos, j.livre,c.teamName))
@@ -7278,8 +7285,9 @@ export function MercadoAba({ mgr, ordem,dealFocus,onClearDeal }: { mgr: Manager;
                 <div style={{ padding: '8px 8px 2px' }}>
                   {js.map(j => {
                     const on = deOlho.jog?.chave === j.chave
-                    return linha(`j:${j.chave}`, virada(j.card.pos), j.card.name, <><b style={{ color: INK }}>over {j.card.lo}–{j.card.hi}</b> · {j.livre ? ficaLivre : ate(j.ate)}</>, j.livre, on,
-                      j.livre || on ? botao(on, () => dispatch({ type: 'DE_OLHO', jog: { chave: j.chave, nome: j.card.name, clube: c.teamName, pos: j.card.pos } })) : cadeado(j.ate))
+                    const disponivel=(j.livre||j.negociavel)&&j.podeSair&&j.categoria
+                    return linha(`j:${j.chave}`, virada(j.card.pos), j.card.name, <><b style={{ color: INK }}>over {j.card.lo}–{j.card.hi}</b> · {j.livre ? ficaLivre : j.negociavel ? tr(`Reserva negociável · ${ate(j.ate)}`,`Negotiable reserve · ${ate(j.ate)}`) : ate(j.ate)}</>, disponivel, on,
+                      disponivel || on ? botao(on, () => dispatch({ type: 'DE_OLHO', jog: { chave: j.chave, nome: j.card.name, clube: c.teamName, pos: j.card.pos } })) : !j.podeSair||!j.categoria ? <span style={{fontSize:10,fontWeight:800}}>{!j.podeSair?tr('Sem reposição','No replacement'):tr('Categoria da divisão','Division category')}</span> : cadeado(j.ate))
                   })}
                   {tecOk && c.tec && linha(`t:${c.tec.nome}`, bone, c.tec.nome, c.tec.livre ? ficaLivre : ate(c.tec.ate), c.tec.livre, deOlho.tec === c.tec.nome,
                     c.tec.livre || deOlho.tec === c.tec.nome ? botao(deOlho.tec === c.tec.nome, () => dispatch({ type: 'DE_OLHO', tec: c.tec!.nome })) : cadeado(c.tec.ate))}
@@ -7548,7 +7556,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
                 const x = j.card, c = j.clube
                 const marcado = ehMarcado(j)
                 const dono = state.managers.find(m=>m.teamName===c.teamName)
-                const travaRegra = state.oficial && !contratacaoOficialPermitida(state,mgr,x) ? tr('Categoria da divisão','Division category') : state.oficial && !podeRetirarOficial(state,c.squad,x.pos,dono?.formation) ? tr('Sem reposição','No replacement') : undefined
+                const travaRegra = (state.oficial||gestaoAtiva(state)) && !contratacaoOficialPermitida(state,mgr,x) ? tr('Categoria da divisão','Division category') : (state.oficial||gestaoAtiva(state)) && !podeRetirarOficial(state,c.squad,x.pos,dono?.formation) ? tr('Sem reposição','No replacement') : undefined
                 const trava = travaRegra ?? (j.falta > 0 && !j.negociavel ? (getLang() === 'en' ? `${j.falta} left` : `falta${j.falta > 1 ? 'm' : ''} ${j.falta}`) : (!marcado && marcadosJ.length >= 1 ? '1/1' : undefined))
                 return linha(`j:${x.id}:${c.teamName}`, marcado, trava, () => dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName, squad: c.squad } : {}) }),
                   <>{x.name}</>,
@@ -10283,7 +10291,7 @@ export function PyramidSeasonScreen() {
   const world = useMemo(() => {
     const base=vinculaPlanosOficiais(worldBase,state)
     return !state.careerOnline||state.onlineMode==='online'||state.co2||!state.careerCupLive?base:Object.fromEntries(DIVS.map(d=>[d,base[d].map(t=>({...t,cupLive:state.careerCupLive}))]))as Record<Div,SimTeam[]>
-  }, [worldBase, state.round, state.seasonNo, state.oficial, state.careerTactics, state.careerLineup, state.careerTecnicos, state.careerPreparador, state.condicaoCarry, state.botCarry, state.eventoTemporada, state.condicaoDesdeR, state.oficialFisica,state.careerCupLive])
+  }, [worldBase, state.round, state.seasonNo, state.oficial, state.careerTactics, state.careerLineup, state.careerTecnicos, state.careerPreparador, state.condicaoCarry, state.botCarry, state.eventoTemporada, state.condicaoDesdeR, state.oficialFisica,state.careerCupLive,state.careerManagementSince])
   // ⚠️ os quatro abaixo entram como DEPENDÊNCIA de useMemo (a simulação): quando o
   // save não tem o campo, tem que cair num vazio ESTÁVEL (SEM_*), nunca num `{}`
   // inline — ver o comentário dos SEM_* lá em cima (Copa presa no 1', 13/09).
@@ -10388,9 +10396,9 @@ export function PyramidSeasonScreen() {
     if (!condOn) return {}
     const me = state.managers[state.youIdx]
     if (!me) return {}
-    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR, condInicio?.g, criteriosDaTemporada(state) ? preparadorDe(state.careerPreparador?.[me.teamName])?.banco : undefined)
+    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR, condInicio?.g, criteriosDaTemporada(state) ? preparadorDe(state.careerPreparador?.[me.teamName])?.banco : undefined, !state.oficial&&gestaoAtiva(state)&&state.oficialFisica?.season===state.seasonNo?new Set(state.oficialFisica.cal[me.id]??[]):undefined, !state.oficial&&gestaoAtiva(state)?eventosFisicos(state,me.teamName,me.squad):[])
     return Object.keys(mods).length ? { [me.id]: mods } : {}
-  }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo, condDesdeR, condInicio, state.careerPreparador, state.criteriosCarreiraDesde, state.criteriosCarreiraAte])
+  }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo, condDesdeR, condInicio, state.careerPreparador, state.criteriosCarreiraDesde, state.criteriosCarreiraAte,state.oficialFisica])
   // 🧮 UMA HISTÓRIA SÓ (conserto 14/09). A tela precisa da temporada em duas
   // alturas: a rodada ATUAL (`live`) e a rodada já REVELADA (`shown`, usada
   // enquanto a partida anima, pra tabela não entregar o resultado antes do apito).
@@ -10496,14 +10504,14 @@ export function PyramidSeasonScreen() {
   useEffect(() => { const n = tiraNovos(); if (n && state.careerOnline && state.onlineMode !== 'online') dispatch({ type: 'GUARDA_M2', novos: n }) })
   const live = useMemo(() => simulaAte(round), [simulaAte, round])
   const calendarioFisico = useMemo(() => {
-    if (!state.oficial || state.seasonNo < (state.oficial.economiaDesde ?? Infinity)) return undefined
+    if (!gestaoAtiva(state)) return undefined
     const cal: Record<number, number[]> = {}
     for (const m of state.managers.filter(m => m.isHuman)) {
       const div = state.careerPlacements?.[`m${m.id}`]
-      cal[m.id] = div === 'A' || div === 'B' ? Array.from({length:38}, (_, r) => r) : [...new Set((live.oficial?.agenda ?? []).filter(j => j.casa === m.teamName || j.fora === m.teamName).map(j => j.r - 1))].sort((a,b) => a-b)
+      cal[m.id] = !state.oficial || div === 'A' || div === 'B' ? Array.from({length:38}, (_, r) => r) : [...new Set((live.oficial?.agenda ?? []).filter(j => j.casa === m.teamName || j.fora === m.teamName).map(j => j.r - 1))].sort((a,b) => a-b)
     }
     return cal
-  }, [live.oficial, state.oficial, state.managers, state.careerPlacements])
+  }, [live.oficial, state.oficial, state.managers, state.careerPlacements,state.seasonNo,state.careerManagementSince])
   const calendarioFisicoKey = JSON.stringify(calendarioFisico)
   const calendarioClubesKey = JSON.stringify(live.oficial?.datasClubes)
   useEffect(() => {
@@ -11191,7 +11199,7 @@ export function PyramidSeasonScreen() {
     return { ...o, B: copaFinished ? { playoff: conf, sobem: [tb[0]?.name, tb[1]?.name, ...conf.map(c => c.vencedor!)].filter(Boolean) as string[] } : { playoff: null, sobem: o.B.sobem } }
   }, [shown.oficial, playoffB, tables, copaFinished])
   useEffect(() => {
-    if (!state.oficial || !copa || state.seasonNo < (state.oficial.economiaDesde ?? Infinity)) return
+    if (!gestaoAtiva(state) || !copa) return
     const jogos: JogoFisicoOficial[] = []
     for (const fase of copa.rounds.slice(0, copaFinished ? copa.rounds.length : copaRound)) for (const tie of fase.ties) {
       for (let l=0;l<(tie.legs?.length ?? 1);l++) {
@@ -11204,7 +11212,7 @@ export function PyramidSeasonScreen() {
       }
     }
     if (jogos.length) dispatch({type:'OFICIAL_COPA_FISICA',season:state.seasonNo,jogos})
-  }, [state.oficial, copa, copaRound, copaFinished, state.oficialFisica, state.seasonNo])
+  }, [state.oficial, copa, copaRound, copaFinished, state.oficialFisica, state.seasonNo,state.careerManagementSince])
   useEffect(()=>{
     if(!m2Ok||!copa)return
     // Pular uma fase também oficializa seus jogos, mas nunca os próximos.

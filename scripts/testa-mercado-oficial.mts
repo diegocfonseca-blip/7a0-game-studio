@@ -47,7 +47,7 @@ for(const nome of ['Gama','Portuguesa','ABC','Flamengo']){
   const compras=transacoes.filter(m=>m.clube===t.nome).reduce((n,m)=>n+m.preco,0)
   if(price[t.key]!=null)assert.equal(price[t.key]- (s.clubCash?.[t.key]??0),compras-vendas,'toda chegada paga, venda recebida do comprador; dispensa não cria receita')
   else assert.equal(novas.length,0,'sem divisão nacional não recebe mercado novo')
-  for(const pos of SECTORS)assert(t.sq.filter(c=>c.pos===pos&&!c.fake).length>=need[pos],t.nome+' mantém XI')
+  const teamNeed=FORMATIONS[s.managers.find(m=>t.key==='m'+m.id)?.formation??'4-3-3'];for(const pos of SECTORS)assert(t.sq.filter(c=>c.pos===pos&&!c.fake).length>=teamNeed[pos],t.nome+' mantém XI da própria formação')
  }
  for(const [id,n] of counts(after))assert(n<=Math.max(1,occupied.get(id)??0),'não cria cópia de '+id)
  assert(alteradas.size>=2,'mercado alcança mais de uma divisão, independentemente do usuário')

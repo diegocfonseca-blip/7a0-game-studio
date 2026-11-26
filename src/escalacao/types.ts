@@ -1336,6 +1336,8 @@ export interface EscState {
   /** 🇧🇷 BRASIL OFICIAL (15/11): carreira com clube REAL. Só existe nessa carreira; liga as cartas de `data-oficial.ts`. */
   /** `giro` (19/11): a partir de qual temporada os clubes de FORA (Liberta/Sula/Mundial) sorteiam o elenco de novo todo ano */
   /** Mercado de bots já realizado nesta temporada; não repete gasto ao retomar janela. */
+  /** Shared management starts prospectively; old played seasons stay intact. */
+  careerManagementSince?: number
   oficialMercadoBotsSeason?: number
   oficialFisica?: { season: number; cal: Record<number, number[]>; clubes?: Record<string, number[]>; copas?: Record<string, import('./carreira-fisica').JogoFisicoOficial> }
   oficial?: { clube: string; desde: number; giro?: number; /** @deprecated Removido ao ler uma antiga bancada local; não afeta partidas. */ forcaInicial?: import('./hierarquia-inicial-carreira').CalibracaoInicial; /** novas inscrições continentais a partir desta temporada */ vagasDesde?: number; /** revisão econômica prospectiva, sem cobrança retroativa */ economiaDesde?: number }

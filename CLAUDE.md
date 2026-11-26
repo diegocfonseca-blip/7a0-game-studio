@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## Paridade das regras da carreira — 26/11/2026
+
+Diego autorizou as pendências 2–7 da auditoria e excluiu a 1: **não aplicar referência salarial à tradicional**. Compra de 60 no Oficial também deve pagar salário 6; só elenco herdado usa referência. Contrato registrado, gestão mundial dos bots, proteção de XI, manutenção do técnico, integração física das copas e ausência de teto T50 no futebol passam a ser compartilhados. `careerManagementSince` ativa prospectivamente a tradicional, sem alterar temporada antiga em curso; diferenças esportivas, início por leilão, SAF/segundo clube e internacional próprio permanecem. Catálogo/OVRs preservados, sem SQL nem recarga automática. Escopo, testes e compatibilidade: `docs/auditorias/paridade-regras-carreiras-20261126.md`.
+
 ## Cenas e lesões da carreira — publicação autorizada em 25/11/2026
 
 Depois das capturas e vídeos reais da revisão local, Diego ordenou expressamente: **“entao publique”**. Essa ordem autoriza commitar e publicar o pacote de cenas do bairro, preparação de desfalques e retirada por lesão no jogo da liga M2. As notas de “prévia local/aguardar revisão” nas auditorias iniciais descrevem o estado anterior e não impedem esta publicação. Preservar as restrições de conta já existentes para as cenas, os modos online e as demais prévias privadas. Sem SQL, migração de banco, mudança de plano pago, OVR ou atualização automática dos clientes. Build completo e testes passaram. Escopo, limites e provas em `docs/auditorias/cenas-jogadores-lesao-partida-20261125.md`. Commit isolado para reversão.
