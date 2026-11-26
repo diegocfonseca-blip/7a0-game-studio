@@ -5,6 +5,14 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
 
 
 
+
+## 26/11 — 📊 Painel do Criador voltou a abrir (Diego: "Sim")
+- O histórico (700 mil partidas + 690 mil visitas) passou de 8 s e o banco cortava o painel inteiro, até o "quem está on".
+- Agora o `pg_cron` 'esc-admin-hist' roda `esc_admin_hist_calc(30,200)` a cada 5 min (~7,5 s, fora do limite da API) e o
+  `esc_admin_dashboard` só LÊ a cópia (até 15 min); o ao vivo segue na hora. Migration `20261126040000_admin_painel_cache_cron.sql`.
+- Se o histórico crescer muito mais: resumir game_plays por dia numa tabela própria (a conta deixa de varrer tudo).
+- Reverter: `select cron.unschedule('esc-admin-hist')` + função antiga do dashboard (no histórico do git/banco).
+
 ## 26/11 — 🏛️ Sala de Troféus do Clã (mockup aprovado, "Sim") — PUBLICADO ("Pode sim")
 - Na janela do clã (`cla-ver.tsx`, `SalaTrofeusCla`), entre os cartões e a lista de membros: taças do online somadas dos membros ATUAIS
   (Liga · Copa dos 8 · Libertadores · Champions · Relâmpago · Copa do Mundo · Regionais, desde 01/09 como no perfil) + total + 🥇🥈🥉 das
