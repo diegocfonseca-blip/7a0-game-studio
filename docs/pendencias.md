@@ -2567,6 +2567,15 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
+## 🧭 3 CARREIRAS: POR QUE ALGUÉM JOGARIA A TRADICIONAL? — análise (26/11, esperando resposta do Diego)
+- Números (saves na NUVEM, últimos 8 dias; o aparelho não aparece): carreiras novas até a T3 = Tradicional 84 × Brasil Oficial 16,
+  mesmo com o Oficial aberto pra todos desde 18/11. Acima da T20: 55 × 1; acima da T100: 32 × 0. Em 14 dias: 357 contas × 17.
+- O que só a Tradicional tem: clube CRIADO pela pessoa (nome, presidente), começa do zero na Várzea, leilão de estreia com lendas de
+  todas as épocas no mesmo time, rivais = clubes de BATISMO da comunidade (é a vitrine do produto Batismo), carreira longa (T100+).
+- Proposta: dar a cada modo uma frase-identidade na escolha (Tradicional = "seu clube dos sonhos, do zero, com lendas de todas as
+  épocas" · Brasil Oficial = "assuma um clube real do Brasil" · Global = "clubes reais do mundo todo") e NÃO levar pros oficiais o que
+  é a alma da tradicional (clube próprio, estreia com lendas misturadas, rivais de batismo). Nada feito; mockup só se ele topar.
+
 ## 📨 PROPOSTA DE CLUBE NO BRASIL OFICIAL — IDEIA (25/11, Diego ainda em dúvida; NÃO fazer sem ele mandar)
 - Ideia dele: ao SUBIR de divisão, chega convite pra ASSUMIR outro clube (largando o seu pra sempre) ou seguir com o seu.
   D→C: piores da B ou melhores da C · C→B: piores da A ou melhores da B · aleatório pelo momento.
