@@ -1238,7 +1238,8 @@ import { ligaEscudosOficiais } from './escudo-oficial-chave'
 import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
 import { brasilOficialLiberado, previaCentral, janelaNovaLiberada } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
 import { clubeOficial, CLUBES_BR, CLUBES_BR_TODOS, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
-import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
+import { COPAS_REGIONAIS, ehCopaRegional, forcaDoClube, xiDaMaquinaClube } from './copa-regional' // 🏟️ copas regionais (10/10)
+import { MUNDIAL_CLUBES, confedDoClube } from './mundial-sala' // 🌍 Só Super Mundial (26/11)
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
@@ -4689,6 +4690,9 @@ export function elencoConvidado(state: EscState, teamId: number): WonCard[] {
   if (teamId < LIBERTA_ID0 || (!ch && !lb)) return []
   const convidados = [...(lb?.times ?? []), ...(ch?.times ?? [])].filter(t => !t.isManager && t.id >= LIBERTA_ID0).sort((a, b) => a.id - b.id)
   if (!convidados.some(t => t.id === teamId)) return []
+  // 🌍 SÓ SUPER MUNDIAL (26/11): o clube de verdade joga com as cartas DELE (os 11 melhores), nunca com cartas emprestadas
+  const real = lb?.times.find(t => t.id === teamId)?.clubeReal
+  if (real) return xiDaMaquinaClube(real).xi.map((c, i) => ({ name: c.name, club: c.club, year: c.year, fame: c.fame, lo: c.lo, hi: c.hi, pos: c.sec, id: `smr-${teamId}-${i}`, paid: 0 } as WonCard))
   const dono = new Set<string>()
   for (const m of state.managers) for (const c of m.squad) dono.add(`${c.name}|${c.club}|${c.year}`)
   const chave = `${state.seed}|${convidados.map(t => t.name).join(',')}|${dono.size}`
@@ -5148,7 +5152,7 @@ export function libertaGrupo(lb: LibertaState, g: number): LibertaTeam[] {
 // 🥅 joga UMA rodada de grupo (16 jogos de uma vez, um por confronto)
 function playLibertaRodada(s: EscState) {
   const lb = s.liberta
-  if (!lb || lb.fase !== 'grupos' || lb.rodada >= 6) return
+  if (!lb || lb.fase !== 'grupos' || lb.rodada >= (lb.rodadas ?? 6)) return
   const rng = mulberry((s.seed ^ (0x11BE47A + lb.rodada * 7919)) >>> 0)
   const res: MatchResult[] = []
   if (!lb.scorers) lb.scorers = [] // saves antigos sem o campo
@@ -5180,7 +5184,7 @@ function playLibertaRodada(s: EscState) {
     if (galera.length) s.news = [...galera, ...s.news].slice(0, 12)
   }
   // acabou a fase de grupos → semeia as OITAVAS com os 2 primeiros de cada grupo
-  if (lb.rodada >= 6) {
+  if (lb.rodada >= (lb.rodadas ?? 6)) {
     lb.fase = 'mata'
     const primeiros: LibertaTeam[] = [], segundos: LibertaTeam[] = []
     for (let g = 0; g < 8; g++) { const cl = libertaGrupo(lb, g); if (cl[0]) primeiros.push(cl[0]); if (cl[1]) segundos.push(cl[1]) }
@@ -5193,13 +5197,77 @@ function playLibertaRodada(s: EscState) {
     }
     // 1º de um grupo pega o 2º de OUTRO (nunca do mesmo) — regra de verdade
     const mk = (a: LibertaTeam, b: LibertaTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
-    const ties = primeiros.map((p, i) => mk(p, segundos[(i + 1) % 8]))
+    // 🌍 Só Super Mundial: a chave fixa do Mundial de 2025 (1A×2B, 1C×2D, 1E×2F, 1G×2H | 1B×2A, 1D×2C, 1F×2E, 1H×2G)
+    const ties = lb.superMundial
+      ? CHAVE_OITAVAS_MUNDIAL.map(([g1, g2]) => mk(primeiros[g1], segundos[g2]))
+      : primeiros.map((p, i) => mk(p, segundos[(i + 1) % 8]))
     s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: lb.scorers ?? [], assists: lb.assists ?? [] }
-    s.news = ['🌎 Fim da fase de grupos — chegaram as OITAVAS da Libertadores!']
+    s.news = [lb.superMundial ? tr('🌍 Fim da fase de grupos — chegaram as OITAVAS do Super Mundial! Tudo em jogo único.', '🌍 Group stage over — the Super Club World Cup ROUND OF 16 is here! Every game is one-off.') : '🌎 Fim da fase de grupos — chegaram as OITAVAS da Libertadores!']
     // ▶️ o mata-mata roda no MESMO motor da Copa dos 8, que vive na tela da
     // temporada. Volta pra lá com quickCopa semeado e a Copa começa sozinha.
     s.screen = 'season'
   }
+}
+
+// ─── 🌍 SÓ SUPER MUNDIAL (26/11, Diego: *"eu quero os dois… as duas formas"*) ─────────────────
+// O irmão "com o seu time" da Liga + Super Mundial: sem liga, acabou o leilão e o HOST monta o Mundial de Clubes no formato de
+// 2025 — os times de GENTE da sala (até 32) e, completando, os clubes REAIS daquele Mundial, cada um com as
+// próprias cartas (`elencoConvidado` → `xiDaMaquinaClube`). 8 grupos de 4 em turno ÚNICO, passam 2, oitavas na chave de 2025 e
+// tudo em jogo único (`PLAY_COPA_LEG`). Reusa a máquina da Libertadores da sala (fase de grupos na tela 'liberta' + o mata-mata
+// da Copa), com duas marcas: `rodadas: 3` e `superMundial`.
+// 📏 FORÇA dos clubes reais: a força do XI de verdade (59 do Auckland a 94 do Real) cai na régua dos bots da liga (58 a 80),
+// com o mesmo ajuste de sala dos convidados da Liberta. Nada inventado: quem é forte nas cartas é forte no jogo.
+export const SUPER_MUNDIAL_ID0 = 2600 // ids dos clubes reais (não colidem com a liga, a Liberta 900+ e a Champions 1800+)
+export const CHAVE_OITAVAS_MUNDIAL: [number, number][] = [[0, 1], [2, 3], [4, 5], [6, 7], [1, 0], [3, 2], [5, 4], [7, 6]]
+const forcaMundialNaRegua = (f: number) => Math.round(58 + Math.max(0, Math.min(1, (f - 59) / 35)) * 22)
+function seedSuperMundial(league: LeagueTeam[], humanos: Set<number>, rng: () => number, degrau = 0): LibertaState {
+  // só os times de GENTE entram (os rivais-bot do leilão ficam de fora): a vaga deles é palco pros clubes de verdade
+  const daSala = league.filter(t => t.isManager && humanos.has(t.id)).slice(0, 32)
+  const nomes = new Set(daSala.map(t => t.name.toLowerCase()))
+  const reais = MUNDIAL_CLUBES.map(c => c.clube).filter(c => !nomes.has(c.toLowerCase()))
+    .map(c => ({ c, f: forcaDoClube(c) })).sort((a, b) => b.f - a.f || a.c.localeCompare(b.c)).slice(0, 32 - daSala.length)
+  const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
+  const times: LibertaTeam[] = []
+  daSala.forEach(t => times.push({ id: t.id, name: t.name, pote: 1, grupo: 0, isManager: true, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero }))
+  reais.forEach(({ c, f }, i) => { const v = forcaMundialNaRegua(f) + degrau; times.push({ id: SUPER_MUNDIAL_ID0 + i, name: c, clubeReal: c, pote: 1, grupo: 0, isManager: false, baseAtk: v, baseDef: v, ...zero }) })
+  // 🎱 potes pela força (gente pela força do elenco; clube real pela régua acima) e a regra da FIFA: confederação repetida no
+  // grupo só a Europa, no máximo 2 (time da sala não tem confederação). Não fechou em 300 tentativas → potes sem a regra.
+  const forca = (t: LibertaTeam) => t.baseAtk + t.baseDef
+  const ord = [...times].sort((a, b) => forca(b) - forca(a) || a.id - b.id)
+  const conf = (t: LibertaTeam) => (t.clubeReal ? confedDoClube(t.clubeReal) : '?')
+  const cabe = (g: LibertaTeam[], t: LibertaTeam) => { const c = conf(t); if (c === '?') return true; const n = g.filter(x => conf(x) === c).length; return c === 'UEFA' ? n < 2 : n === 0 }
+  let grupos: LibertaTeam[][] | null = null
+  for (let tent = 0; tent < 300 && !grupos; tent++) {
+    const gs: LibertaTeam[][] = Array.from({ length: 8 }, () => [])
+    let ok = true
+    for (let pote = 0; pote < 4 && ok; pote++) {
+      for (const t of shuffle(ord.slice(pote * 8, pote * 8 + 8), rng)) {
+        const g = gs.find(x => x.length === pote && cabe(x, t))
+        if (!g) { ok = false; break }
+        g.push(t)
+      }
+    }
+    if (ok) grupos = gs
+  }
+  if (!grupos) { grupos = Array.from({ length: 8 }, () => []); for (let pote = 0; pote < 4; pote++) ord.slice(pote * 8, pote * 8 + 8).forEach((t, i) => grupos![i].push(t)) }
+  grupos.forEach((g, gi) => g.forEach((t, k) => { t.grupo = gi; t.pote = (k + 1) as 1 | 2 | 3 | 4 }))
+  // calendário: turno único (3 rodadas × 2 jogos por grupo), os 8 grupos andando juntos
+  const TURNO: [number, number][][] = [[[0, 1], [2, 3]], [[2, 0], [1, 3]], [[3, 0], [1, 2]]]
+  const fixtures: [number, number][][] = TURNO.map(rd => grupos!.flatMap(g => rd.map(([x, y]) => [g[x].id, g[y].id] as [number, number])))
+  return { fase: 'grupos', times: grupos.flat(), rodada: 0, rodadas: 3, superMundial: true, fixtures, lastResults: [] }
+}
+/** o modo é "Só Super Mundial" e a temporada ACABOU de ser montada: pula a liga e abre a fase de grupos (igual à Só Champions).
+ *  Só o HOST monta no online; nunca na carreira nem no basquete. Sala com menos de 1 time de gente não abre. */
+function abreSuperMundialSePrecisa(s: EscState) {
+  if (s.copaMode !== 'supermundial' || s.screen !== 'season') return
+  if ((s.onlineMode === 'online' && !s.isHost) || s.careerOnline || s.careerDivision || s.sport === 'basquete') return
+  if (s.round !== 0 || !s.league.length) return
+  // 🧹 rodada 0 = qualquer copa no estado é resto da partida anterior (lição da Só Champions, 25/09)
+  s.champions = null; s.quickCopa = null; s.liberta = null
+  s.liberta = seedSuperMundial(s.league, new Set(s.managers.filter(m => m.isHuman).map(m => m.id)), mulberry((s.seed ^ 0x5D1A1) >>> 0), escalaDe(s).convidado)
+  s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
+  s.news = [tr('🌍 Direto pro SUPER MUNDIAL! 32 clubes no formato de 2025 — os times da sala e, completando, os clubes de verdade daquele Mundial.', '🌍 Straight into the SUPER CLUB WORLD CUP! 32 clubs in the 2025 format — the room\'s teams and, to complete it, the real clubs from that tournament.')]
+  s.screen = 'liberta'
 }
 
 // ─── ⭐ CHAMPIONS LEGENDS (modo rápido) ─────────────────────────────────────
@@ -6403,7 +6471,7 @@ type Action =
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
   | { type: 'DRAFT_PULAR'; by?: string } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; /** 🏀 18/11: sala NBA (rápido do basquete) — tamanho e formato */ nbaTam?: 30 | 20 | 10; /** 🌍 baralho NBA + Mundo */ nbaMundo?: boolean; nbaFormato?: 'liga' | 'playoffs'; /** 🃏 Vice City: cartas de golpe por técnico */ viceCartas?: number; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; conquistas?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🃏 26/11 */ paUmaCarta?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean; /** 🃏 21/11: Bafo novo (coleção da conta, só gente) */ bafo2?: boolean; bafoFormacoes?: Record<number, FormationKey> }
+  | { type: 'START_ONLINE'; /** 🏀 18/11: sala NBA (rápido do basquete) — tamanho e formato */ nbaTam?: 30 | 20 | 10; /** 🌍 baralho NBA + Mundo */ nbaMundo?: boolean; nbaFormato?: 'liga' | 'playoffs'; /** 🃏 Vice City: cartas de golpe por técnico */ viceCartas?: number; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; conquistas?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🃏 26/11 */ paUmaCarta?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago' | 'supermundial'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean; /** 🃏 21/11: Bafo novo (coleção da conta, só gente) */ bafo2?: boolean; bafoFormacoes?: Record<number, FormationKey> }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; /** 📋 21/11: janela nova — as marcas "pôr à venda" do Mercado viram a lista do leilão (só a tela da carreira solo manda) */ janelaNova?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -9175,6 +9243,7 @@ export function reducer(state: EscState, action: Action): EscState {
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
   if (s !== state && s.copaMode === 'champions') abreChampionsDiretoSePrecisa(s)
   if (s !== state && s.copaMode === 'relampago') abreRelampagoSePrecisa(s)
+  if (s !== state && s.copaMode === 'supermundial') abreSuperMundialSePrecisa(s)
   return s
 }
 function reducerBase(state: EscState, action: Action): EscState {
@@ -13243,7 +13312,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const playin = bbSerie && qc.phase === 'playin'
       const boSerie = playin ? 1 : (qc.bo ?? 3)
       const vitoriasPraPassar = Math.floor(boSerie / 2) + 1
-      const legsNeeded = bbSerie ? boSerie : (isFinal || kingsCopa ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 (ou 7) jogos
+      const legsNeeded = bbSerie ? boSerie : (isFinal || kingsCopa || s.copaMode === 'supermundial' ? 1 : 2) // 🌍 Só Super Mundial: tudo jogo único // ⚽ ida+volta / jogo único · 🏀 até 3 (ou 7) jogos
       // 🏀 as séries que seguem vivas estão TODAS no mesmo jogo (cada passo joga 1 jogo de cada uma) — conta por uma delas,
       // senão a série que fechou cedo travava o número do jogo e o sorteio repetia.
       const legsPlayed = (bbSerie ? (qc.ties.find(t => t.winner === null) ?? qc.ties[0]) : qc.ties[0])?.legs.length ?? 0
@@ -13284,7 +13353,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
           // 🌐 19/11: a faixa do campeão nasce em PT e EN (era só PT)
-          const taca = s.copaMode === 'liga_liberta' ? ['DA LIBERTADORES', 'THE LIBERTADORES'] : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? ['DA CHAMPIONS', 'THE CHAMPIONS LEAGUE'] : s.copaMode === 'relampago' ? ['DO MATA-MATA RELÂMPAGO ⚡', 'THE LIGHTNING KNOCKOUT ⚡'] : ['DA COPA DOS 8', 'THE CUP OF 8']
+          const taca = s.copaMode === 'supermundial' ? ['DO SUPER MUNDIAL', 'THE SUPER CLUB WORLD CUP'] : s.copaMode === 'liga_liberta' ? ['DA LIBERTADORES', 'THE LIBERTADORES'] : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? ['DA CHAMPIONS', 'THE CHAMPIONS LEAGUE'] : s.copaMode === 'relampago' ? ['DO MATA-MATA RELÂMPAGO ⚡', 'THE LIGHTNING KNOCKOUT ⚡'] : ['DA COPA DOS 8', 'THE CUP OF 8']
           s.news = [s.sport === 'basquete' ? tr(`👑 ${champName} É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!`, `👑 ${champName} WINS THE FINALS — RING SECURED 💍!`) : tr(`👑 ${champName} É CAMPEÃO ${taca[0]}!`, `👑 ${champName} WINS ${taca[1]}!`), ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
@@ -13381,7 +13450,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const phaseWord = bbGiro
         ? (playin ? 'PLAY-IN' : isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
         : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'r32' ? 'RODADA DE 32' : qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'repescao' ? 'REPESCÃO' : 'QUARTAS')
-      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : relampago ? 'Relâmpago' : 'Copa'
+      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'supermundial' ? 'Super Mundial' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : relampago ? 'Relâmpago' : 'Copa'
       const legWord = bbGiro ? (playin ? '' : ` · jogo ${qc.legIdx + 1}`) : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {

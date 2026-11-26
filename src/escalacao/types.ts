@@ -695,12 +695,18 @@ export interface LibertaTeam {
   grupo: number       // 0..7  (A..H)
   isManager: boolean  // veio da liga (tem elenco) ou é clube do continente (só atk/def)
   baseAtk: number; baseDef: number
+  /** 🌍 Só Super Mundial (26/11): o clube de VERDADE do Mundial de 2025 (joga com as cartas dele) */
+  clubeReal?: string
   pts: number; w: number; d: number; l: number; gf: number; ga: number
 }
 export interface LibertaState {
   fase: 'grupos' | 'mata'
   times: LibertaTeam[]              // os 32
   rodada: number                    // 0..6 da fase de grupos
+  /** 🌍 quantas rodadas tem a fase de grupos (sem o campo = 6, a Libertadores). O Super Mundial tem 3 (turno único). */
+  rodadas?: number
+  /** 🌍 é o Só Super Mundial (26/11): chave de 2025 e mata-mata em jogo único */
+  superMundial?: boolean
   fixtures: [number, number][][]    // 6 rodadas × 16 jogos (todos os grupos juntos)
   lastResults: MatchResult[]        // resultados da última rodada de grupo
   scorers?: ScorerRow[]             // artilharia DA LIBERTADORES (grupos; passa pro quickCopa no mata-mata)
@@ -1026,7 +1032,7 @@ export interface EscState {
   // pra uma LIBERTADORES DE 32 — eles + os 24 clubes do continente
   // (`LIBERTA_CLUBS`), em 8 grupos de 4. Copa dos 8 e Libertadores nunca rodam
   // juntas: é uma OU a outra, e o seletor da tela reflete isso.
-  copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago' // 'champions' = SÓ Champions (25/09): sem liga, direto na tabela de 36 — rápido offline e salas online
+  copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago' | 'supermundial' // 'champions' = SÓ Champions (25/09): sem liga, direto na tabela de 36 — rápido offline e salas online
   // ⚡ MATA-MATA RELÂMPAGO (28/10, Diego: *"faz c 16 então msm e 32 a pessoa escolhe ao criar e pênalti padrão igual as outras
   // normais"*): só sala online. Leilão de sempre → chave sorteada → ida e volta, final em jogo único (*"tem q ter ida e volta,
   // somente final que não"*); empate no agregado = os pênaltis automáticos de sempre. Sem liga. `relampagoChave` = o tamanho da chave que o dono escolheu ao criar (bots completam).

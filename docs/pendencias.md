@@ -8,9 +8,16 @@ Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions�
   `scripts/mockups/super-mundial/`.
 - ✅ **Cartas só do modo** (`cartas-mundial-clubes.ts`, ~240): 13 clubes sem carta + Al-Hilal/Inter Miami sem zagueiro. Fora do
   leilão e do pacote do campeão. Detalhe e fontes: `docs/super-mundial-cartas.md`. Escudo neutro nos clubes sem arte.
-- ⏳ **⭐ Só Super Mundial (com o seu time)** — A FAZER: igual à Só Champions (sem liga, até 32 da sala), as vagas que sobram com os
-  clubes reais de 2025 (cartas reais), mesmo formato.
-- ⏳ **⭐ Liga + Champions (convocando)** — A FAZER: os 36 da Champions 2025–26 (campeão PSG nos pênaltis contra o Arsenal, 30/05/26),
+- ✅ **🌍 Só Super Mundial (com o seu time)** — FEITO no branch: copaMode `supermundial`, sem liga; os times de GENTE da sala (até 32,
+  os rivais-bot do leilão ficam de fora) + os clubes reais de 2025 completando, cada um com as PRÓPRIAS cartas (`elencoConvidado` →
+  `xiDaMaquinaClube`; força do XI real levada pra régua 58–80 dos bots). Reusa a máquina da Libertadores com o seu time (tela
+  'liberta' com `rodadas: 3` + `superMundial`) e o mata-mata da Copa em jogo único. Pregão aberto não vale (igual à Só Champions).
+  Trava `npm run super-mundial` (4 e 20 pessoas, do leilão ao campeão).
+  ⚠️ Achado à parte: `npm run relampago` (manchete em inglês no teste) e `testa-libertadores.mts` (classificação do Brasil Oficial)
+  já falhavam ANTES, também na main — não é deste trabalho.
+- ⏳ **⭐ Liga + Champions (convocando)** — A FAZER (próximo). Faltam cartas pra 13 dos 36 (todos do baralho Europa): Atalanta,
+  Olympiacos, Brugge, Qarabağ, Bodø/Glimt, Pafos, Union SG, Athletic Bilbao, København, Eintracht Frankfurt, Slavia Praha,
+  Villarreal e Kairat. Os outros 23 já fecham time. Antes: os 36 da Champions 2025–26 (campeão PSG nos pênaltis contra o Arsenal, 30/05/26),
   fase de liga de 8 jogos, 9º–24º no playoff, mata-mata ida e volta, final única. Vai precisar de cartas pra clubes pequenos
   (Kairat, Pafos, Bodø/Glimt, Qarabağ, Union SG, Slavia, København…). Lista dos 36 e tabela final: pt.wikipedia "Liga dos Campeões
   da UEFA de 2025–26".
