@@ -23,3 +23,11 @@ rápida, carreira) e nenhum pacote do campeão enxerga essas cartas. Só a convo
 - Força na régua de 02/11. A trava `npm run mundial-sala` confere baralho, régua e que as copas que já rodam (Liberta da sala e
   regionais) não ganharam carta.
 - Escudo: os clubes sem arte no jogo aparecem com o escudo NEUTRO de sempre (letra no escudo). Não se desenha escudo de clube real.
+
+## ⭐ Liga + Champions (26/11) — `cartas-champions-clubes.ts`
+Mesma regra: cartas que valem só na convocação da Liga + Champions da sala (`poolDoClube`, só pros 13 clubes do lote). Clubes:
+Atalanta, Villarreal, Athletic Bilbao, Eintracht Frankfurt, Brugge, Olympiacos, Bodø/Glimt, Qarabağ, Pafos, Union SG, Copenhagen,
+Slavia Praga e Kairat — todos do baralho Europa. Fonte: pt.wikipedia (página de cada clube, elenco 2025/26; Qarabağ set/2025) e as
+campanhas europeias conhecidas (Liga Europa da Atalanta 2024, Villarreal 2021, Eintracht 2022; Conference do Olympiacos 2024).
+Saíram por já terem carta no Europa: Laporte, Zubizarreta, Forlán, Parejo, Doan, Delaney, Gulácsi (está no Salzburg).
+Xarás que ficam: Éderson (Atalanta) × Ederson (City), Pêpê (Pafos) × Pepe (Real), Jorginho (Kairat).
