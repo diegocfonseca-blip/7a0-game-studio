@@ -50,7 +50,7 @@ import { MENSAIS } from './planos-regras'
 import { assinarMensal } from './vendria-checkout'
 import { PixMP } from './pix-mp'
 import { Co2Temporada, useCo2FimDaVirada } from './co2-telas' // 🌐 carreira online v2 (19/10)
-import { useCo2 } from './co2'
+import { useCo2, co2Agora, co2Mundo } from './co2'
 import { mesclaEntradas, congelaMeu, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import {useAssistindoCampo} from './presidencia-campo-observacao'
 import {duracaoPartidaCampo,avancarMinutoCampo} from './presidencia-partida-tempo'
@@ -10754,6 +10754,7 @@ export function PyramidSeasonScreen() {
   // campeão, prêmios e carta ficam idênticos pra sempre — e o técnico segue
   // mexendo no time à vontade, que nada disso alcança o que já foi decidido.
   const copaXiFixo = state.copaXiSeason === state.seasonNo ? state.copaXi : undefined
+  const mundoCo2 = useCo2().mundo // 🌐 26/11: regras/escalação da copa do fim carimbadas pelo dono (carreira online)
   const lineupsCopa = useMemo<RoundLineups>(() => {
     // 🌐 `entradasSim.lineups` = a escalação de sempre na solo; na carreira online v2 já vem com a dos outros clubes
     if (!copaXiFixo) return entradasSim.lineups // 1ª vez: a Copa nasce da escalação de agora (é ela que vai ser congelada logo abaixo)
@@ -10763,11 +10764,20 @@ export function PyramidSeasonScreen() {
   }, [entradasSim.lineups, copaXiFixo])
   useEffect(() => {
     if (!done || !state.careerOnline || state.copaXiSeason === state.seasonNo) return
+    // 🌐🏆 26/11: na carreira online quem congela é o DONO e manda no mundo; os outros aparelhos usam exatamente essa
+    if (state.co2 && !state.co2.comanda) {
+      const cx = mundoCo2?.copaXi
+      if (cx && cx.season === (state.seasonNo ?? 1)) dispatch({ type: 'FREEZE_COPA_XI', season: cx.season, xi: cx.xi })
+      return
+    }
     const xi: Record<number, string[]> = {}
-    for (const m of state.managers) if (m.isHuman) xi[m.id] = lineupAt(careerLineup, m.id, 38, m.squad, m.formation).map(c => c.id)
+    // 🌐 26/11: na carreira online a escalação dos OUTROS clubes vem das gavetas (a local deles aqui é velha)
+    const fonteXi = state.co2 ? entradasSim.lineups : careerLineup
+    for (const m of state.managers) if (m.isHuman) xi[m.id] = lineupAt(fonteXi, m.id, 38, m.squad, m.formation).map(c => c.id)
     dispatch({ type: 'FREEZE_COPA_XI', season: state.seasonNo ?? 1, xi })
+    if (state.co2?.comanda) { const mm = co2Agora().mundo; if (mm) void co2Mundo('virada', state.seasonNo ?? 1, 38, { ...mm, copaXi: { season: state.seasonNo ?? 1, xi } }) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [done, state.seasonNo, state.copaXiSeason])
+  }, [done, state.seasonNo, state.copaXiSeason, mundoCo2?.copaXi?.season])
   // 🏆🇧🇷 COPA DO BRASIL LEGENDS (em construção, 15/08): só a conta liberada
   // (copaBrasilLiberada, ver sport.ts) joga essa Copa no lugar da Legends —
   // pra todo mundo o resto desta tela nem sabe que ela existe. `copaBR` é o
@@ -10776,7 +10786,10 @@ export function PyramidSeasonScreen() {
   // no MESMO formato que a Copa Legends sempre teve, então toda a UI de
   // baixo (chaveamento, placar ao vivo, prêmios, `copaRound`) funciona sem
   // precisar saber qual das duas Copas está rolando.
-  const cbUnlocked = useCopaBrasilLiberada()
+  const cbUnlockedConta = useCopaBrasilLiberada()
+  // 🌐🏆 26/11: na carreira online a copa do fim tem que ser a MESMA em todo aparelho — vale o que o dono carimbou no mundo
+  const co2Fim = mundoCo2?.fim
+  const cbUnlocked = state.co2 && co2Fim ? co2Fim.copaBR : cbUnlockedConta
   // 🗑️ 18/11: abrir/jogar a carreira conta como "jogou" na regra dos 5 dias de quem não tem plano (o save pode estar travado)
   useEffect(() => { if (state.onlineMode !== 'online') marcaCarreiraJogada(state.seed) }, [state.seed, state.seasonNo, round, state.onlineMode])
   // 🛒 aba Mercado (18/11): nasceu no Brasil Oficial e foi levada pra carreira de sempre (*"pode fazer tudo daí"*) — por enquanto só na

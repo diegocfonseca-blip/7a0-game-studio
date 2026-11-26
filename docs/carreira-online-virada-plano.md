@@ -2,9 +2,9 @@
 
 Mapeamento feito em 26/11 (antes de mexer). Ordem dos passos, do menor pro maior:
 
-0. **Travas** — `useCo2FimDaVirada` (co2-telas) só manda `preparo` com `state.round===0` (hoje o apito da 38ª põe a sala em
+0. ✅ (26/11) **Travas** — `useCo2FimDaVirada` (co2-telas) só manda `preparo` com `state.round===0` (hoje o apito da 38ª põe a sala em
    `virada` e o hook empurraria pra preparo). Tirar `CONFIRM_MESMO_TIME`/`CAST_SEASON_VOTE` de `CO2_ACOES_DE_FORA` (só o dono comanda).
-1. **Mesma copa em todo aparelho** — quem comanda carimba no mundo (`mundo.fim = {copaBR, botBanco, …}`, igual ao `m2`) e todos leem dele,
+1. ✅ (26/11) **Mesma copa em todo aparelho** — quem comanda carimba no mundo (`mundo.fim = {copaBR, botBanco, …}`, igual ao `m2`) e todos leem dele,
    não da própria conta; no fim, um `CO2_GAVETAS` com `ate=38`; `FREEZE_COPA_XI` no co2 usa as escalações das gavetas.
 2. **Função pura `co2JuntaVirada(local, cmd, meuId)`** (carreira-online-v2.ts): do comandante vem o que é de todos (managers, pirâmide,
    `cpuSquads`, `clubCash`, valores, honras, temporada, semente, tabela); do aparelho vem o que é do clube (estádio, Agência,

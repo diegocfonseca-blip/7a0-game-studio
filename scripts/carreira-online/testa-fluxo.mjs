@@ -6,8 +6,10 @@ import { createServer } from 'vite'
 const vite = await createServer({ server: { middlewareMode: true, hmr: false }, appType: 'custom', logLevel: 'silent' })
 const { reducer, INITIAL, sanitizeParaSala } = await vite.ssrLoadModule('/src/escalacao/store.tsx')
 const { pack, unpack } = await vite.ssrLoadModule('/src/escalacao/netpack.ts')
-const { buildPyramid, simulatePyramid } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+const { buildPyramid, simulatePyramid, computePromotions } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
 const { minhaGaveta, mesclaEntradas, congelaMeu } = await vite.ssrLoadModule('/src/escalacao/carreira-online-v2.ts')
+const { computeCopaBrasil, computeSupercopa } = await vite.ssrLoadModule('/src/escalacao/copa-brasil.ts')
+const { lineupAt } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
 let falhas = 0
 const ok = (c, m) => { console.log(c ? '✅' : '❌', m); if (!c) falhas++ }
 
@@ -80,7 +82,8 @@ ok(extratoDono === host.careerCoins?.[0], `dono: o extrato só tem as compras DE
 const TACS = ['retranca', 'equilibrio', 'ataque']
 const entradasDe = (s) => ({ tactics: (s.careerTactics ?? {}), lineups: (s.careerLineup ?? {}), halftime: {}, penalty: {}, mods: {}, cardMods: {}, tecs: undefined })
 const seasonSeed = (s) => (s.seed ^ ((s.seasonNo ?? 1) * 2654435761)) >>> 0
-for (let r = 0; r < 10; r++) {
+const RODADAS = 38 // 26/11: a temporada inteira (antes 10) — prepara a virada
+for (let r = 0; r < RODADAS; r++) {
   // preparo: cada um troca a tática do PRÓPRIO clube
   for (let k = 0; k < 3; k++) { const s = aparelhos[k]; aparelhos[k] = reducer(s, { type: 'SET_TACTIC', mgrId: s.managers[s.youIdx].id, tactic: TACS[(r + k) % 3] }) }
   const gavetas = aparelhos.map(s => JSON.parse(JSON.stringify(minhaGaveta(s.managers[s.youIdx], entradasDe(s)))))
@@ -91,6 +94,12 @@ for (let r = 0; r < 10; r++) {
     aparelhos[k] = s
   }
 }
+const simDe = (s) => {
+  const meuId = s.managers[s.youIdx].id
+  const e = mesclaEntradas(congelaMeu(entradasDe(s), s.co2?.minha, meuId, s.co2?.congeladoAte ?? -1), s.co2?.gavetas ?? [], meuId)
+  const world = buildPyramid(s.managers, meuId, s.seed, s.deckLeague, s.careerPlacements, s.cpuSquads)
+  return simulatePyramid(world, seasonSeed(s), s.round, e.tactics, e.lineups, 1.12, true, true, e.mods, e.halftime, e.penalty, e.tecs, e.cardMods)
+}
 const resultado = (s) => {
   const meuId = s.managers[s.youIdx].id
   const e = mesclaEntradas(congelaMeu(entradasDe(s), s.co2?.minha, meuId, s.co2?.congeladoAte ?? -1), s.co2?.gavetas ?? [], meuId)
@@ -99,8 +108,28 @@ const resultado = (s) => {
   return Object.entries(sim.tables).map(([d, ts]) => d + ':' + ts.map(t => `${t.name}:${t.pts}:${t.gf}:${t.ga}`).join(',')).join('#')
 }
 const r0 = resultado(aparelhos[0])
-ok(aparelhos.every(s => s.round === 10), 'os 3 aparelhos estão na rodada 10')
-ok(aparelhos.every(s => resultado(s) === r0), 'depois de 10 rodadas, as 5 tabelas são IGUAIS nos 3 aparelhos')
+ok(aparelhos.every(s => s.round === RODADAS), `os 3 aparelhos estão na rodada ${RODADAS}`)
+ok(aparelhos.every(s => resultado(s) === r0), `depois de ${RODADAS} rodadas, as 5 tabelas são IGUAIS nos 3 aparelhos`)
+// 🔼🔽 fim da temporada: quem sobe e quem cai sai IGUAL em todo aparelho (a pirâmide da T2 depende disso)
+const sobeCai = (s) => JSON.stringify(computePromotions(simDe(s).tables))
+const p0 = sobeCai(aparelhos[0])
+ok(aparelhos.every(s => sobeCai(s) === p0), 'fim da temporada: sobe/cai IGUAL nos 3 aparelhos')
+// 🏆 a copa do fim: o DONO congela a escalação de todo mundo (mundo.copaXi) e todo aparelho monta a MESMA Copa do Brasil + Supercopa
+const eDono = mesclaEntradas(congelaMeu(entradasDe(host), host.co2?.minha, 0, host.co2?.congeladoAte ?? -1), host.co2?.gavetas ?? [], 0)
+const xi = {}
+for (const m of host.managers) if (m.isHuman) xi[m.id] = lineupAt(eDono.lineups, m.id, 38, m.squad, m.formation).map(c => c.id)
+for (let k = 0; k < 3; k++) aparelhos[k] = reducer(aparelhos[k], { type: 'FREEZE_COPA_XI', season: aparelhos[k].seasonNo ?? 1, xi })
+const copaDe = (s) => {
+  const meuId = s.managers[s.youIdx].id
+  const e = mesclaEntradas(congelaMeu(entradasDe(s), s.co2?.minha, meuId, s.co2?.congeladoAte ?? -1), s.co2?.gavetas ?? [], meuId)
+  const lin = { ...e.lineups }; for (const k in s.copaXi) lin[+k] = { ...(lin[+k] ?? {}), 38: s.copaXi[+k] }
+  const t = simDe(s).tables
+  const cb = computeCopaBrasil(t, s.seed, s.seasonNo, 1.12, true, lin)
+  const sc = cb?.champion ? computeSupercopa(t, cb.champion, s.seed, s.seasonNo, 1.12, true, lin) : null
+  return JSON.stringify([cb?.champion?.name, cb?.vice?.name ?? null, (cb?.scorers ?? []).slice(0, 5), sc?.win, sc?.a?.name, sc?.b?.name])
+}
+const c0 = copaDe(aparelhos[0])
+ok(aparelhos.every(s => copaDe(s) === c0), `copa do fim (Copa do Brasil + Supercopa) IGUAL nos 3 aparelhos (campeão: ${JSON.parse(c0)[0]})`)
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ fluxo da carreira online v2 ok')
 await vite.close()
 process.exit(falhas ? 1 : 0)

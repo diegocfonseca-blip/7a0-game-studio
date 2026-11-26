@@ -12,7 +12,7 @@ import {
   type Co2Sala,
 } from './co2'
 import { minhaGaveta, type EntradasMundo, type GavetaPublica } from './carreira-online-v2'
-import { useMotor2Carreira } from './sport'
+import { useMotor2Carreira, copaBrasilLiberada } from './sport'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -353,7 +353,9 @@ export function useCo2FimDaVirada() {
     // o fim da temporada voltava pro preparo da rodada 0 da MESMA temporada
     if (!state.co2?.comanda || state.screen !== 'season' || sn.sala?.fase !== 'virada' || (state.round ?? 0) !== 0) return
     const mm = co2Agora().mundo
-    const carimbo = m2Liberado && mm && mm.m2 == null ? { ...mm, m2: state.seasonNo ?? 1 } : null
+    const poeM2 = m2Liberado && !!mm && mm.m2 == null
+    const poeFim = !!mm && !mm.fim // 🏆 26/11: a regra da copa do fim de temporada sai do DONO, igual pra todo aparelho
+    const carimbo = mm && (poeM2 || poeFim) ? { ...mm, ...(poeM2 ? { m2: state.seasonNo ?? 1 } : {}), ...(poeFim ? { fim: { copaBR: copaBrasilLiberada() } } : {}) } : null
     void co2Mundo('preparo', state.seasonNo ?? 1, 0, carimbo, 90)
   }, [state.co2?.comanda, state.screen, sn.sala?.fase, state.seasonNo, m2Liberado, state.round])
 }
