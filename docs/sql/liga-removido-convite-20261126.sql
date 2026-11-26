@@ -44,7 +44,7 @@ begin
   return 'ok';
 end $$;
 
-create or replace function public.esc_liga_responder(p_id uuid, p_aceitar boolean, p_bot integer, p_uid uuid)
+create or replace function public.esc_liga_responder(p_id uuid, p_aceitar boolean, p_bot integer default null, p_uid uuid default null)
 returns text language plpgsql security definer set search_path = public as $$
 declare eu uuid := auth.uid(); p public.esc_liga_pedidos%rowtype; v_ant int;
 begin
