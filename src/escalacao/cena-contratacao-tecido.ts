@@ -46,6 +46,8 @@ export function pintarTecido(ctx:CanvasRenderingContext2D,k:UniformeApresentacao
    if(v>.25&&v<.40)color=secondary
    if(k.tipo==='peito_duplo'&&v>=.40&&v<.55)color=third??secondary
   }else if(k.tipo==='metade'&&u>.5)color=secondary
+  // A small identity accent carries a club's third colour on simplified kits.
+  if(k.tipo==='liso'&&third&&v>.94)color=third
   if(y<705&&(x<452-(y-500)*.075||x>814+(y-500)*.075))color=sleeve
   if(y<430&&x>520&&x<746)color=collar
   const diffuse=.35+.65*Math.min(1.08,light),shine=35*Math.pow(Math.max(0,light-.55),1.7)

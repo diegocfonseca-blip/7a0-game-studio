@@ -4,7 +4,7 @@ const out=process.env.CHEGADA_OUTPUT||'/workspace/shared/central-chegada-integra
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--mute-audio']});
  const cases=[];
  try{
-  for(const cfg of (process.env.CHEGADA_CASO?[]:[{name:'oficial-romario-mobile',width:390,actor:'romario',trad:false,destino:'Flamengo'},{name:'tradicional-zico-desktop',width:1440,actor:'zico',trad:true,destino:'Futpoint FC'},{name:'tradicional-zico-mobile-320',width:320,actor:'zico',trad:true,destino:'Neymarzetti'}])){
+  for(const cfg of (process.env.CHEGADA_CASO?[]:process.env.CHEGADA_CLUBES_MENORES?[{name:'serie-b-athletic-mobile',width:390,actor:'romario',trad:true,destino:'Athletic'},{name:'serie-c-confianca-desktop',width:1440,actor:'zico',trad:true,destino:'Confiança'},{name:'serie-d-portuguesa-mobile',width:390,actor:'romario',trad:true,destino:'Portuguesa'}]:[{name:'oficial-romario-mobile',width:390,actor:'romario',trad:false,destino:'Flamengo'},{name:'tradicional-zico-desktop',width:1440,actor:'zico',trad:true,destino:'Futpoint FC'},{name:'tradicional-zico-mobile-320',width:320,actor:'zico',trad:true,destino:'Neymarzetti'}])){
    const context=await browser.newContext({viewport:{width:cfg.width,height:960},locale:'pt-BR',reducedMotion:'no-preference'}),page=await context.newPage(),errors=[];
    page.on('pageerror',e=>{errors.push(e.message);console.error('PAGEERROR',e.message)});
    await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());

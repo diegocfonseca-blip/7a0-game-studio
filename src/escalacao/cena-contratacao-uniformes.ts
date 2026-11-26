@@ -1,5 +1,6 @@
 import {SELOS} from './selos-clubes'
 import {uniformeDoTime} from './futebol3d/uniformes.mjs'
+import {CORES_CAMISAS_BR} from './cena-contratacao-cores-br'
 
 export type UniformeApresentacao={tipo:string;corpo:string;detalhe:string;gola:string;mangas:string;n:number;largura:number;terceira?:string}
 // Classic club identities, not replicas tied to a sponsor or season. Presentation
@@ -49,6 +50,11 @@ export const UNIFORMES_APRESENTACAO:Record<string,UniformeApresentacao>={
 }
 export function uniformeApresentacao(nome:string,cores:string[]):UniformeApresentacao{
  const proprio=UNIFORMES_APRESENTACAO[nome];if(proprio)return proprio
+ const brasileira=CORES_CAMISAS_BR[nome]
+ if(brasileira){
+  const tipo=nome==='Portuguesa'?'listras_h':nome==='Sampaio Corrêa'?'listras_v':'liso'
+  return {...liso(brasileira[0],brasileira[1]),tipo,terceira:brasileira[2]}
+ }
  const selo=SELOS[nome]
  return uniformeDoTime(nome,selo?.c1??cores[0],selo?.c2??cores[1]) as UniformeApresentacao
 }
