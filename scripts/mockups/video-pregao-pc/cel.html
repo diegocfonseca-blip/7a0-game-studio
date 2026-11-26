@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ouro:#FFC400;--verde:#1B7A3D;--verm:#E8503A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:390px;height:844px;overflow:hidden;background:#0d1411;font-family:system-ui,Arial,sans-serif;color:#0C0C0C;position:relative}
+.top{height:46px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid #223;color:#F4ECD6;font-family:Oswald;font-weight:800;font-size:18px;gap:8px}
+.top i{display:inline-grid;place-items:center;width:26px;height:26px;background:#F4ECD6;color:#000;border-radius:6px;font-style:normal;font-size:12px}
+.strip{display:flex;align-items:center;gap:5px;margin:8px 12px 0;background:#151d19;border:2px solid #2a332e;border-radius:12px;padding:6px 8px}
+.chip{font-family:Oswald;font-weight:800;font-size:11px;border:2px solid #000;border-radius:7px;padding:2px 6px;background:#fff}
+.chip.on{background:var(--ouro)}
+.cx{margin-left:auto;background:var(--ouro);border:2px solid #000;border-radius:8px;padding:2px 8px;box-shadow:2px 2px 0 #000;font-family:Oswald;font-weight:900;font-size:16px}
+.meta{color:#b8c2bb;font-size:10.5px;font-weight:700;margin:5px 14px 0}
+.panel{margin:8px 12px 0;background:#FBF6E9;border:3px solid #000;border-radius:14px;box-shadow:3px 3px 0 #000;overflow:hidden}
+.mesa{display:grid;grid-template-columns:150px 1fr;gap:10px;padding:10px}
+.slot{width:150px;height:206px;position:relative;perspective:1000px}
+.in{position:absolute;inset:0;transform-style:preserve-3d}
+.f,.b{position:absolute;inset:0;backface-visibility:hidden}.b{transform:rotateY(180deg)}.b img{width:100%;height:100%;object-fit:contain}
+.carta{border:4px solid #000;border-radius:11px;box-shadow:3px 3px 0 #000;background:repeating-linear-gradient(135deg,#e9dfc4 0 11px,#e2d6b8 11px 22px);padding:8px;display:flex;flex-direction:column}
+.carta .pos{position:absolute;top:7px;left:7px;background:#000;color:#fff;font-family:Oswald;font-weight:800;padding:0 6px;border-radius:5px;font-size:11px}
+.carta .cat{position:absolute;top:7px;right:7px;background:#fff;border:2px solid #000;border-radius:6px;font-size:9px;font-weight:800;padding:0 4px}
+.carta .q{margin:30px auto 0;width:74px;height:74px;border-radius:50%;border:3px dashed #9a8f73;display:grid;place-items:center;font-family:Oswald;font-size:36px;color:#9a8f73;font-weight:900}
+.carta .nm{margin-top:auto;font-family:Oswald;font-weight:800;font-size:18px;line-height:1.05}.carta .cl{color:#6b6250;font-weight:800;font-size:11px}
+.lance{border:3px solid #000;border-radius:11px;background:linear-gradient(90deg,#FFC400,#FFD84D);box-shadow:3px 3px 0 #000;padding:7px 9px}
+.lance.red{background:linear-gradient(90deg,#E8503A,#f07a63);color:#fff}
+.lance.done{background:#e9e2cf;color:#777}
+.lance .row{display:flex;align-items:center;justify-content:space-between}
+.lance .v{font-family:Oswald;font-weight:900;font-size:36px;line-height:1}
+.rel{background:#fff;color:#000;border:2px solid #000;border-radius:8px;padding:2px 7px;text-align:center}
+.rel b{font-family:Oswald;font-size:19px;display:block;line-height:1}.rel small{font-size:8.5px;font-weight:900}
+.lance small.l{font-size:9px;font-weight:900;letter-spacing:.5px;opacity:.75;display:block;margin-top:3px}
+.lance b.w{font-family:Oswald;font-size:15px;display:block;line-height:1.1}
+.lista{margin-top:7px;border:2px solid #000;border-radius:9px;background:#fff;overflow:hidden;height:80px}
+.lista div{display:flex;justify-content:space-between;align-items:center;padding:2px 7px;border-bottom:1px solid #ddd;font-weight:800;height:26px;font-size:12px}
+.lista div:first-child{background:#e6f3ea}
+.tag{font-family:Oswald;font-weight:700;font-size:10.5px;border:2px solid #000;border-radius:5px;padding:0 5px;background:#F4ECD6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.tag.eu{background:var(--ouro)}
+.bts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:0 10px 10px}
+.bt{border:3px solid #000;border-radius:10px;background:var(--ouro);box-shadow:3px 3px 0 #000;font-family:Oswald;font-weight:900;font-size:22px;text-align:center;padding:9px 0}
+.bt.press{transform:translate(3px,3px);box-shadow:0 0 0 #000;background:#ffdb4d}
+.bt.off{background:#e9e2cf;color:#999}
+.dedo{position:absolute;font-size:34px;z-index:8;opacity:0;pointer-events:none}
+.sec{margin:8px 12px 0;background:#FBF6E9;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;overflow:hidden}
+.sec .h{font-family:Oswald;font-weight:800;font-size:13px;padding:5px 10px;border-bottom:2px solid #000;display:flex;justify-content:space-between}
+.tira{display:flex;gap:7px;padding:7px 8px;overflow:hidden;position:relative;height:84px}
+.tira .it{flex:none;width:150px;display:grid;grid-template-columns:38px 1fr;gap:5px;align-items:center;background:#fff;border:2px solid #000;border-radius:8px;padding:4px;position:relative}
+.mini{width:38px;height:52px;border:2px solid #000;border-radius:5px;display:grid;place-items:center;font-family:Oswald;font-weight:900;font-size:8px;overflow:hidden}
+.mini img{width:100%;height:100%;object-fit:cover}
+.craque{background:linear-gradient(140deg,#7C3AED,#c4a6ff)}.bom{background:linear-gradient(140deg,#2b6cb0,#9cc6ef)}.pro{background:linear-gradient(140deg,#9a8f73,#e2d6b8)}
+.it b{font-family:Oswald;font-size:13px;display:block;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.it small{font-size:9.5px;font-weight:800;color:#6b6250;display:block;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .pr{font-family:Oswald;font-weight:900;font-size:13px;display:block;line-height:1.2}.it>div{min-width:0}
+.prec{display:flex;flex-wrap:wrap;gap:5px;padding:7px 8px}
+.pc{font-size:11px;font-weight:800;border:2px solid #000;border-radius:7px;padding:1px 6px;background:#fff}
+.pc.x{color:#fff;background:var(--verm)}
+.palco{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,rgba(255,196,0,.35),rgba(0,0,0,.86) 60%);z-index:6;opacity:0}
+.vendido{position:absolute;left:0;right:0;top:70px;text-align:center;font-family:Oswald;font-weight:900;color:#fff;font-size:44px;text-shadow:3px 3px 0 #000;z-index:8;opacity:0}
+.flip{position:absolute;left:0;top:0;width:150px;height:206px;z-index:7;transform-origin:50% 50%;perspective:1000px;opacity:0}
+.quem{position:absolute;left:50%;top:640px;transform:translateX(-50%);background:#fff;border:3px solid #000;border-radius:12px;box-shadow:4px 4px 0 #000;padding:8px 14px;z-index:8;opacity:0;text-align:center;white-space:nowrap}
+.quem b{font-family:Oswald;font-size:22px}.quem .pr{background:var(--ouro);border:2px solid #000;border-radius:8px;font-family:Oswald;font-weight:900;font-size:22px;padding:0 9px;margin-left:6px}
+.quem small{display:block;font-weight:800;color:#555;font-size:11.5px}
+.leg{position:absolute;left:12px;right:12px;bottom:10px;z-index:9;background:var(--ouro);border:3px solid #000;border-radius:10px;box-shadow:3px 3px 0 #000;font-family:Oswald;font-weight:800;font-size:14.5px;padding:5px 10px;opacity:0;text-align:center}
+.som{position:absolute;right:12px;bottom:62px;z-index:9;background:#151d19;color:#F4ECD6;border:2px solid #3b4a42;border-radius:9px;font-family:Oswald;font-weight:700;font-size:13px;padding:3px 9px;opacity:0}
+/* duas cartas */
+.duo{display:grid;grid-template-columns:1fr 1fr}
+.duo .col{padding:8px 7px}
+.duo .col+.col{border-left:2px dashed #c9bd9c}
+.duo .slot{width:132px;height:182px;margin:0 auto}
+.duo .carta .q{margin-top:24px;width:60px;height:60px;font-size:30px}
+.duo .carta .nm{font-size:16px}
+.duo .lance{margin-top:7px;padding:5px 7px}
+.duo .lance .v{font-size:26px}
+.duo .rel b{font-size:15px}
+.duo .lance b.w{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.duo .lista{height:56px;margin-top:5px}
+.duo .lista div{height:26px;font-size:11px;padding:2px 5px}
+.duo .tag{max-width:96px;font-size:9.5px}
+.duo .bts{grid-template-columns:repeat(3,1fr);gap:5px;padding:7px 0 0}
+.duo .bt{font-size:17px;padding:7px 0}
+.stamp{position:absolute;left:50%;top:96px;transform:translateX(-50%) rotate(-6deg);background:#fff;border:3px solid #000;border-radius:10px;box-shadow:3px 3px 0 #000;padding:4px 8px;text-align:center;white-space:nowrap;opacity:0;z-index:5}
+.stamp .v{font-family:Oswald;font-weight:900;font-size:16px;color:var(--verm);display:block;line-height:1}
+.stamp b{font-family:Oswald;font-size:12.5px}.stamp .pr{background:var(--ouro);border:2px solid #000;border-radius:6px;font-family:Oswald;font-weight:900;padding:0 5px;margin-left:4px;font-size:12.5px}
+</style></head><body>
+<div class="top"><i>LL</i>LEILÃO LEGENDS</div>
+<div class="strip">
+  <span style="font-size:17px">🔨</span>
+  <span class="chip" id="cGOL">GOL</span><span class="chip" id="cLAT">LAT</span><span class="chip" id="cZAG">ZAG</span><span class="chip" id="cMEI">MEI</span><span class="chip" id="cATA">ATA</span>
+  <span class="cx">100 🪙</span>
+</div>
+<p class="meta" id="meta"></p>
+<div class="panel" id="panel"></div>
+<div class="sec"><div class="h">🔨 ÚLTIMAS MARTELADAS <span style="font-size:10px;color:#777">arrasta pro lado ›</span></div><div class="tira"><div id="tira" style="display:flex;gap:7px;position:relative"></div></div></div>
+<div class="sec"><div class="h" id="precT">⚽ QUEM AINDA PRECISA DE ATA</div><div class="prec" id="prec"></div></div>
+<div class="dedo" id="dedo">👆</div>
+<div class="palco" id="palco"></div>
+<div class="vendido" id="vend">🔨 VENDIDO!</div>
+<div class="flip" id="flip"><div class="in" id="flipIn"><div class="f carta" style="padding:8px"><span class="pos">ATA</span><span class="cat">❓ categoria</span><div class="q">?</div><div class="nm">Romário</div><div class="cl">Vasco · 2000</div></div><div class="b"><img src="carta.png"></div></div></div>
+<div class="quem" id="quem"><span>levou </span><b>NEYMARZETTI</b><span class="pr">25 🪙</span><small>2º lance: Meu Time (23)</small></div>
+<div class="leg" id="leg"></div>
+<div class="som" id="som"></div>
+<script>
+const DUPLO=location.hash==='#duplo'
+const $=id=>document.getElementById(id)
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)), lerp=(a,b,k)=>a+(b-a)*k
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2
+const back=k=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(k-1,3)+c1*Math.pow(k-1,2)}
+const seg=(t,a,b)=>cl((t-a)/(b-a),0,1)
+const cartaHTML=(P,pos,nome,clube,img,extra='')=>`<div class="slot"><div class="in" id="in${P}"><div class="f carta"><span class="pos" id="p${P}">${pos}</span><span class="cat">❓ categoria</span><div class="q">?</div><div class="nm" id="n${P}">${nome}</div><div class="cl" id="cl${P}">${clube}</div></div><div class="b"><img src="${img}"></div></div>${extra}</div>`
+const lanceHTML=P=>`<div class="lance" id="la${P}"><div class="row"><div class="v" id="v${P}">1 🪙</div><div class="rel"><b id="r${P}">⏱ 5s</b><small id="s${P}">&nbsp;</small></div></div><small class="l">LANCE ATUAL</small><b class="w" id="w${P}">ABRE EM 1</b></div><div class="lista" id="li${P}"></div>`
+const VELHAS=[['craque','CRAQUE','Cafu','LAT · SPFC 1993','17','Meu Time'],['pro','PROF.','Neto','MEI · Corinthians 1990','20','Neymarzetti'],['bom','BOM','Gamarra','ZAG · Corinthians 1998','9','Labubu FC']]
+const itHTML=(m,nome,sub,pr,who)=>`<div class="it"><div class="mini ${m[0]}">${m[1]}</div><div><b>${nome}</b><small>${sub}</small><span class="pr">${pr} 🪙</span><small>${who}</small></div></div>`
+let L,LR,HL,HR,LEG,SOMLEG
+if(!DUPLO){
+  $('panel').innerHTML=`<div class="mesa">${cartaHTML('L','ATA','Romário','Vasco · 2000','carta.png')}<div>${lanceHTML('L')}</div></div><div class="bts"><div class="bt" id="L1">+1</div><div class="bt" id="L2">+2</div><div class="bt" id="L5">+5</div><div class="bt" id="L10">+10</div></div>`
+  L=[[1.0,'LABUBU FC',3],[1.7,'NEYMARZETTI',8],[2.5,'MEU TIME',10,1,'L2'],[3.3,'LEITE DE VERDADE',13],[4.0,'NEYMARZETTI',18],[4.8,'MEU TIME',23,1,'L5'],[5.6,'NEYMARZETTI',25]]
+  HL=10.6
+  LEG=[[0,4.6,'Tudo cabe na tela: carta, lance e botões sem rolar'],[4.6,5.8,'Toque no botão e o lance sobe na hora'],[5.8,10.6,'Uma… duas… três…'],[10.6,15.2,'A carta de verdade vira no meio da tela'],[15.2,18.4,'Entra nas Últimas marteladas e atualiza quem precisa'],[18.4,20,'Próxima carta na mesa']]
+  SOMLEG=[[10.6,11.4,'🔊 martelo'],[12.3,13.4,'🔔 sininho: LENDA']]
+  window.TOTAL=20
+  window.SONS=[...L.map(x=>[x[0],'tick']),[3.3,'coberto'],[5.6,'coberto'],[7.6,'doulhe',3],[8.6,'doulhe',2],[9.6,'doulhe',1],[10.6,'hammer'],[12.4,'chime']]
+}else{
+  const stamp=(P,who,pr)=>`<div class="stamp" id="st${P}"><span class="v">🔨 VENDIDO!</span><b>${who}</b><span class="pr">${pr} 🪙</span></div>`
+  $('panel').innerHTML=`<div class="duo"><div class="col">${cartaHTML('L','ATA','Romário','Vasco · 2000','carta.png',stamp('L','NEYMARZETTI',22))}${lanceHTML('L')}<div class="bts"><div class="bt" id="L1">+1</div><div class="bt" id="L5">+5</div><div class="bt" id="L10">+10</div></div></div><div class="col">${cartaHTML('R','ZAG','Thiago Silva','Fluminense · 2008','card-thiago.png',stamp('R','LEITE DE VERDADE',9))}${lanceHTML('R')}<div class="bts"><div class="bt" id="R1">+1</div><div class="bt" id="R5">+5</div><div class="bt" id="R10">+10</div></div></div></div>`
+  L=[[0.7,'LABUBU FC',3],[1.7,'NEYMARZETTI',8],[2.8,'MEU TIME',13,1,'L5'],[3.8,'NEYMARZETTI',17],[4.6,'NEYMARZETTI',22]]
+  LR=[[1.0,'LEITE DE VERDADE',2],[2.1,'MEU TIME',3,1,'R1'],[3.0,'LABUBU FC',6],[4.0,'LEITE DE VERDADE',9]]
+  HL=9.6; HR=9.0
+  LEG=[[0,2.6,'Sala de 20: DUAS cartas, lado a lado'],[2.6,4.4,'Cada carta tem os botões dela'],[4.4,8.9,'Cada uma com o seu relógio'],[8.9,12.4,'Martelaram quase juntas: cada uma vira no lugar'],[12.4,14.4,'Entram nas Últimas marteladas, na ordem'],[14.4,16,'Próximas duas cartas']]
+  SOMLEG=[[HR,HR+0.5,'🔊 martelo'],[HL,HL+0.6,'🔊 martelo'],[HL+0.7,HL+1.6,'🔔 sininho: LENDA']]
+  window.TOTAL=16
+  const S=[]; for(const x of L) S.push([x[0],'tick']); for(const x of LR) S.push([x[0],'tick'])
+  S.push([3.0,'coberto'],[3.8,'coberto']); for(const h of [HL,HR]) for(const n of [3,2,1]) S.push([h-n,'doulhe',n])
+  S.push([HR,'hammer'],[HL,'hammer'],[HL+0.75,'chime']); window.SONS=S.sort((a,b)=>a[0]-b[0])
+}
+function lance(t,Ls,H,P,nova){
+  const feitos=Ls.filter(x=>t>=x[0]); const u=feitos[feitos.length-1]; const n=DUPLO?2:3
+  if(nova){ $('v'+P).textContent='1 🪙'; $('w'+P).textContent='ABRE EM 1'; $('li'+P).innerHTML='<p style="text-align:center;padding-top:'+(DUPLO?16:28)+'px;font-weight:800;color:#888;font-size:11px">ninguém deu lance ainda</p>' }
+  else if(u){ $('v'+P).textContent=u[2]+' 🪙'; $('w'+P).textContent=u[1]; $('li'+P).innerHTML=feitos.slice(-n).reverse().map(x=>`<div><span class="tag${x[3]?' eu':''}">${x[1]}</span>${x[2]} 🪙</div>`).join('') }
+  else { $('v'+P).textContent='1 🪙'; $('w'+P).textContent='ABRE EM 1'; $('li'+P).innerHTML='' }
+  const base=nova?H+(DUPLO?2.2:7.8):(u?u[0]:0); let s=Math.max(0,5-(t-base)); const vend=!nova&&t>=H
+  $('r'+P).textContent=vend?'🔨':'⏱ '+Math.ceil(s)+'s'
+  $('s'+P).innerHTML=vend?'VENDIDO':(nova||s>3)?'&nbsp;':s>2?'UMA…':s>1?'DUAS…':'TRÊS…'
+  const la=$('la'+P); la.classList.toggle('red',!vend&&!nova&&s<=2&&t>5); la.classList.toggle('done',vend&&DUPLO)
+  for(const b of (DUPLO?['1','5','10']:['1','2','5','10'])){ $(P+b).classList.remove('press'); $(P+b).classList.toggle('off',vend&&DUPLO) }
+  let kb=null; for(const x of Ls) if(x[4]&&t>=x[0]-.3&&t<x[0]+.25){ $(x[4]).classList.add('press'); kb=x[4] }
+  return kb
+}
+function tiraSet(novas,desl){
+  const it=[...novas.map(x=>itHTML(['', `<img src="${x[0]}">`],x[1],x[2],x[3],x[4])), ...VELHAS.map(v=>itHTML(v,v[2],v[3],v[4],v[5]))]
+  $('tira').innerHTML=it.join(''); $('tira').style.left=desl+'px'
+}
+function precSet(pos,lista){ $('precT').textContent='⚽ QUEM AINDA PRECISA DE '+pos; $('prec').innerHTML=lista.map(([n,v])=>`<span class="pc${v==='fechou'?' x':''}">${n} · ${v}</span>`).join('') }
+window.render=function(t){
+  const lg=LEG.find(x=>t>=x[0]&&t<x[1]); $('leg').textContent=lg?lg[2]:''; $('leg').style.opacity=lg?1:0
+  const sl=SOMLEG.find(x=>t>=x[0]&&t<x[1]); $('som').textContent=sl?sl[2]:''; $('som').style.opacity=sl?1:0
+  for(const c of ['GOL','LAT','ZAG','MEI','ATA']) $('c'+c).classList.remove('on')
+  let dedoEl=null
+  if(!DUPLO){
+    const nova=t>=18.4
+    dedoEl=lance(t,L,HL,'L',nova)
+    // palco
+    const pIn=seg(t,10.6,11.0), pOut=seg(t,14.9,15.4)
+    $('palco').style.opacity=pIn*(1-pOut)
+    $('vend').style.opacity=seg(t,10.8,11.1)*(1-pOut); $('vend').style.transform=`scale(${lerp(1.6,1,back(seg(t,10.8,11.2)))})`
+    const slot=$('inL').parentElement.getBoundingClientRect()
+    const cx=(390-150)/2, cy=250, up=ease(seg(t,11.0,11.7)), dn=ease(seg(t,15.2,16.0))
+    const tg=$('tira').getBoundingClientRect()
+    let x=lerp(slot.left,cx,up), y=lerp(slot.top,cy,up), sc=lerp(1,1.75,up)
+    if(dn>0){ x=lerp(cx,tg.left+4-56,dn); y=lerp(cy,tg.top+4-77,dn); sc=lerp(1.75,38/150,dn) }
+    $('flip').style.opacity=(t>=11.0&&t<16.0)?1:0
+    $('flip').style.transform=`translate(${x}px,${y}px) scale(${sc})`
+    $('flipIn').style.transform=`rotateY(${180*ease(seg(t,11.7,12.5))}deg)`
+    $('flip').querySelector('.b img').style.filter=t>=12.2?'drop-shadow(0 0 26px rgba(255,196,0,.9))':''
+    $('inL').parentElement.style.visibility=(t>=11.0&&t<18.4)?'hidden':'visible'
+    $('quem').style.opacity=seg(t,12.5,12.9)*(1-pOut)
+    tiraSet(t>=15.8?[['carta.png','Romário','ATA · Vasco 2000','25','Neymarzetti']]:[], t>=15.8?lerp(-157,0,ease(seg(t,15.8,16.3))):0)
+    if(nova){ $('pL').textContent='ZAG'; $('nL').textContent='Mauro Galvão'; $('clL').textContent='Grêmio · 1996'; $('inL').style.transform=`translateX(${lerp(-40,0,back(seg(t,18.4,18.9)))}px)`; $('inL').style.opacity=seg(t,18.4,18.7) } else { $('pL').textContent='ATA'; $('nL').textContent='Romário'; $('clL').textContent='Vasco · 2000'; $('inL').style.transform=''; $('inL').style.opacity=1 }
+    $(nova?'cZAG':'cATA').classList.add('on')
+    $('meta').textContent=(nova?'carta 10':'carta 9')+' de 71 · ordem embaralhada · 🎁 sem monte'
+    if(nova) precSet('ZAG',[['Meu Time',2],['Labubu',2],['Leite',1],['Neymarzetti','fechou']])
+    else precSet('ATA',[['Meu Time',3],['Neymarzetti',t>=16.4?1:2],['Labubu',1],['Leite','fechou']])
+  }else{
+    const novaL=t>=HL+2.2, novaR=t>=HR+2.2
+    const kL=lance(t,L,HL,'L',novaL), kR=lance(t,LR,HR,'R',novaR); dedoEl=kL||kR
+    for(const [P,H,nova,glow] of [['L',HL,novaL,'rgba(255,196,0,.9)'],['R',HR,novaR,'rgba(190,200,220,.95)']]){
+      const inn=$('in'+P), k=seg(t,H+0.1,H+0.7), pop=t>=H&&!nova?1+0.12*Math.sin(Math.PI*seg(t,H+0.1,H+0.9)):1
+      inn.style.transform=nova?`translateX(${lerp(-30,0,back(seg(t,H+2.2,H+2.6)))}px)`:`rotateY(${180*ease(k)}deg) scale(${pop})`
+      inn.style.opacity=nova?seg(t,H+2.2,H+2.45):1
+      inn.parentElement.style.opacity=(t>=H+2&&t<H+2.2)?0:1
+      inn.querySelector('.b img').style.filter=(t>=H+0.4&&!nova)?`drop-shadow(0 0 20px ${glow})`:''
+      const st=$('st'+P), sa=seg(t,H+0.7,H+0.95); st.style.opacity=nova?0:sa*(1-seg(t,H+1.85,H+2)); st.style.transform=`translateX(-50%) rotate(-6deg) scale(${lerp(1.8,1,back(sa))})`
+    }
+    if(novaL){ $('pL').textContent='MEI'; $('nL').textContent='Juninho'; $('clL').textContent='Vasco · 1998' } else { $('pL').textContent='ATA'; $('nL').textContent='Romário'; $('clL').textContent='Vasco · 2000' }
+    if(novaR){ $('pR').textContent='GOL'; $('nR').textContent='Dida'; $('clR').textContent='Cruzeiro · 1996' } else { $('pR').textContent='ZAG'; $('nR').textContent='Thiago Silva'; $('clR').textContent='Fluminense · 2008' }
+    $(novaL?'cMEI':'cATA').classList.add('on'); $(novaR?'cGOL':'cZAG').classList.add('on')
+    $('meta').textContent=(novaL&&novaR?'cartas 19 e 20':'cartas 17 e 18')+' de 71 · DUAS na mesa · 20 clubes'
+    const nv=[]; if(t>=HL+2) nv.push(['carta.png','Romário','ATA · Vasco 2000','22','Neymarzetti']); if(t>=HR+2) nv.push(['card-thiago.png','Thiago Silva','ZAG · Flu 2008','9','Leite de Verdade'])
+    const des=(t>=HR+2?lerp(-157,0,ease(seg(t,HR+2,HR+2.4))):0)+(t>=HL+2?lerp(-157,0,ease(seg(t,HL+2,HL+2.4))):0)
+    tiraSet(nv, t>=HL+2?lerp(-157,0,ease(seg(t,HL+2,HL+2.4))):(t>=HR+2?lerp(-157,0,ease(seg(t,HR+2,HR+2.4))):0))
+    $('precT').textContent='⚽ QUEM AINDA PRECISA'
+    $('prec').innerHTML=novaL&&novaR?'<span class="pc">MEI: Meu Time 2 · Labubu 2 · +15</span><span class="pc">GOL: todos 1</span>':'<span class="pc">ATA: Meu Time 3 · Neymarzetti '+(t>=HL+2?1:2)+' · +16</span><span class="pc">ZAG: Meu Time 2 · Leite '+(t>=HR+2?'fechou':'1')+' · +16</span>'
+  }
+  // dedinho tocando o botão
+  const d=$('dedo'); if(dedoEl){ const r=$(dedoEl).getBoundingClientRect(); d.style.left=(r.left+r.width/2-10)+'px'; d.style.top=(r.top+r.height/2-4)+'px'; d.style.opacity=1 } else d.style.opacity=0
+}
+window.render(0)
+</script>
+</body></html>

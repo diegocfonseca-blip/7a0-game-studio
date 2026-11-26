@@ -6,10 +6,11 @@ const {chromium}=createRequire('/home/user/7a0-game-studio/package.json')('playw
 const D=new URL('./', import.meta.url).pathname
 const [pag,saida,...rest]=process.argv.slice(2); const only=rest.map(Number)
 const b=await chromium.launch()
-const p=await b.newPage({viewport:{width:1280,height:800}})
+const W=+(process.env.W||1280),H=+(process.env.H||800),DSF=+(process.env.DSF||1)
+const p=await b.newPage({viewport:{width:W,height:H},deviceScaleFactor:DSF})
 await p.goto('file://'+D+pag);await p.waitForTimeout(2000)
 const total=await p.evaluate(()=>window.TOTAL), FPS=30
-if(only.length){for(const t of only){await p.evaluate(t=>window.render(t),t);await p.screenshot({path:`${D}t${t}.png`})};await b.close();process.exit(0)}
+if(only.length){for(const t of only){await p.evaluate(t=>window.render(t),t);await p.screenshot({path:`${D}q${t}.png`})};await b.close();process.exit(0)}
 rmSync(D+'frames',{recursive:true,force:true});mkdirSync(D+'frames',{recursive:true})
 for(let i=0;i<Math.round(total*FPS);i++){await p.evaluate(t=>window.render(t),i/FPS);await p.screenshot({path:`${D}frames/f${String(i).padStart(4,'0')}.jpg`,type:'jpeg',quality:92})}
 // 🔊 os MESMOS sons do jogo (src/escalacao/sound.ts), tocados numa gravação offline
