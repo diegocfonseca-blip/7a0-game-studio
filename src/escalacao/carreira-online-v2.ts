@@ -22,7 +22,7 @@ export type EntradasSim = {
 }
 
 /** A parte PÚBLICA da gaveta: o que os outros aparelhos precisam pra desenhar e simular o clube. */
-export type GavetaPublica = {
+export type GavetaPublica = { pendente?:boolean;lesao?:import('./lesao-partida').LesaoPartida; repertorio?: import('./types').FormationKey[];
   mgrId: number
   nome: string
   formation?: Manager['formation']
@@ -223,7 +223,7 @@ const DO_LEILAO = [
   'reserveListed', 'reserveAuction', 'reserveListMesmo', 'contratoRelease', 'aliciarJogadores', 'aliciarFundo', 'careerTecnicos', 'tecLote',
   'screen', 'phase', 'deck', 'sectorIdx', 'surpriseId', 'mudoId', 'currentCards', 'revealQueue', 'resenha', 'revealIdx', 'stock', 'sectorCursor',
   'sectorUnsoldAccum', 'roundIdx', 'monte', 'monteOrder', 'monteIdx', 'submitted', 'pendingEnvelopes', 'tiebreaks', 'tiebreakIdx', 'tiebreakPending',
-  'phaseDeadline', 'monteDeadline', 'cerimoniaDeadline', 'seasonNo', 'round', 'champion', 'simV',
+  'phaseDeadline', 'monteDeadline', 'cerimoniaDeadline', 'copaRound','seasonNo', 'round', 'champion', 'simV',
 ] as const satisfies readonly (keyof EscState)[]
 
 /**
@@ -287,4 +287,16 @@ export function titularesDoClube(squad: readonly Card[], formation: Manager['for
     for (const c of daPos.slice(0, need[pos])) out.add(String(c.id))
   }
   return out
+}
+
+/** Retorno após perder temporadas inteiras: o mundo/caixa administrados pela sala são atuais;
+ * estádio, presidência e outros bens privados continuam pertencendo ao mesmo clube. */
+export function co2RetornoAtrasado(base:EscState,cmd:EscState,meuId:number):EscState|null{
+ if(!base.co2||!cmd.co2||base.co2.sala!==cmd.co2.sala||cmd.screen!=='season'||(cmd.seasonNo??1)<=(base.seasonNo??1)||!cmd.managers.some(m=>m.id===meuId&&m.isHuman))return null
+ const out=co2JuntaVirada(base,cmd,meuId,false),o=out as unknown as Record<string,unknown>,c=cmd as unknown as Record<string,unknown>
+ const atuais=['careerPlacements','careerDivision','careerHistory','careerCronica','careerTactics','careerLineup','careerHalftime','careerPenalty','careerCupLive','careerCupActive','motor2Desde','m2Res','simSpeed','booksSeason','copaDoneSeason','copaRound','condicaoDesdeR','condicaoCarry','botCarry','oficialFisica'] as const
+ for(const k of atuais)o[k]=c[k]
+ out.careerInternational=undefined;out.eventoTemporada=undefined;out.careerMatchInjury=undefined
+ out.co2={...out.co2!,comanda:!!base.co2.comanda,gavetas:[],minha:undefined,minhaCopa:undefined,minhaIntl:undefined,fechou:undefined,fora:undefined}
+ return out
 }

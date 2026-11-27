@@ -1,3 +1,6 @@
+import { useCo2Envio } from './co2-envio'
+import { co2Contexto, co2SalvaPrivado, co2AvisoSave,co2PodeEscrever,co2VerificaAparelho,co2Fechar,co2ConfirmaEnvios,co2PuxaSinais } from './co2'
+import {acaoLeilaoCo2,etapaLeilaoCo2} from './co2-leilao-regra'
 import {eventoDepoisDaLesao,type LesaoPartida} from './lesao-partida'
 import {reservasDoEvento,escalaSemLesionado,escalaIntegraPreparo} from './evento-preparo'
 import {marcarCena,registrarVendas,type AcaoBairro} from './cenas-bairro-model'
@@ -1246,7 +1249,7 @@ import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { tvOficial, porteOficial, NOME_PORTE, caixaInicialOficial } from './economia-oficial'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
-import { mesclaClubes, aplicaFechamentos, co2JuntaVirada, titularesDoClube, type GavetaPublica, type Fechamento } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
+import { mesclaClubes, aplicaFechamentos, co2JuntaVirada, co2RetornoAtrasado, titularesDoClube, type GavetaPublica, type Fechamento } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import { AvisoDonoFundo, salaEsperaODono } from './aviso-dono-fundo' // 🖥️ 20/10
 import { AvisoConta } from './aviso-conta'
 // 🖋📲 13/11: a ficha do clube (Batismo/Fundador) por cima de tudo até o WhatsApp ser salvo — preguiçosa, só baixa quem pagou
@@ -6651,6 +6654,7 @@ type Action =
   | { type: 'CO2_ABRE_VIRADA'; fechamentos: Record<number, Fechamento | undefined>; /** 🙋 27/11: amigos aceitos pelo dono que entram agora, cada um num clube da máquina */ novos?: { mgr: number; nome: string }[]; /** 🚪 27/11: quem saiu da carreira — o clube vira da máquina, com o elenco inteiro */ saidas?: number[] }
   | { type: 'CO2_NOVO'; newState: EscState; meuId: number } // 🙋 27/11: entrei na carreira na virada — carrego a foto do leilão de todos já com o meu clube // 🔄 26/11 virada: o DONO põe os fechamentos de todos e abre o leilão de todos
   | { type: 'CO2_ALCANCA_RODADAS'; gavetas: GavetaPublica[]; ate: number } // 🔄 26/11: fiquei fora umas rodadas — jogo aqui, de uma vez, as que a turma já jogou (com as gavetas do banco)
+  | {type:'CO2_RETORNO';newState:EscState;meuId:number}
   | { type: 'CO2_ALCANCA'; newState: EscState; meuId: number } // 🔄 26/11: eu faltei na virada — junto a foto do leilão de todos (do banco) com o meu clube fechado
   | { type: 'CO2_ASSUME'; newState: EscState; meuId: number } // 🌐 v2: acabou a fase de todos — a partir daqui o MEU aparelho toca o MEU clube
   | { type: 'CO2_ABRE'; save: EscState } // 🌐 v2: reabre o MEU clube (save do aparelho ou da nuvem do jogo)
@@ -9309,6 +9313,9 @@ export function formacaoLiberadaNoEstado(s: Pick<EscState, 'careerTecnicos' | 'c
   return formacaoNoCardapio({ quinze, temTecnico: !!tec, doTecnico: tec ? fichaDoTecnico(tec).formacoes : [], daCasa: tec ? (s.careerFormacaoExtra?.[m.teamName] ?? null) : null,
     atualRotulo: quinze ? atual.rotulo : m.formation, atualMonta: monta(m.formation), rotulo: quinze ? alvo.rotulo : f, monta: monta(f) })
 }
+// Revisão só em memória: receber gavetas/resultados dos outros não manda novamente o save privado inteiro.
+const co2Revisoes = new WeakMap<EscState, number>()
+export const co2SaveVersion = (s: EscState): number => co2Revisoes.get(s) ?? 0
 export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   if (s !== state && s.oficial && ['START_CAREER_SOLO', 'RESUME_CAREER_SOLO', 'RESTORE_CAREER', 'LOAD_STATE', 'FINISH_CEREMONY', 'SEED_CPU_SQUADS', 'MONTE_PICK', 'ADVANCE_REVEAL', 'CONFIRM_MESMO_TIME', 'RESERVE_AUCTION_ONLINE'].includes(action.type)) garanteEconomiaOficial(s)
@@ -9317,6 +9324,10 @@ export function reducer(state: EscState, action: Action): EscState {
   if (s !== state && s.copaMode === 'champions') abreChampionsDiretoSePrecisa(s)
   if (s !== state && s.copaMode === 'relampago') abreRelampagoSePrecisa(s)
   if (s !== state && s.copaMode === 'supermundial') abreSuperMundialSePrecisa(s)
+  if (s !== state && s.co2) {
+    const anterior = Math.max(co2SaveVersion(state), co2SaveVersion(s))
+    co2Revisoes.set(s, anterior + (action.type === 'CO2_GAVETAS' || action.type === 'GUARDA_M2' ? 0 : 1))
+  }
   return s
 }
 function reducerBase(state: EscState, action: Action): EscState {
@@ -9348,6 +9359,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       co2: { sala: ns.co2.sala, assento: action.meuId, gavetas: [], comanda: false, espelho: false },
     }
   }
+  if(action.type==='CO2_RETORNO')return co2RetornoAtrasado(state,action.newState,action.meuId)??state
   if (action.type === 'CO2_ALCANCA') {
     const ns = action.newState
     const fechado = !!state.co2 && !state.co2.espelho && state.screen === 'reserveList' && state.co2.fechou === state.seasonNo
@@ -9550,7 +9562,7 @@ function reducerBase(state: EscState, action: Action): EscState {
   }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
-    case 'GO_LOBBY': { s.espectador = undefined; s.espHostUid = undefined; s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
+    case 'GO_LOBBY': { if(s.co2)s.co2=undefined; s.espectador = undefined; s.espHostUid = undefined; s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
     case 'GO_LOBBY_ONLINE': { s.screen = 'lobby'; return s }
     case 'GO_SETUP': { s.screen = 'setup'; s.careerIntent = false; return s }
     case 'GO_SETUP_CAREER': { s.screen = 'setup'; s.careerIntent = true; return s }
@@ -10491,6 +10503,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // salarial — e registra no extrato, ANTES de avançar. Mesma mecânica do futebol.
       applySeasonMoney(s, nbaSeasonRewards(sortedTable(s.league), s.nbaTier ?? 'street'))
       s.seasonNo++
+      if(s.co2)s.copaRound=0
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       setActiveSport('basquete', 'career') // base = 1/posição (quinteto)
@@ -10635,6 +10648,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // o online). ANTES de avançar. Mesma coisa do solo.
       if (s.careerOnline) applySeasonMoney(s, nbaSeasonRewards(sortedTable(s.league), s.nbaTier ?? 'street'))
       s.seasonNo++
+      if(s.co2)s.copaRound=0
       const rng = mulberry((s.seed ^ (s.seasonNo * 2246822519)) >>> 0)
       setActiveSport('basquete', 'career') // base = 1/posição (quinteto); nbaSlots cresce por humano
       // TODOS os humanos crescem (o offline cresce só o youIdx): T2 → rotação (2/pos = 10),
@@ -12890,7 +12904,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'PLAN_MATCH_INJURY': {
       const l=action.injury,m=s.managers.find(m=>m.id===l.mgrId&&m.isHuman),old=s.careerMatchInjury
-      if(!s.careerOnline||s.onlineMode==='online'||s.co2||s.sport==='basquete'||!s.agenciaOn||!m||l.season!==s.seasonNo||l.round!==s.round||!m.squad.some(c=>c.id===l.cardId&&!c.fake)||!Number.isInteger(l.minute)||l.minute<55||l.minute>78||l.rodadas<1||l.rodadas>3||l.status!=='programada')return state
+      if(!s.careerOnline||s.onlineMode==='online'||s.sport==='basquete'||!s.agenciaOn||!m||l.season!==s.seasonNo||(l.round!==s.round&&(!s.co2||l.round!==s.round-1))||!m.squad.some(c=>c.id===l.cardId&&!c.fake)||!Number.isInteger(l.minute)||l.minute<55||l.minute>78||l.rodadas<1||l.rodadas>3||l.status!=='programada')return state
       if(old&&old.season===l.season&&old.round===l.round)return state
       s.careerMatchInjury={...l};return s
     }
@@ -12907,7 +12921,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // A troca clínica já foi decidida em campo. Reaproveita a validação e a agenda
       // de recuperação do evento; não promove outras substituições nem reescreve o jogo.
       const nextXI=frozenXIids(s.careerLineup?.[m.id]??{},s.round,m.squad,m.formation)
-      if(!s.co2&&s.sport!=='basquete'&&(!nextXI.includes(card.id)||l.subId))return reducerBase(s,{type:'EVENTO_DECIDE',escolha:'troca',subId:l.subId,xi:nextXI})
+      if(s.sport!=='basquete'&&(!nextXI.includes(card.id)||l.subId))return reducerBase(s,{type:'EVENTO_DECIDE',escolha:'troca',subId:l.subId,xi:nextXI})
       return s
     }
     case 'SET_AO_VIVO': {
@@ -14217,6 +14231,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes do seasonNo++/placements
       s.seasonNo++
+      if(s.co2)s.copaRound=0
       if (s.oficial && s.oficial.vagasDesde == null) s.oficial = { ...s.oficial, vagasDesde: s.seasonNo }
       iniciarCriteriosDaTemporada(s)
       s.careerInternational = null // campanha da temporada encerrada; o histórico permanece
@@ -14319,6 +14334,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) voltaCriaSeSobrou(s, m, pos)
       }
       s.seasonNo++
+      if(s.co2)s.copaRound=0
       if (s.oficial && s.oficial.vagasDesde == null) s.oficial = { ...s.oficial, vagasDesde: s.seasonNo }
       iniciarCriteriosDaTemporada(s)
       s.careerInternational = null // libera o save da campanha encerrada; preserva careerInternationalHistory
@@ -14966,6 +14982,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10 && !s.nbaSala)
         s.fixtures = calendarioDaLiga(s)
         s.seasonNo++
+      if(s.co2)s.copaRound=0
         if (s.oficial && s.oficial.vagasDesde == null) s.oficial = { ...s.oficial, vagasDesde: s.seasonNo }
         iniciarCriteriosDaTemporada(s)
         s.screen = 'season'
@@ -14982,6 +14999,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.submitted = []; s.pendingEnvelopes = {}
       s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.seasonNo++
+      if(s.co2)s.copaRound=0
       if (s.oficial && s.oficial.vagasDesde == null) s.oficial = { ...s.oficial, vagasDesde: s.seasonNo }
       iniciarCriteriosDaTemporada(s)
       s.screen = 'auction'
@@ -15133,6 +15151,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // pros convidados por SYNC_STATE.
       comecaTemporadaMesmoTime(s) // 📋 (19/10) o miolo virou função: a Liga Draft começa a temporada pelo MESMO caminho
       s.seasonNo++
+      if(s.co2)s.copaRound=0
       return s
     }
     // 📋 LIGA DRAFT (19/10) — regras em `liga-draft.ts`. O dono manda: o convidado só pede (DRAFT_ESCOLHER chega roteado).
@@ -15754,20 +15773,25 @@ const CO2_ACOES_DE_FORA = new Set<string>(['SUBMIT_ENVELOPE', 'SUBMIT_TIEBREAK',
 // guarda com folga de 1,5s (o estado da carreira é grande: comprimir a cada toque travaria o celular)
 let co2GuardaTimer: ReturnType<typeof setTimeout> | null = null
 function co2GuardaLocal(st: EscState): void {
+  const uid = co2Agora().uid
   if (co2GuardaTimer) clearTimeout(co2GuardaTimer)
   co2GuardaTimer = setTimeout(() => {
     co2GuardaTimer = null
-    try { localStorage.setItem(CO2_LOCAL_KEY, JSON.stringify({ sala: st.co2?.sala, at: Date.now(), z: pack(sanitize(st)) })) } catch { /* cota cheia: a nuvem do jogo guarda */ }
+    try { localStorage.setItem(CO2_LOCAL_KEY, JSON.stringify({ sala: st.co2?.sala, uid, at: Date.now(), z: pack(privadoCo2(st)) })) } catch { /* cota cheia: a nuvem do jogo guarda */ }
   }, 1500)
 }
-export function co2LeLocal(sala: string): EscState | null {
+export function co2LeLocalInfo(sala: string): { state: EscState; at: number } | null {
   try {
     const r = localStorage.getItem(CO2_LOCAL_KEY)
     if (!r) return null
-    const o = JSON.parse(r) as { sala?: string; z?: string }
-    return o.sala === sala && o.z ? unpack<EscState>(o.z) : null
+    const o = JSON.parse(r) as { sala?: string; uid?: string; at?: number; z?: string }
+    if (o.sala !== sala || !o.z) return null
+    const sn = co2Agora(), st = unpack<EscState>(o.z), meuId = st.managers?.[st.youIdx]?.id
+    if (st.co2?.sala !== sala || !sn.uid || (o.uid && o.uid !== sn.uid) || meuId == null || sn.mundo?.ordem[meuId] !== sn.uid) return null
+    return { state: st, at: Number.isFinite(o.at) ? o.at! : 0 }
   } catch { return null }
 }
+export function co2LeLocal(sala: string): EscState | null { return co2LeLocalInfo(sala)?.state ?? null }
 // 🧹 FAXINA DA CAIXA ao abrir uma carreira (Diego 20/08, caso do "−9999").
 // Ela só mata o que NÃO É NÚMERO: texto, NaN, infinito. Nada mais.
 //
@@ -16555,12 +16579,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // 🌐 CARREIRA ONLINE v2 (19/10): o leilão de TODOS roda no aparelho de quem comanda o dia; os outros assistem e mandam
   // os toques pelo canal PRÓPRIO da carreira (`co2:<sala>` — nada dos canais das salas rápidas/Minhas Ligas).
   useEffect(() => co2Ganchos({
-    aoAcao: a => {
+    aoAcao: (a,autor) => {
       const st = stateRef.current
-      if (!st.co2?.comanda || st.screen === 'season') return
+      if (!st.co2?.comanda || st.screen === 'season') return false
       const act = a as Action
-      if (!act || typeof act !== 'object' || typeof (act as { type?: unknown }).type !== 'string') return
-      if (CO2_ACOES_DE_FORA.has(act.type)) rawDispatch(act) // só as ações do leilão; nada de mexer no resto do jogo do dono
+      if (!act || typeof act !== 'object' || typeof (act as { type?: unknown }).type !== 'string') return true
+      if (co2PodeEscrever()&&acaoLeilaoCo2(act,autor,st,co2Agora().mundo?.ordem??[])) rawDispatch(act)
+      return true // só as ações do leilão; nada de mexer no resto do jogo do dono
     },
     aoEstado: z => {
       const st = stateRef.current
@@ -16575,11 +16600,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (!next?.co2 || next.co2.sala !== sn.sala?.id) return
       rawDispatch({ type: next.screen === 'season' ? 'CO2_ASSUME' : 'CO2_ESPELHO', newState: next, meuId })
     },
-    aoPedirEstado: () => { const st = stateRef.current; if (st.co2?.comanda) co2Envia('estado', { z: pack(sanitize(st)) }) },
+    aoPedirEstado: () => { const st = stateRef.current; if (st.co2?.comanda) co2Envia('estado', fotoLeilaoCo2(st)) },
   }), [])
   // 🔄 26/11 VIRADA — quem perdeu o leilão de todos (faltou, ou estava assistindo e a última foto não chegou): quando a sala já
   // voltou pra temporada nova, busca a FOTO da virada no banco e junta com o próprio clube. Uma tentativa por temporada.
   const co2Sn = useCo2()
+  // Cada dono de clube guarda automaticamente seu estado privado, também após gestão na mesma rodada.
+  // Comprimir só ao enviar (folga de 1,5 s); falha mantém a pendência e tenta de novo.
+  const co2Privado = co2PodeEscrever() && state.co2 && state.co2.sala === co2Sn.sala?.id && co2Sn.mundo?.ordem[state.managers[state.youIdx]?.id] === co2Sn.uid && !state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby' ? state : null
+  useEffect(()=>{if(state.co2?.comanda&&state.screen!=='season')void co2PuxaSinais()},[state.co2?.comanda,state.screen,state.phase])
+  const co2SaveKey = String(co2SaveVersion(state))
+  const co2Save = useCo2Envio(co2Contexto(), co2SaveKey, co2Privado, async st => st.co2?.sala === co2Agora().sala?.id && co2SalvaPrivado({ z: pack(privadoCo2(st)), at: Date.now(), t: st.seasonNo, r: st.round }), 1500)
+  const co2ConfirmaRef=useRef(co2Save.confirma);co2ConfirmaRef.current=co2Save.confirma
+  const co2SaindoRef=useRef(false)
+  useEffect(() => { co2AvisoSave(co2Save.falhou) }, [co2Save.falhou])
+
   const alcancaRef = useRef('')
   useEffect(() => {
     const st = stateRef.current
@@ -16587,19 +16622,23 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const temporada = st.co2.espelho ? st.co2.base?.seasonNo : st.seasonNo
     const fechado = !st.co2.espelho && st.screen === 'reserveList' && st.co2.fechou === st.seasonNo
     const sala = co2Sn.sala
-    if (!temporada || (!st.co2.espelho && !fechado) || !sala || sala.temporada !== temporada || (sala.fase !== 'preparo' && sala.fase !== 'jogando')) return
-    const chave = `${sala.id}:${temporada}`
+    const atrasado=!!temporada&&!!sala&&temporada<sala.temporada
+    if (!temporada || (!atrasado&&!st.co2.espelho && !fechado) || !sala || (!atrasado&&sala.temporada !== temporada) || (sala.fase !== 'preparo' && sala.fase !== 'jogando')) return
+    const chave = `${sala.id}:${sala.temporada}`
     if (alcancaRef.current === chave) return
-    alcancaRef.current = chave
     const meuId = co2Sn.uid && co2Sn.mundo ? co2Sn.mundo.ordem.indexOf(co2Sn.uid) : -1
     if (meuId < 0) return
-    void co2LeVirada(temporada).then(z => {
+    const contexto = co2Contexto()
+    alcancaRef.current = chave
+    void co2LeVirada(sala.temporada).then(z => {
+      if (contexto !== co2Contexto() || stateRef.current.co2?.sala !== sala.id) return
       if (!z) { alcancaRef.current = ''; return }
       let next: EscState
-      try { next = unpack<EscState>(z) } catch { return }
+      try { next = unpack<EscState>(z) } catch { alcancaRef.current = ''; return }
+      if (next.co2?.sala !== sala.id || next.seasonNo !== sala.temporada) { alcancaRef.current = ''; return }
       const agora = stateRef.current
-      rawDispatch({ type: agora.co2?.espelho ? 'CO2_ASSUME' : 'CO2_ALCANCA', newState: next, meuId })
-    })
+      rawDispatch({ type: atrasado?'CO2_RETORNO':agora.co2?.espelho ? 'CO2_ASSUME' : 'CO2_ALCANCA', newState: next, meuId })
+    }).catch(() => { if (contexto === co2Contexto()) alcancaRef.current = '' })
   }, [co2Sn.sala, state.screen, state.co2?.espelho, state.co2?.fechou]) // eslint-disable-line react-hooks/exhaustive-deps
   // quem comanda manda o estado do leilão (com folga de 0,4s) e, quando a fase de todos acaba, manda a última foto
   const co2TelaRef = useRef<string>('')
@@ -16614,10 +16653,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (co2EnvioRef.current) clearTimeout(co2EnvioRef.current)
     co2EnvioRef.current = setTimeout(() => {
       co2EnvioRef.current = null
-      const z = pack(sanitize(stateRef.current))
-      co2Envia('estado', { z })
+      const foto = fotoLeilaoCo2(stateRef.current)
+      co2Envia('estado', foto)
       // 🔄 26/11: no fim do leilão da VIRADA, a foto vai pro banco — quem faltou alcança por ela quando voltar
-      if (fim && (stateRef.current.seasonNo ?? 1) >= 2) void co2SalvaVirada(stateRef.current.seasonNo ?? 1, z)
+      if (fim && (stateRef.current.seasonNo ?? 1) >= 2) void co2SalvaVirada(stateRef.current.seasonNo ?? 1, foto.z)
     }, fim ? 0 : 400)
   }, [state])
   // ⏱️ QUEM É O DONO NÃO TEM DESVIO. Ele é quem CARIMBA os prazos, então a hora
@@ -16944,6 +16983,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
   // convidado roteia ações pro host; host aplica local
   const dispatch = useCallback((action: Action) => {
+    if(stateRef.current.co2&&['GO_LOBBY','NEW_GAME'].includes(action.type)){
+      if(co2SaindoRef.current)return
+      co2SaindoRef.current=true
+      const st=stateRef.current,ctx=co2Contexto()
+      void(async()=>{
+        try{
+          if(co2PodeEscrever()){
+            if(st.co2?.comanda&&st.screen!=='season'&&st.screen!=='reserveList')co2Envia('estado',fotoLeilaoCo2(st))
+            if(!await co2ConfirmaEnvios()||!st.co2?.espelho&&!await co2ConfirmaRef.current()){co2AvisoSave(true);return}
+          }
+          if(ctx!==co2Contexto())return
+          co2Fechar();rawDispatch(action)
+        }finally{co2SaindoRef.current=false}
+      })();return
+    }
     // 👁️ FANTASMA (28/10): só assiste. Nada sai deste aparelho pro dono (nem lance, nem voto) e nada muda o estado que ele
     // está vendo — a não ser SAIR. Nem o "liberar a vaga" roda: ele nunca teve vaga.
     // Menu e retomada são LOCAIS mesmo quando o convidado ainda está online.
@@ -16958,8 +17012,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }
     // 🌐 v2: no leilão do dono, o que EU aperto vai pra ele (o meu aparelho só mostra)
     // (e nada mais muda o estado que estou só assistindo: o próximo pacote do dono passaria por cima)
+    if(stateRef.current.co2&&!co2PodeEscrever()&&!['GO_LOBBY','NEW_GAME'].includes(action.type))return
     if (stateRef.current.co2?.espelho) {
-      if (CO2_ACOES_DE_FORA.has(action.type)) { co2Envia('acao', action); return }
+      if (CO2_ACOES_DE_FORA.has(action.type)) { co2Envia('acao', {...action,_etapa:etapaLeilaoCo2(stateRef.current)}); return }
       if (!['GO_LOBBY', 'NEW_GAME', 'GO_ALBUM', 'GO_RANKING'].includes(action.type)) return
     }
     // 🤫 posse humilde: RESTORE (auto-retomada/reload) NÃO é gesto seu — entra
@@ -18396,6 +18451,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ state, dispatch, emote, addEmote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
       {children}
+      {state.co2&&!co2PodeEscrever()?<div style={{position:'fixed',inset:0,zIndex:99999,background:'#000c',padding:16,display:'grid',placeItems:'center'}}><div role="alert" style={{background:'#F4ECD6',color:'#0C0C0C',padding:24,maxWidth:500,margin:'40px auto',border:'3px solid #0C0C0C',borderRadius:18}}><h2>{tr('Carreira aguardando conexão','Career waiting for connection')}</h2><p>{co2Sn.aparelho==='ocupado'?tr('Esta carreira está aberta em outro aparelho da sua conta. Feche a carreira lá antes de continuar aqui. Seu progresso não será sobrescrito.','This career is open on another device on your account. Close it there before continuing here. Your progress will not be overwritten.'):tr('Conferindo a autorização deste aparelho. Aguarde ou tente novamente.','Checking this device. Please wait or retry.')}</p><button onClick={()=>void co2VerificaAparelho()}>{tr('Tentar novamente','Retry')}</button><button onClick={()=>dispatch({type:'GO_LOBBY'})}>{tr('Voltar ao início','Back to home')}</button></div></div>:null}
       {/* 👁️ FANTASMA (28/10, mockup scripts/mockups/espectador.png): faixa fina embaixo, entre o chat e o som — sempre lembrando
           que ele só assiste, por quais olhos, e com o SAIR à mão. */}
       {state.espectador && state.onlineMode === 'online' && (
@@ -18672,3 +18728,6 @@ export function useEsc() {
 }
 
 export type { Action as EscAction }
+
+function privadoCo2(s:EscState):EscState{return {...sanitize(s),pendingEnvelopes:s.pendingEnvelopes,tiebreakPending:s.tiebreakPending,convocacaoEscolhas:s.convocacaoEscolhas}}
+function fotoLeilaoCo2(s:EscState){return {z:pack(sanitize(s)),secreto:{pendingEnvelopes:s.pendingEnvelopes,tiebreakPending:s.tiebreakPending,...(s.convocacaoEscolhas?{convocacaoEscolhas:s.convocacaoEscolhas}:{})}}}
