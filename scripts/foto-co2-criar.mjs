@@ -27,7 +27,8 @@ for (const tela of ['criar', 'espera']) {
       h('div', { style: { display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 } }, h('span', { style: { width: 28, height: 28, borderRadius: 99, background: '#0C0C0C', color: '#FFC400', display: 'grid', placeItems: 'center', fontFamily: 'Oswald' } }, num),
         h('span', null, h('b', { style: { display: 'block', fontFamily: 'Oswald', fontSize: 17, textTransform: 'uppercase' } }, icon + ' ' + title), h('small', { style: { color: '#6b6250', fontWeight: 600 } }, sub))),
       h('div', { style: { display: 'grid', gap: 12 } }, children))
-    if (${JSON.stringify(tela)} === 'criar') createRoot(root).render(h(S.EscProvider, null, h(T.Co2Criar, { nomeClube: 'Neymarzetti', Secao, primeiro: 2, onAbre(){} })))
+    const Opcoes = ({ options, value, onSet, selos, travados }) => h('div', { style: { display: 'grid', gridTemplateColumns: options.length >= 4 ? '1fr 1fr' : 'repeat(' + options.length + ', 1fr)', gap: 6 } }, options.map(([v, l]) => h('button', { key: v, onClick: () => onSet(v), disabled: travados?.includes(v), style: { border: '2.5px solid #0C0C0C', borderRadius: 10, padding: '9px 6px', fontFamily: 'Oswald', fontWeight: 700, textTransform: 'uppercase', background: value === v ? '#FFC400' : '#fff', opacity: travados?.includes(v) ? .5 : 1 } }, l, selos?.[v] ? ' · ' + selos[v] : '')))
+    if (${JSON.stringify(tela)} === 'criar') createRoot(root).render(h(S.EscProvider, null, h(T.Co2Criar, { nomeClube: 'Neymarzetti', Secao, Opcoes, primeiro: 2, onAbre(){} })))
     else { createRoot(root).render(h(S.EscProvider, null, h(T.Co2Espera, { salaId: 's1', onSair(){} }))); await new Promise(r=>setTimeout(r,1500)); C._bancadaCo2({ uid: 'u0', aqui: ['u0'] }) }
     await new Promise(r=>setTimeout(r,1500))
   })()`)

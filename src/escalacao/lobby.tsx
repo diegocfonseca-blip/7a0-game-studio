@@ -4407,7 +4407,7 @@ export function EscLobby() {
           <style>{CRIAR_CLARO_CSS}</style>
           <div className="cs-claro space-y-3" style={{ maxWidth: desk ? 760 : undefined, margin: desk ? '0 auto' : undefined }}>
             {modeChooser}
-            <Co2Criar nomeClube={stripEmoji(nameOf()).trim()} Secao={Section} primeiro={criar2 ? 2 : 1} onAbre={id => setCo2Espera(id)} />
+            <Co2Criar nomeClube={stripEmoji(nameOf()).trim()} Secao={Section} Opcoes={Seg as unknown as Parameters<typeof Co2Criar>[0]['Opcoes']} primeiro={criar2 ? 2 : 1} onAbre={id => setCo2Espera(id)} />
           </div>
           </ClaroCtx.Provider>
         )

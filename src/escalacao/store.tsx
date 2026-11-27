@@ -10812,7 +10812,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.roomId = ''; s.roomCode = ''; s.roomName = undefined
       s.locked = undefined; s.pwHash = undefined; s.streamMode = false; s.manualRoom = false
       // 🌍 carreira nova usa BR+Europa+MUNDO juntos (vale pra qualquer conta desde 03/08)
-      s.deckLeague = escadaLiberada() ? 'todos' : (action.league ?? 'br'); setActiveCatalog(s.deckLeague)
+      // 🃏 27/11 (Diego): na carreira ONLINE o dono escolhe o baralho ao criar (só Brasil ou Brasil + Europa + Mundo)
+      s.deckLeague = action.co2 && action.league ? action.league : escadaLiberada() ? 'todos' : (action.league ?? 'br'); setActiveCatalog(s.deckLeague)
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       // 🌐 CARREIRA ONLINE v2 (19/10): a MESMA carreira, só que com os clubes dos amigos de gente na sala (cada aparelho

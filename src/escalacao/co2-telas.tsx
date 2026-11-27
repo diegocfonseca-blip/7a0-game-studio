@@ -167,12 +167,12 @@ export function Co2PedidosDono() {
 // ═══ 🌐 CRIAR CARREIRA no padrão de "Criar sala" (27/11, Diego: *"padrão de criação de sala igual as outras… igual liga draft… e com
 // regras da carreira lá na sala"*). Os blocos numerados vêm do lobby (`Secao` = o mesmo `Section` das salas); a configuração do dono
 // (bots, jeito, tempos) fica guardada no aparelho dele até ele começar a carreira (uma chave só, sem acumular).
-export type Co2Cfg = { bots: number; modo: 'dinamica' | 'livre'; tempos: { pausa: number; rodada: number } }
+export type Co2Cfg = { bots: number; modo: 'dinamica' | 'livre'; tempos: { pausa: number; rodada: number }; /** 🃏 27/11: só Brasil ou Brasil + Europa + Mundo */ baralho?: 'br' | 'todos' }
 const CO2_CFG_KEY = 'esc-co2-cfg'
-const CFG_PADRAO: Co2Cfg = { bots: 3, modo: 'dinamica', tempos: { pausa: 60, rodada: 60 } }
+const CFG_PADRAO: Co2Cfg = { bots: 3, modo: 'dinamica', tempos: { pausa: 60, rodada: 60 }, baralho: 'todos' }
 function guardaCfg(sala: string, c: Co2Cfg) { try { localStorage.setItem(CO2_CFG_KEY, JSON.stringify({ sala, ...c })) } catch { /* ignora */ } }
 function leCfg(sala: string): Co2Cfg | null {
-  try { const o = JSON.parse(localStorage.getItem(CO2_CFG_KEY) ?? 'null') as (Co2Cfg & { sala?: string }) | null; return o && o.sala === sala ? { bots: o.bots, modo: o.modo, tempos: o.tempos } : null } catch { return null }
+  try { const o = JSON.parse(localStorage.getItem(CO2_CFG_KEY) ?? 'null') as (Co2Cfg & { sala?: string }) | null; return o && o.sala === sala ? { bots: o.bots, modo: o.modo, tempos: o.tempos, baralho: o.baralho ?? 'todos' } : null } catch { return null }
 }
 
 /** 📜 as regras da carreira online — as mesmas na criação e em cima da sala de espera (pra todo mundo) */
@@ -180,6 +180,7 @@ export function Co2Regras({ cfg }: { cfg?: Co2Cfg | null }) {
   const linhas: [string, string][] = [
     ['🏟️', tr('Cada um com o seu clube, temporada após temporada: sobe e cai na pirâmide (Várzea → Série A).', 'Everyone runs their own club, season after season: up and down the pyramid (Várzea → Série A).')],
     ['🌍', tr('Tudo é um mundo só: Copa do Brasil, Libertadores, Champions, Mundial e Copa do Mundo são as mesmas pra turma toda.', 'One shared world: the Copa do Brasil, Libertadores, Champions, Club World Cup and World Cup are the same for the whole crew.')],
+    ['🃏', cfg ? (cfg.baralho === 'br' ? tr('Baralho: só Brasil.', 'Deck: Brazil only.') : tr('Baralho: Brasil + Europa + Mundo.', 'Deck: Brazil + Europe + World.')) : tr('O dono escolhe o baralho: só Brasil ou Brasil + Europa + Mundo.', 'The owner picks the deck: Brazil only or Brazil + Europe + World.')],
     ['🔨', cfg ? (cfg.bots ? tr(`O leilão de sempre abre cada temporada, com ${cfg.bots} bot${cfg.bots > 1 ? 's' : ''} disputando as cartas com vocês.`, `The usual auction opens each season, with ${cfg.bots} bot${cfg.bots > 1 ? 's' : ''} bidding against you.`) : tr('O leilão de sempre abre cada temporada, só entre vocês (sem bots).', 'The usual auction opens each season, just between you (no bots).')) : tr('O leilão de sempre abre cada temporada; o dono escolhe quantos bots disputam com vocês.', 'The usual auction opens each season; the owner picks how many bots bid against you.')],
     ['⚡', cfg ? (cfg.modo === 'dinamica' ? tr(`Dinâmica: as rodadas seguem direto; para ${cfg.tempos.pausa} s quando começa competição nova.`, `Dynamic: rounds run straight on; ${cfg.tempos.pausa} s pause when a new competition starts.`) : tr(`Livre: cada rodada espera todo mundo apertar PRONTO (ou ${cfg.tempos.rodada} s).`, `Free: each round waits for everyone to hit READY (or ${cfg.tempos.rodada} s).`)) : tr('O dono escolhe o ritmo: Dinâmica (rodadas direto) ou Livre (cada rodada espera o PRONTO).', 'The owner picks the pace: Dynamic (rounds straight on) or Free (each round waits for READY).')],
     ['👑', tr('Quem criou manda do começo ao fim. Sem o dono, a carreira espera.', 'The creator runs it start to finish. Without the owner, the career waits.')],
@@ -197,7 +198,9 @@ export function Co2Regras({ cfg }: { cfg?: Co2Cfg | null }) {
 }
 
 type SecaoProps = { num: number; title: string; icon: string; sub?: string; children: React.ReactNode }
-export function Co2Criar({ nomeClube, Secao, primeiro, onAbre }: { nomeClube: string; Secao: (p: SecaoProps) => React.ReactElement | null; primeiro: number; onAbre: (id: string) => void }) {
+// as mesmas opções de "Criar sala" (o `Seg` do lobby), passadas de lá pra não duplicar o visual
+type SegProps = { options: [string, string][]; value: string; onSet: (v: string) => void; selos?: Partial<Record<string, string>>; travados?: string[] }
+export function Co2Criar({ nomeClube, Secao, Opcoes, primeiro, onAbre }: { nomeClube: string; Secao: (p: SecaoProps) => React.ReactElement | null; Opcoes: (p: SegProps) => React.ReactElement | null; primeiro: number; onAbre: (id: string) => void }) {
   const [nome, setNome] = useState('')
   const [clube, setClube] = useState(nomeClube)
   const [cfg, setCfg] = useState<Co2Cfg>(CFG_PADRAO)
@@ -213,31 +216,35 @@ export function Co2Criar({ nomeClube, Secao, primeiro, onAbre }: { nomeClube: st
     setErro('')
     if (clube.trim().length < 2) { setErro(tr('Nome do clube com pelo menos 2 letras.', 'Club name needs at least 2 letters.')); return }
     setIndo(true)
-    const r = await co2Criar(nomeFinal, clube.trim())
+    const r = await co2Criar(nomeFinal, clube.trim(), cfg.baralho ?? 'todos')
     setIndo(false)
     if (r.erro || !r.id) { setErro(r.erro === 'nome' ? tr('Nome do clube com pelo menos 2 letras.', 'Club name needs at least 2 letters.') : tr('Não deu pra criar agora. Tenta de novo.', 'Could not create right now. Try again.')); return }
     guardaCfg(r.id, cfg)
     onAbre(r.id)
   }
-  const op = (on: boolean): React.CSSProperties => ({ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 6px', fontWeight: 900, background: on ? GOLD : '#fff', color: INK, cursor: 'pointer', boxShadow: on ? `2px 2px 0 ${INK}` : 'none', ...OSWALD })
   let n = primeiro
   return (
     <>
+      {/* 🪜 27/11 (Diego: *"por enquanto somente carreira tradicional c clubes feitos pela galera… oficial Brasil e global somente futuramente"*) */}
+      <Secao num={n++} title={tr('O modo', 'The mode')} icon="🪜" sub={tr('Que carreira vocês vão jogar', 'Which career you are playing')}>
+        <Opcoes options={[['tradicional', tr('🪜 Tradicional', '🪜 Classic')], ['oficial', tr('🇧🇷 Brasil Oficial', '🇧🇷 Official Brazil')], ['global', tr('🌍 Global', '🌍 Global')]]} value="tradicional" onSet={() => {}}
+          selos={{ oficial: tr('EM BREVE', 'SOON'), global: tr('EM BREVE', 'SOON') }} travados={['oficial', 'global']} />
+        <p style={{ fontWeight: 700, fontSize: 11.5, margin: 0, color: '#6b6250' }}>{tr('A pirâmide de sempre (Várzea → Série A) com os clubes da galera: o de cada um de vocês e os clubes batizados. Brasil Oficial e Global chegam depois.', 'The usual pyramid (Várzea → Série A) with the crew\'s clubs: each of yours plus the christened clubs. Official Brazil and Global come later.')}</p>
+      </Secao>
       <Secao num={n++} title={tr('A carreira', 'The career')} icon="🌐" sub={tr('O nome da carreira e o do seu clube', 'The career name and your club name')}>
         <div><p style={rot}>{tr('Nome da carreira', 'Career name')}</p><input style={campo} value={nome} onChange={e => setNome(e.target.value.slice(0, 40))} placeholder={nomeFinal} /></div>
         <div><p style={rot}>{tr('Seu clube', 'Your club')}</p><input style={campo} value={clube} onChange={e => setClube(e.target.value.slice(0, 24))} placeholder={tr('Nome do seu clube', 'Your club name')} /></div>
       </Secao>
+      <Secao num={n++} title={tr('O baralho', 'The deck')} icon="🃏" sub={tr('De onde vêm as cartas do leilão', 'Where the auction cards come from')}>
+        <Opcoes options={[['todos', tr('🌎 Brasil + Europa + Mundo', '🌎 Brazil + Europe + World')], ['br', tr('🇧🇷 Só Brasil', '🇧🇷 Brazil only')]]} value={cfg.baralho ?? 'todos'} onSet={v => setCfg(c => ({ ...c, baralho: v as 'br' | 'todos' }))} />
+        <p style={{ fontWeight: 700, fontSize: 11.5, margin: 0, color: '#6b6250' }}>{cfg.baralho === 'br' ? tr('Só as cartas do baralho Brasil, na carreira inteira.', 'Only Brazil deck cards, for the whole career.') : tr('Todas as cartas do jogo: Brasil, Europa e Mundo.', 'Every card in the game: Brazil, Europe and World.')}</p>
+      </Secao>
       <Secao num={n++} title={tr('O leilão', 'The auction')} icon="🤖" sub={tr('Quantos bots disputam as cartas com vocês', 'How many bots bid against you')}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
-          {[0, 1, 2, 3, 4, 5].map(b => <button key={b} type="button" onClick={() => setCfg(c => ({ ...c, bots: b }))} style={{ ...op(cfg.bots === b), fontSize: 15, padding: '6px 0' }}>{b}</button>)}
-        </div>
+        <Opcoes options={[0, 1, 2, 3, 4, 5].map(b => [String(b), b === 0 ? tr('Sem bots', 'No bots') : `${b} bot${b > 1 ? 's' : ''}`] as [string, string])} value={String(cfg.bots)} onSet={v => setCfg(c => ({ ...c, bots: Number(v) }))} />
         <p style={{ fontWeight: 700, fontSize: 11.5, margin: 0, color: '#6b6250' }}>{cfg.bots === 0 ? tr('Sem bots: o leilão é só entre vocês. Com poucos técnicos, sobra muita carta pro Monte.', 'No bots: the auction is just between you. With few managers, lots of cards go to the pile.') : tr(`${cfg.bots} bot${cfg.bots > 1 ? 's' : ''} disputando as cartas. A liga tem os outros clubes de sempre.`, `${cfg.bots} bot${cfg.bots > 1 ? 's' : ''} bidding. The league has the usual other clubs.`)}</p>
       </Secao>
       <Secao num={n++} title={tr('O ritmo', 'The pace')} icon="⚡" sub={tr('Como as rodadas andam', 'How the rounds move')}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-          <button type="button" onClick={() => setCfg(c => ({ ...c, modo: 'dinamica' }))} style={{ ...op(cfg.modo === 'dinamica'), fontSize: 14, textTransform: 'uppercase' }}>⚡ {tr('Dinâmica', 'Dynamic')}</button>
-          <button type="button" onClick={() => setCfg(c => ({ ...c, modo: 'livre' }))} style={{ ...op(cfg.modo === 'livre'), fontSize: 14, textTransform: 'uppercase' }}>🧭 {tr('Livre', 'Free')}</button>
-        </div>
+        <Opcoes options={[['dinamica', tr('⚡ Dinâmica', '⚡ Dynamic')], ['livre', tr('🧭 Livre', '🧭 Free')]]} value={cfg.modo} onSet={v => setCfg(c => ({ ...c, modo: v as Co2Cfg['modo'] }))} />
         <p style={{ fontWeight: 700, fontSize: 11.5, margin: 0, color: '#6b6250' }}>{cfg.modo === 'dinamica' ? tr('As rodadas seguem direto. Só para quando começa uma competição nova.', 'Rounds run straight on. Only pauses when a new competition starts.') : tr('Cada rodada espera todo mundo apertar PRONTO (ou o tempo acabar).', 'Each round waits for everyone to hit READY (or the time to run out).')}</p>
         <Co2Tempos valor={cfg.tempos} onMuda={t => setCfg(c => ({ ...c, tempos: t }))} />
       </Secao>
@@ -247,7 +254,7 @@ export function Co2Criar({ nomeClube, Secao, primeiro, onAbre }: { nomeClube: st
       <div style={{ background: INK, borderRadius: 18, padding: 12 }}>
         <p style={{ ...OSWALD, fontSize: 12, letterSpacing: '.08em', color: GOLD, margin: '0 0 8px', textTransform: 'uppercase' }}>📋 {tr('Sua carreira', 'Your career')}</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-          {[`🌐 ${nomeFinal}`, `🛡️ ${clube.trim() || nomeClube}`, cfg.bots ? `🤖 ${cfg.bots} bots` : tr('🤖 sem bots', '🤖 no bots'), cfg.modo === 'dinamica' ? tr('⚡ Dinâmica', '⚡ Dynamic') : tr('🧭 Livre', '🧭 Free'), tr('até 20 clubes', 'up to 20 clubs')].map(t => (
+          {[tr('🪜 Tradicional', '🪜 Classic'), `🌐 ${nomeFinal}`, cfg.baralho === 'br' ? tr('🇧🇷 Só Brasil', '🇧🇷 Brazil only') : tr('🌎 BR + Europa + Mundo', '🌎 BR + Europe + World'), `🛡️ ${clube.trim() || nomeClube}`, cfg.bots ? `🤖 ${cfg.bots} bots` : tr('🤖 sem bots', '🤖 no bots'), cfg.modo === 'dinamica' ? tr('⚡ Dinâmica', '⚡ Dynamic') : tr('🧭 Livre', '🧭 Free'), tr('até 20 clubes', 'up to 20 clubs')].map(t => (
             <span key={t} style={{ ...OSWALD, fontSize: 11, background: '#2b241a', color: CREAM, borderRadius: 7, padding: '3px 7px', textTransform: 'uppercase' }}>{t}</span>
           ))}
         </div>
@@ -319,7 +326,7 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
         const clubes = [...sn.clubes].sort((a, b) => a.assento - b.assento)
         const ordem = clubes.map(c => c.user_id)
         const eu = ordem.indexOf(sn.uid ?? '')
-        dispatch({ type: 'START_CAREER_SOLO', teamName: clubes[eu]?.nome ?? 'Meu Time', formation: '4-3-3', rivals: bots, co2: { sala: sala.id, nomes: clubes.map(c => c.nome), assento: eu } })
+        dispatch({ type: 'START_CAREER_SOLO', teamName: clubes[eu]?.nome ?? 'Meu Time', formation: '4-3-3', rivals: bots, league: cfg0?.baralho ?? 'todos', co2: { sala: sala.id, nomes: clubes.map(c => c.nome), assento: eu } })
         await co2Mundo('virada', 1, 0, { ordem, v: 1, modo, bots, tempos })
         return
       }
@@ -350,7 +357,7 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
       {/* 📜 27/11 (Diego: *"com regras da carreira lá na sala igual fizemos tb c o draft liga"*) */}
       <div style={{ ...caixa('#FFF7DB'), padding: 12 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: '0 0 8px', textTransform: 'uppercase', color: INK }}>📜 {tr('Regras da carreira', 'Career rules')}</p>
-        <Co2Regras cfg={souDono ? { bots, modo: sala.temporada > 0 ? (sn.mundo?.modo ?? modoSel) : modoSel, tempos } : null} />
+        <Co2Regras cfg={souDono ? { bots, modo: sala.temporada > 0 ? (sn.mundo?.modo ?? modoSel) : modoSel, tempos, baralho: cfg0?.baralho ?? 'todos' } : null} />
       </div>
       <div style={{ ...caixa(), padding: 16 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 22, margin: 0, textTransform: 'uppercase', color: INK }}>{sala.nome}</p>
@@ -389,7 +396,7 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
                 {(['dinamica', 'livre'] as const).map(m => <button key={m} type="button" onClick={() => setModoSel(m)} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 6px', fontWeight: 900, fontSize: 14, textTransform: 'uppercase', background: modoSel === m ? GOLD : '#fff', color: INK, cursor: 'pointer', boxShadow: modoSel === m ? `2px 2px 0 ${INK}` : 'none', ...OSWALD }}>{m === 'dinamica' ? `⚡ ${tr('Dinâmica', 'Dynamic')}` : `🧭 ${tr('Livre', 'Free')}`}</button>)}
               </div>
               <p style={{ fontWeight: 800, fontSize: 11.5, margin: '-2px 0 2px', color: 'rgba(0,0,0,.6)' }}>{modoSel === 'dinamica' ? tr(`As rodadas seguem direto. Só para quando começa uma competição nova (${tempos.pausa} s pra mexer no time).`, `Rounds run back to back. Only pauses when a new competition starts (${tempos.pausa} s to tweak the team).`) : tr('Cada rodada espera todo mundo apertar PRONTO (ou o tempo acabar).', 'Each round waits for everyone to hit READY (or the time to run out).')}</p>
-              <button disabled={indo} onClick={() => { guardaCfg(sala.id, { bots, modo: modoSel, tempos }); void comecar(modoSel) }} style={botao(GOLD)}>▶️ {tr('Começar a carreira', 'Start the career')}</button>
+              <button disabled={indo} onClick={() => { guardaCfg(sala.id, { bots, modo: modoSel, tempos, baralho: cfg0?.baralho ?? 'todos' }); void comecar(modoSel) }} style={botao(GOLD)}>▶️ {tr('Começar a carreira', 'Start the career')}</button>
             </div>
           ) : (
           <button disabled={indo || (sala.temporada === 0 && clubes.length < 2)} onClick={() => void comecar()} style={botao(sala.temporada === 0 && clubes.length < 2 ? '#ddd' : GOLD)}>

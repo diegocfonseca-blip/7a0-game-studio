@@ -115,8 +115,8 @@ export async function co2PodeCriar(): Promise<boolean> {
   const { data } = await supabase.rpc('esc_carr_pode_criar')
   return data === true
 }
-export async function co2Criar(nome: string, clube: string): Promise<{ id?: string; codigo?: string; erro?: string }> {
-  const { data, error } = await supabase.rpc('esc_carr_criar', { p_nome: nome, p_clube: clube, p_baralho: 'todos', p_versao: '' })
+export async function co2Criar(nome: string, clube: string, baralho: 'br' | 'todos' = 'todos'): Promise<{ id?: string; codigo?: string; erro?: string }> {
+  const { data, error } = await supabase.rpc('esc_carr_criar', { p_nome: nome, p_clube: clube, p_baralho: baralho, p_versao: '' })
   if (error) return { erro: error.message }
   return data as { id?: string; codigo?: string; erro?: string }
 }
