@@ -6,9 +6,15 @@
 // Quando todo convidado decidiu, a MESMA campanha (72 clubes, 14 noites) nasce em todo aparelho, com os amigos nos clubes deles.
 // Puro (sem React, sem banco). Trava: `node scripts/carreira-online/testa-internacional.mjs`.
 import type { Card } from './types'
+import { INTERNATIONAL_CLUBS, internationalClubCards, internationalCardKey, validInternationalXI } from './career-international'
 
-/** O que cada clube de gente decidiu na temporada internacional (vai na gaveta). `club: null` = ficou sem clube pra convocar. */
+/** O que cada clube de gente decidiu na temporada internacional (vai na gaveta). `club: null` = ficou sem clube pra convocar.
+ *  Clube SEM `xi` = aceitou o convite e está convocando (o clube já sai da lista dos outros). */
 export type Co2IntlEscolha = { season: number; club: string | null; xi?: Card[] }
+/** ⏱️ 27/11 (Diego): na ⚡ Dinâmica, 60 s pra escolher o clube e 90 s pra convocar. Passou: o jogo dá o PIOR clube da lista e
+ *  escala os PIORES — igual às salas online. Na 🧭 Livre não tem relógio; o "Pular" do dono faz o mesmo. */
+export const INTL_PRAZO_ESCOLHA_S = 60
+export const INTL_PRAZO_CONVOCA_S = 90
 /** Um convidado (clube de gente no G8/Copa), na ordem da prioridade. */
 export type Co2IntlVaga = { mgrId: number; priority: number; name: string }
 /** O amigo como a campanha precisa dele. */
@@ -22,12 +28,14 @@ export function filaIntl(vagas: readonly Co2IntlVaga[]): Co2IntlVaga[] {
   return [...vagas].sort((a, b) => a.priority - b.priority || a.mgrId - b.mgrId)
 }
 
-const decidiu = (e: Co2IntlEscolha | undefined, season: number) => !!e && e.season === season
+/** decidiu de vez: sem clube, ou clube + XI convocado */
+export const decidiuIntl = (e: Co2IntlEscolha | undefined, season: number) => !!e && e.season === season && (e.club === null || e.xi?.length === 11)
+const decidiu = decidiuIntl
 
 /** De quem é a vez (o mais alto que ainda não decidiu e não foi pulado pelo dono). `null` = todos decidiram. */
 export function vezDaIntl(fila: readonly Co2IntlVaga[], escolhas: Readonly<Record<number, Co2IntlEscolha | undefined>>, pulados: readonly number[], season: number): number | null {
   for (const v of filaIntl(fila)) {
-    if (pulados.includes(v.mgrId) || decidiu(escolhas[v.mgrId], season)) continue
+    if (pulados.includes(v.mgrId) || decidiu(escolhas[v.mgrId], season)) continue // (pulado = quem o dono dava fora; desde 27/11 o dono/relógio dá o pior, que já vem como escolha)
     return v.mgrId
   }
   return null
@@ -74,4 +82,41 @@ export function contaTitulosIntl(hist: readonly Co2IntlHist[] | undefined, mgrId
     if (h.mun.mgrId === mgrId) out.mundial_titles++
   }
   return out
+}
+
+const POS = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const
+const NEEDS: Record<'4-3-3' | '4-4-2', Record<typeof POS[number], number>> = { '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }, '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 } }
+const media = (c: { lo: number; hi: number }) => (c.lo + c.hi) / 2
+/** o XI do clube por formação: os MELHORES (`melhor`) ou os PIORES; `null` se o baralho não fecha a formação */
+function xiDoClube(club: string, form: '4-3-3' | '4-4-2', melhor: boolean): Card[] | null {
+  const cs = internationalClubCards(club)
+  const out: Card[] = []
+  for (const pos of POS) {
+    const daPos = [...new Map(cs.filter(c => c.pos === pos).map(c => [internationalCardKey(c), c])).values()]
+      .sort((a, b) => (melhor ? media(b) - media(a) : media(a) - media(b)) || internationalCardKey(a).localeCompare(internationalCardKey(b)))
+    if (daPos.length < NEEDS[form][pos]) return null
+    out.push(...(daPos.slice(0, NEEDS[form][pos]) as unknown as Card[]))
+  }
+  return validInternationalXI(out) ? out : null
+}
+/** ⭐ a força do clube (média do melhor time de lendas) — só pra ORDENAR; o número não aparece na tela */
+export function forcaIntl(club: string): number {
+  const xi = xiDoClube(club, '4-3-3', true) ?? xiDoClube(club, '4-4-2', true)
+  return xi ? Math.round(xi.reduce((n, c) => n + media(c), 0) / xi.length) : 0
+}
+/** 🥴 os PIORES 11 do clube (o jogo escala quando a pessoa não convocou a tempo) */
+export function piorXIIntl(club: string): Card[] | null {
+  return xiDoClube(club, '4-3-3', false) ?? xiDoClube(club, '4-4-2', false)
+}
+/** 🥴 o PIOR clube da lista (Libertadores, livre, que fecha time) — o que a pessoa ganha quando não escolheu a tempo */
+export function piorClubeLivre(tomados: readonly string[]): string | null {
+  const livres = INTERNATIONAL_CLUBS.filter(c => c.competition === 'libertadores' && !tomados.includes(c.name) && piorXIIntl(c.name))
+  livres.sort((a, b) => forcaIntl(a.name) - forcaIntl(b.name) || a.name.localeCompare(b.name))
+  return livres[0]?.name ?? null
+}
+/** a escolha automática (relógio esgotado ou "Pular" do dono): o clube que ele reservou, ou o pior livre; e os piores 11 */
+export function escolhaAutomatica(season: number, reservado: string | null | undefined, tomadosPorOutros: readonly string[]): Co2IntlEscolha {
+  const club = reservado && piorXIIntl(reservado) ? reservado : piorClubeLivre(tomadosPorOutros)
+  const xi = club ? piorXIIntl(club) : null
+  return club && xi ? { season, club, xi } : { season, club: null }
 }

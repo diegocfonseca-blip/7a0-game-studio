@@ -9904,9 +9904,12 @@ function reducerBase(state: EscState, action: Action): EscState {
     // feitas no OPEN_RESERVE_LIST local) e trava. A tela sobe o `fechamento` na gaveta. Nada aqui mexe em outro clube.
     case 'CO2_INTL_ESCOLHA': {
       if (!s.co2 || action.escolha.season !== s.seasonNo) return s
-      if (s.co2.minhaIntl?.season === action.escolha.season) return s // aceitou, está aceito (a fila dos outros andou com isso)
       const e = action.escolha
-      if (e.club && (!validInternationalXI(e.xi ?? []) || !(e.xi ?? []).every(card => isInternationalClubCard(e.club!, card)))) return s
+      const ja = s.co2.minhaIntl?.season === e.season ? s.co2.minhaIntl : undefined
+      // aceitou, está aceito (a fila dos outros andou com isso) — só dá pra completar a convocação do MESMO clube que reservou
+      if (ja && (ja.club === null || ja.xi?.length === 11 || ja.club !== e.club || !e.xi)) return s
+      // clube sem XI = reservou (aceitou o convite e vai convocar); com XI tem que ser 11 cartas reais DAQUELE clube
+      if (e.club && e.xi && (!validInternationalXI(e.xi) || !e.xi.every(card => isInternationalClubCard(e.club!, card)))) return s
       // 🛡️ clube que um amigo já levou não pode (a tela nem mostra, mas a regra mora aqui também)
       if (e.club && s.co2.gavetas.some(g => g.intl?.season === e.season && g.intl.club === e.club)) return s
       s.co2 = { ...s.co2, minhaIntl: e }
@@ -9914,7 +9917,9 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'CO2_COPA_ESCOLHA': {
       if (!s.co2 || s.co2.espelho) return s
-      if (s.co2.minhaCopa?.season === action.escolha.season) return s // decidiu, está decidido (a fila dos outros andou com isso)
+      // decidiu, está decidido (a fila dos outros andou com isso) — quem RESERVOU a seleção só completa a convocação dela
+      const ja = s.co2.minhaCopa?.season === action.escolha.season ? s.co2.minhaCopa : undefined
+      if (ja && (!ja.reserva || action.escolha.reserva || ja.pais !== action.escolha.pais)) return s
       s.co2 = { ...s.co2, minhaCopa: action.escolha }
       return s
     }

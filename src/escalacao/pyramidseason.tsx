@@ -164,7 +164,7 @@ import { useCampo2DLigado, useCampo2DExtras, ligaCampo2D, useQuadra2DLigada } fr
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester, intlDesdeDe, INTERNATIONAL_CLUBS } from './career-international'
-import { vezDaIntl, clubesTomados, amigosDaIntl, filaIntl, titulosDaIntl, contaTitulosIntl, type Co2IntlEscolha } from './co2-internacional' // 🌎 27/11 Libertadores/Champions únicas na carreira online
+import { vezDaIntl, clubesTomados, amigosDaIntl, filaIntl, titulosDaIntl, contaTitulosIntl, decidiuIntl, piorXIIntl, escolhaAutomatica, INTL_PRAZO_ESCOLHA_S, INTL_PRAZO_CONVOCA_S, type Co2IntlEscolha } from './co2-internacional' // 🌎 27/11 Libertadores/Champions únicas na carreira online
 import { CareerInternationalView, topoInternacional, CarreiraPresidente } from './career-international-view'
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
@@ -11007,19 +11007,57 @@ export function PyramidSeasonScreen() {
     const escolhas: Record<number, Co2IntlEscolha | undefined> = {}
     for (const g of state.co2.gavetas) if (g.intl) escolhas[g.mgrId] = g.intl
     if (state.co2.minhaIntl) escolhas[youId] = state.co2.minhaIntl
-    const pulados = mundoCo2?.intlPula?.season === season ? mundoCo2.intlPula.ids : []
-    const vez = vezDaIntl(fila, escolhas, pulados, season)
+    // ⏱️ escolha AUTOMÁTICA (relógio da Dinâmica esgotou ou o dono pulou): o clube carimbado pelo dono + os piores 11 — vale por cima
+    // do que a pessoa tiver mandado (todo aparelho monta a MESMA campanha)
+    const auto = mundoCo2?.intlAuto?.season === season ? mundoCo2.intlAuto.por : {}
+    for (const [id, club] of Object.entries(auto)) escolhas[Number(id)] = club ? { season, club, xi: piorXIIntl(club) ?? [] } : { season, club: null }
+    const vez = vezDaIntl(fila, escolhas, [], season)
     const nomeDe = (id: number) => state.managers.find(m => m.id === id)?.teamName ?? fila.find(v => v.mgrId === id)?.name ?? '?'
-    const filaVez = fila.map(v => ({ ...v, estado: (pulados.includes(v.mgrId) ? 'pulado' : escolhas[v.mgrId]?.season === season ? (escolhas[v.mgrId]!.club ?? 'sem') : v.mgrId === vez ? 'vez' : 'espera') as string }))
+    const filaVez = fila.map(v => {
+      const e = escolhas[v.mgrId]
+      const estado = decidiuIntl(e, season) ? (e!.club ?? 'sem') + (v.mgrId in auto ? ' 🤖' : '') : v.mgrId === vez ? (e?.club ? 'convoca' : 'vez') : 'espera'
+      return { ...v, estado }
+    })
+    const minha = escolhas[youId]?.season === season ? escolhas[youId] : undefined
+    const vezE = vez != null ? escolhas[vez] : undefined
+    const fase: 'escolha' | 'convoca' = vezE?.season === season && vezE.club ? 'convoca' : 'escolha'
+    const relogio = mundoCo2?.modo === 'dinamica' && vez != null && mundoCo2.intlVez?.season === season && mundoCo2.intlVez.mgrId === vez && mundoCo2.intlVez.fase === fase
+      ? new Date(mundoCo2.intlVez.desde).getTime() + (fase === 'escolha' ? INTL_PRAZO_ESCOLHA_S : INTL_PRAZO_CONVOCA_S) * 1000 : null
     return {
-      fila: filaVez, vez, pulado: pulados.includes(youId), qualificado: fila.some(v => v.mgrId === youId) && !pulados.includes(youId),
-      tomados: clubesTomados(escolhas, season, youId), minha: escolhas[youId]?.season === season ? escolhas[youId] : undefined,
-      amigos: vez === null ? amigosDaIntl(escolhas, season, youId, nomeDe, pulados) : null,
+      fila: filaVez, vez, fase, prazo: relogio, pulado: false, qualificado: fila.some(v => v.mgrId === youId),
+      decidi: decidiuIntl(minha, season), automatica: youId in auto,
+      tomados: clubesTomados(escolhas, season, youId), minha,
+      // quem está acima da vez já decidiu: os clubes deles saem da lista do pior clube
+      tomadosAntes: vez != null ? clubesTomados(escolhas, season, vez) : [],
+      amigos: vez === null ? amigosDaIntl(escolhas, season, youId, nomeDe) : null,
     }
-  }, [state.co2, intlEnabled, intlQualifiers, state.seasonNo, youId, mundoCo2?.intlPula, state.managers])
-  const intlPriority = intlCo2?.pulado ? null : intlQualifiers.find(entry => entry.team.teamId === youId)?.priority ?? null
+  }, [state.co2, intlEnabled, intlQualifiers, state.seasonNo, youId, mundoCo2?.intlAuto, mundoCo2?.intlVez, mundoCo2?.modo, state.managers])
+  // ⏱️ o DONO carimba o relógio quando a vez (ou a fase: escolher → convocar) muda, e dá o automático quando ele esgota (só na ⚡ Dinâmica)
+  const intlVezChave = intlCo2 && intlCo2.vez != null ? `${state.seasonNo}:${intlCo2.vez}:${intlCo2.fase}` : ''
+  useEffect(() => {
+    if (!state.co2?.comanda || !intlCo2 || intlCo2.vez == null || mundoCo2?.modo !== 'dinamica' || !intlRequired) return
+    const mm = co2Agora().mundo ?? mundoCo2
+    const iv = mm.intlVez
+    if (iv?.season === (state.seasonNo ?? 1) && iv.mgrId === intlCo2.vez && iv.fase === intlCo2.fase) return
+    void co2Mundo('virada', null, null, { ...mm, intlVez: { season: state.seasonNo ?? 1, mgrId: intlCo2.vez, fase: intlCo2.fase, desde: new Date().toISOString() } })
+  }, [intlVezChave, state.co2?.comanda, mundoCo2?.modo, intlRequired]) // eslint-disable-line react-hooks/exhaustive-deps
+  const intlDaAuto = (id: number) => {
+    const mm = co2Agora().mundo ?? mundoCo2
+    if (!mm || !intlCo2) return
+    const season = state.seasonNo ?? 1
+    const reservado = state.co2?.gavetas.find(g => g.mgrId === id)?.intl ?? (id === youId ? state.co2?.minhaIntl : undefined)
+    const e = escolhaAutomatica(season, reservado?.season === season ? reservado.club : null, intlCo2.tomadosAntes)
+    const por = { ...(mm.intlAuto?.season === season ? mm.intlAuto.por : {}), [id]: e.club }
+    void co2Mundo('virada', null, null, { ...mm, intlAuto: { season, por } })
+  }
+  useEffect(() => {
+    if (!state.co2?.comanda || !intlCo2?.prazo || intlCo2.vez == null) return
+    const vez = intlCo2.vez
+    const t = setTimeout(() => intlDaAuto(vez), Math.max(0, intlCo2.prazo - Date.now()) + 500)
+    return () => clearTimeout(t)
+  }, [intlCo2?.prazo, intlCo2?.vez, state.co2?.comanda]) // eslint-disable-line react-hooks/exhaustive-deps
+  const intlPriority = intlQualifiers.find(entry => entry.team.teamId === youId)?.priority ?? null
   const intlChoices = useMemo(() => {
-    if (intlCo2?.pulado) return []
     const base = internationalChoice(intlEnabled && (state.seasonNo ?? 1) >= intlDesde, state.seasonNo ?? 1, intlQualifiers, `m${youId}`, teamKey)
     // 🌎 carreira online (Diego 27/11): TODOS os clubes convidam quem tem vaga — o de cima escolhe primeiro; clube que amigo já aceitou sai da lista
     return intlCo2 ? (base.length ? INTERNATIONAL_CLUBS.filter(c => !intlCo2.tomados.includes(c.name)) : []) : base
@@ -14547,9 +14585,7 @@ export function PyramidSeasonScreen() {
           onFinish={entry => dispatch({ type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry })} topoGrande={privateCareer && intlNoAr}
           co2={intlCo2 ? { ...intlCo2, comanda: !!state.co2?.comanda, meuId: youId,
             onEscolha: (e: Co2IntlEscolha) => dispatch({ type: 'CO2_INTL_ESCOLHA', escolha: e }),
-            onPular: (id: number) => { const mm = co2Agora().mundo ?? mundoCo2; const season = state.seasonNo ?? 1; if (!mm) return
-              const ja = mm.intlPula?.season === season ? mm.intlPula.ids : []
-              void co2Mundo('virada', null, null, { ...mm, intlPula: { season, ids: [...new Set([...ja, id])] } }) } } : undefined} />}
+            onPular: intlDaAuto } : undefined} />}
         {/* 📰 PASSO 1: a NOTÍCIA. Primeiro o jornal, que é o que a cabeça quer saber. */}
         {copaFinished && me && (!roteiroOn || fimPasso === 1) && (
           <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copaBase} oficial={state.oficial && desfecho ? { tipo: desfecho.tipo, para: desfecho.para, playoff: !!playoffB } : undefined} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}

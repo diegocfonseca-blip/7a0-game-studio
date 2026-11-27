@@ -18,7 +18,7 @@ import { CMModal, ConvocacaoScreen, CupScreen, simulaCopaMundo, loadCopaSave, ba
 /** força da seleção = média do melhor XI dela no baralho (só ORDENA os convites; o número não aparece, Diego 27/11) */
 const forcaSelecao = (pais: string) => { const pool = countryPool(pais); return Math.round(xiStrength(bestXI(pool, formationFits(pool, '4-3-3') ? '4-3-3' : '4-4-2'))) }
 import { rankingSelecoes } from './paises'
-import { vezDaCopa, convitesDaCopa, entrantsDaCopa, ordemDeEscolha, type Co2CopaVaga, type Co2CopaEscolha } from './co2-copa-mundo'
+import { vezDaCopa, convitesDaCopa, entrantsDaCopa, ordemDeEscolha, selecoesTomadas, decidiuCopa, escolhaCopaAuto, COPA_PRAZO_ESCOLHA_S, COPA_PRAZO_CONVOCA_S, type Co2CopaVaga, type Co2CopaEscolha } from './co2-copa-mundo'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -633,14 +633,44 @@ export function Co2CopaMundo({ top, seasonNo, seed, motor2, onPrize, onCard, onA
   const [paisEscolhido, setPaisEscolhido] = useState<string | null>(null)
   const ehAnoDeCopa = (seasonNo - 1) % 4 === 0
   const paises = useMemo(() => rankingSelecoes().slice(0, 32).map(p => p.pais), [])
+  // ⏱️ escolha AUTOMÁTICA (relógio da Dinâmica ou o dono pulou): a seleção carimbada pelo dono + os piores 11 — vale por cima
+  const auto = useMemo(() => (sn.mundo?.copaAuto?.season === seasonNo ? sn.mundo.copaAuto.por : {}), [sn.mundo?.copaAuto, seasonNo])
   const escolhas = useMemo(() => {
     const out: Record<number, Co2CopaEscolha | undefined> = {}
     for (const g of state.co2?.gavetas ?? []) if (g.copaMundo) out[g.mgrId] = g.copaMundo
     if (meuId != null && state.co2?.minhaCopa) out[meuId] = state.co2.minhaCopa
+    for (const [id, pais] of Object.entries(auto)) out[Number(id)] = pais ? escolhaCopaAuto(seasonNo, pais, paises, new Set()) : { season: seasonNo, pais: null }
     return out
-  }, [state.co2?.gavetas, state.co2?.minhaCopa, meuId])
-  const pula = sn.mundo?.copaPula?.season === seasonNo ? sn.mundo.copaPula.ids : []
+  }, [state.co2?.gavetas, state.co2?.minhaCopa, meuId, auto, paises, seasonNo])
+  const pula: number[] = []
   const vez = vezDaCopa(top, escolhas, pula, seasonNo)
+  const vezE = vez != null ? escolhas[vez] : undefined
+  const fase: 'escolha' | 'convoca' = vezE?.season === seasonNo && vezE.reserva ? 'convoca' : 'escolha'
+  const dinamica = sn.mundo?.modo === 'dinamica'
+  const cv = sn.mundo?.copaVez
+  const prazo = dinamica && ehAnoDeCopa && vez != null && cv?.season === seasonNo && cv.mgrId === vez && cv.fase === fase ? new Date(cv.desde).getTime() + (fase === 'escolha' ? COPA_PRAZO_ESCOLHA_S : COPA_PRAZO_CONVOCA_S) * 1000 : null
+  const daAuto = (id: number) => {
+    const mm = co2Agora().mundo ?? sn.mundo
+    if (!mm) return
+    const e = escolhas[id]
+    const esc = escolhaCopaAuto(seasonNo, e?.season === seasonNo && e.reserva ? e.pais : null, paises, selecoesTomadas(escolhas, seasonNo, id))
+    void co2Mundo('virada', null, null, { ...mm, copaAuto: { season: seasonNo, por: { ...(mm.copaAuto?.season === seasonNo ? mm.copaAuto.por : {}), [id]: esc.pais } } })
+  }
+  // ⏱️ o DONO carimba o relógio quando a vez/fase muda e dá o automático quando ele esgota (só na ⚡ Dinâmica)
+  useEffect(() => {
+    if (!comanda || !dinamica || !ehAnoDeCopa || vez == null) return
+    const mm = co2Agora().mundo ?? sn.mundo
+    if (!mm || (mm.copaVez?.season === seasonNo && mm.copaVez.mgrId === vez && mm.copaVez.fase === fase)) return
+    void co2Mundo('virada', null, null, { ...mm, copaVez: { season: seasonNo, mgrId: vez, fase, desde: new Date().toISOString() } })
+  }, [comanda, dinamica, ehAnoDeCopa, vez, fase, seasonNo]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!comanda || prazo == null || vez == null) return
+    const id = vez
+    const t = setTimeout(() => daAuto(id), Math.max(0, prazo - Date.now()) + 500)
+    return () => clearTimeout(t)
+  }, [comanda, prazo, vez]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [agora, setAgora] = useState(() => Date.now())
+  useEffect(() => { if (prazo == null) return; const t = setInterval(() => setAgora(Date.now()), 500); return () => clearInterval(t) }, [prazo])
   const nomeDe = (id: number) => top.find(v => v.mgrId === id)?.name ?? '?'
   const convidado = meuId != null && top.some(v => v.mgrId === meuId)
   const entrants = useMemo(() => (vez === null ? entrantsDaCopa(top, paises, escolhas, seasonNo, meuId) : null), [vez, top, paises, escolhas, seasonNo, meuId])
@@ -653,9 +683,10 @@ export function Co2CopaMundo({ top, seasonNo, seed, motor2, onPrize, onCard, onA
   }, [comanda, entrants, sn.mundo, seasonNo, seed, motor2])
   if (!ehAnoDeCopa) return null
   const pular = (id: number) => {
-    if (!sn.mundo || !window.confirm(tr(`Pular ${nomeDe(id)}? Ele fica fora desta Copa do Mundo e o próximo escolhe.`, `Skip ${nomeDe(id)}? They sit out this World Cup and the next one picks.`))) return
-    void co2Mundo('virada', null, null, { ...sn.mundo, copaPula: { season: seasonNo, ids: [...new Set([...pula, id])] } })
+    if (!window.confirm(fase === 'escolha' ? tr(`Pular ${nomeDe(id)}? Ele fica com a PIOR seleção da lista, com os piores jogadores, e o próximo escolhe.`, `Skip ${nomeDe(id)}? They get the WORST team on the list, with its worst players, and the next one picks.`) : tr(`Pular ${nomeDe(id)}? O jogo escala os PIORES jogadores da seleção dele e o próximo escolhe.`, `Skip ${nomeDe(id)}? The game picks their team's WORST players and the next one picks.`))) return
+    daAuto(id)
   }
+  const restante = prazo != null ? Math.max(0, Math.ceil((prazo - agora) / 1000)) : null
   const minha = meuId != null ? escolhas[meuId] : undefined
   const ordem = ordemDeEscolha(top)
   const save: CopaSave = loadCopaSave(seed) ?? { anchor: 1, ciclo: 4, calendario: 2, mural: [], played: [] }
@@ -666,7 +697,7 @@ export function Co2CopaMundo({ top, seasonNo, seed, motor2, onPrize, onCard, onA
         <div style={{ display: 'grid', gap: 3, marginBottom: 8 }}>
           {ordem.map(id => {
             const e = escolhas[id]
-            const st = pula.includes(id) ? tr('pulado', 'skipped') : e?.season === seasonNo ? (e.pais ? `${e.pais}` : tr('recusou', 'declined')) : id === vez ? tr('escolhendo…', 'picking…') : tr('espera a vez', 'waits')
+            const st = decidiuCopa(e, seasonNo) ? (e!.pais ? `${e!.pais}` : tr('recusou', 'declined')) + (id in auto ? ' 🤖' : '') : id === vez ? (fase === 'convoca' ? tr('convocando…', 'calling up…') : tr('escolhendo…', 'picking…')) : tr('espera a vez', 'waits')
             return (
               <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: 12.5 }}>
                 <span style={{ ...OSWALD, fontWeight: 900, minWidth: 30 }}>{top.findIndex(v => v.mgrId === id) + 1}º</span>
@@ -678,12 +709,16 @@ export function Co2CopaMundo({ top, seasonNo, seed, motor2, onPrize, onCard, onA
           })}
         </div>
       )}
+      {restante != null && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: '0 0 6px', textAlign: 'center', color: restante <= 15 ? '#C2452F' : INK }}>⏱️ {Math.floor(restante / 60)}:{String(restante % 60).padStart(2, '0')} · <span style={{ fontFamily: 'inherit', fontSize: 11 }}>{fase === 'escolha' ? tr('acabou o tempo = a PIOR seleção da lista', 'time up = the WORST team on the list') : tr('acabou o tempo = os PIORES jogadores', 'time up = the WORST players')}</span></p>}
+      {meuId != null && meuId in auto && <p style={{ fontWeight: 800, fontSize: 12, margin: '0 0 6px', color: '#C2452F' }}>🤖 {minha?.pais ? tr(`O tempo acabou: você ficou com ${minha.pais}, com os piores jogadores.`, `Time ran out: you got ${minha.pais}, with the worst players.`) : tr('O tempo acabou e nenhuma seleção sobrou pra você.', 'Time ran out and no team was left for you.')}</p>}
       {vez === null ? (
         <button onClick={() => setAberto('copa')} style={botao(GOLD)}>🌍 {tr('Ver a Copa do Mundo', 'Watch the World Cup')}</button>
       ) : vez === meuId ? (
-        <button onClick={() => setAberto('convite')} style={botao(GOLD)}>✉️ {tr('Sua vez: ver os convites', 'Your turn: see the invitations')}</button>
+        fase === 'convoca' && minha?.pais
+          ? <button onClick={() => { setPaisEscolhido(minha.pais); setAberto('convoca') }} style={botao(GOLD)}>📋 {tr(`Convocar ${minha.pais}`, `Call up ${minha.pais}`)}</button>
+          : <button onClick={() => setAberto('convite')} style={botao(GOLD)}>✉️ {tr('Sua vez: ver os convites', 'Your turn: see the invitations')}</button>
       ) : (
-        <p style={{ fontWeight: 800, fontSize: 12, margin: 0, color: 'rgba(0,0,0,.65)' }}>{!convidado ? tr('Seu clube não está entre os 32 do ranking desta vez. A Copa começa quando os convidados decidirem.', 'Your club is not in the ranking top 32 this time. The Cup starts once the invited decide.') : minha?.season === seasonNo ? tr('Você já decidiu. A Copa começa quando todos os convidados decidirem.', 'You have decided. The Cup starts once everyone invited decides.') : tr(`Vez de ${nomeDe(vez)} escolher. A seleção que ele levar sai da sua lista.`, `${nomeDe(vez)} is picking. The team they take leaves your list.`)}</p>
+        <p style={{ fontWeight: 800, fontSize: 12, margin: 0, color: 'rgba(0,0,0,.65)' }}>{!convidado ? tr('Seu clube não está entre os 32 do ranking desta vez. A Copa começa quando os convidados decidirem.', 'Your club is not in the ranking top 32 this time. The Cup starts once the invited decide.') : decidiuCopa(minha, seasonNo) ? tr('Você já decidiu. A Copa começa quando todos os convidados decidirem.', 'You have decided. The Cup starts once everyone invited decides.') : tr(`Vez de ${nomeDe(vez)} escolher. A seleção que ele levar sai da sua lista.`, `${nomeDe(vez)} is picking. The team they take leaves your list.`)}</p>
       )}
       {aberto === 'convite' && meuId != null && (
         <CMModal>
@@ -693,7 +728,7 @@ export function Co2CopaMundo({ top, seasonNo, seed, motor2, onPrize, onCard, onA
           <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', textAlign: 'center', margin: '0 0 10px' }}>{tr('Você escolhe antes de quem ficou abaixo no ranking — e a seleção que você levar sai da lista deles.', 'You pick before those below you in the ranking — and the team you take leaves their list.')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 8, marginBottom: 8 }}>
             {convitesDaCopa(top, paises, meuId, escolhas, seasonNo).map(p => ({ p, f: forcaSelecao(p) })).sort((a, b) => b.f - a.f || a.p.localeCompare(b.p)).map(({ p }) => (
-              <button key={p} onClick={() => { setPaisEscolhido(p); setAberto('convoca') }} style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#FBF5E4', border: `2.5px solid ${INK}`, borderRadius: 10, boxShadow: `2px 2px 0 ${INK}`, padding: '6px 7px', cursor: 'pointer', textAlign: 'left', color: INK }}>
+              <button key={p} onClick={() => { dispatch({ type: 'CO2_COPA_ESCOLHA', escolha: { season: seasonNo, pais: p, reserva: true } }); setPaisEscolhido(p); setAberto('convoca') }} style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#FBF5E4', border: `2.5px solid ${INK}`, borderRadius: 10, boxShadow: `2px 2px 0 ${INK}`, padding: '6px 7px', cursor: 'pointer', textAlign: 'left', color: INK }}>
                 <span style={{ fontSize: 24, lineHeight: 1 }}>{bandeiraDe(p)}</span>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontWeight: 900, fontSize: 12, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p}</span>
@@ -708,7 +743,7 @@ export function Co2CopaMundo({ top, seasonNo, seed, motor2, onPrize, onCard, onA
       )}
       {aberto === 'convoca' && paisEscolhido && (
         <CMModal>
-          <ConvocacaoScreen pais={paisEscolhido} onBack={() => setAberto('convite')} onDone={(xi, f) => {
+          <ConvocacaoScreen pais={paisEscolhido} onBack={() => setAberto(null)} onDone={(xi, f) => {
             dispatch({ type: 'CO2_COPA_ESCOLHA', escolha: { season: seasonNo, pais: paisEscolhido, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f } })
             setAberto(null)
           }} />

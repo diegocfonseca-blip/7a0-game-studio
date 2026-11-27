@@ -30,6 +30,13 @@ ok(porAparelho[0][2].you && !porAparelho[1][2].you, '"você" só no aparelho de 
 const camp = e => { const w = simulaCopaMundo(e, 123456, S, true, true, true); return JSON.stringify([w.champion ?? w.campeao ?? null, (w.rounds ?? w.fases ?? []).length]) }
 const r0 = JSON.stringify(simulaCopaMundo(porAparelho[0], 123456, S, true, true, true), (k, v) => k === 'you' || k === 'm2' ? undefined : v)
 ok(porAparelho.every(e => JSON.stringify(simulaCopaMundo(e, 123456, S, true, true, true), (k, v) => k === 'you' || k === 'm2' ? undefined : v) === r0), 'a Copa inteira (com motor novo) sai IGUAL nos 3 aparelhos')
+// ⏱️ relógio/pular na Copa
+const r0b = { 0: { season: S, pais: paises[3], reserva: true } }
+ok(C.vezDaCopa(top, r0b, [], S) === 0 && !C.convitesDaCopa(top, paises, 1, r0b, S).includes(paises[3]), 'reservou a seleção: ainda convocando, mas ela já saiu da lista dos outros')
+const au = C.escolhaCopaAuto(S, paises[3], paises, new Set())
+ok(au.pais === paises[3] && au.xiKeys.length === 11, 'convocação esgotada: a seleção reservada com 11')
+const au2 = C.escolhaCopaAuto(S, null, paises, new Set([paises[31]]))
+ok(au2.pais && au2.pais !== paises[31] && au2.xiKeys.length === 11, `escolha esgotada: a pior seleção livre (${au2.pais})`)
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ Copa do Mundo da carreira online ok')
 await vite.close()
 process.exit(falhas ? 1 : 0)

@@ -20,7 +20,7 @@ for (const [nome, w, dono, mural] of [['co2-intl-fila', 420, true, false], ['co2
     const K = await import('/src/escalacao/career-international.ts')
     const mural = ${mural}
     const co2 = { fila: [{ mgrId: 2, priority: 1, name: 'Tricolor do Arruda', estado: 'Boca Juniors' }, { mgrId: 1, priority: 2, name: 'Futpoint FC', estado: 'vez' }, { mgrId: 0, priority: 5, name: 'Neymarzetti', estado: mural ? 'vez' : 'espera' }],
-      vez: mural ? 0 : 1, meuId: 0, comanda: ${dono}, qualificado: true, pulado: false, tomados: ['Boca Juniors'], amigos: null, onEscolha(){}, onPular(){} }
+      vez: mural ? 0 : 1, meuId: 0, fase: 'escolha', prazo: Date.now() + 42000, decidi: false, automatica: false, comanda: ${dono}, qualificado: true, pulado: false, tomados: ['Boca Juniors'], amigos: null, onEscolha(){}, onPular(){} }
     createRoot(root).render(h(S.EscProvider, null, h(V.CareerInternationalView, { season: 3, seed: 1, userTeam: 'Neymarzetti', userId: 0, squad: [], choices: mural ? K.INTERNATIONAL_CLUBS.filter(c => c.name !== 'Boca Juniors') : [], priority: 5, campaign: null, history: [], onStart(){}, onAdvance(){}, onFinish(){}, co2 })))
     await new Promise(r=>setTimeout(r,1500))
   })()`.replaceAll('${mural}', String(mural)).replaceAll('${dono}', String(dono)))

@@ -55,6 +55,17 @@ const hist = [h]
 ok(I.contaTitulosIntl(hist, 0, SEASON).libertadores_titles === 0, 'título da temporada só conta no ranking depois que ela fecha')
 const quem = h.lib.mgrId
 if (quem != null) ok(I.contaTitulosIntl(hist, quem, SEASON + 1).libertadores_titles === 1, 'na temporada seguinte o campeão de gente ganha o título no ranking')
+// ⏱️ relógio/pular: reservou e não convocou = o clube dele com os PIORES 11; não escolheu = o PIOR clube livre
+const res = { 0: { season: SEASON, club: clubeA } }
+ok(I.vezDaIntl(fila, res, [], SEASON) === 0 && I.clubesTomados(res, SEASON, 2).includes(clubeA), 'reservou: ainda é a vez dele (convocando), mas o clube já saiu da lista dos outros')
+const a1 = I.escolhaAutomatica(SEASON, clubeA, [])
+ok(a1.club === clubeA && K.validInternationalXI(a1.xi) && a1.xi.every(c => K.isInternationalClubCard(clubeA, c)), 'convocação esgotada: o clube reservado, com 11 válidos')
+const melhores = I.forcaIntl(clubeA), media = xi => xi.reduce((n, c) => n + (c.lo + c.hi) / 2, 0) / xi.length
+ok(media(a1.xi) <= melhores, 'e são os PIORES do clube')
+const a2 = I.escolhaAutomatica(SEASON, null, [clubeA])
+const livres = K.INTERNATIONAL_CLUBS.filter(c => c.competition === 'libertadores' && c.name !== clubeA && I.piorXIIntl(c.name))
+ok(a2.club && livres.every(c => I.forcaIntl(c.name) >= I.forcaIntl(a2.club)), `escolha esgotada: o PIOR clube livre (${a2.club})`)
+ok(JSON.stringify(I.escolhaAutomatica(SEASON, null, [clubeA])) === JSON.stringify(a2), 'o automático sai igual em todo aparelho')
 // solo continua igual (sem amigos)
 const solo1 = S0.makeInternationalCampaign({ season: 41, seed: SEED, representedClub: clubeA, userTeam: 'Eu', userId: 0, priority: 1, userXI: xiDe(clubeA), motor2: true })
 ok(!solo1.teams.some(t => t.humano), 'carreira solo: nada muda (sem marca de gente)')

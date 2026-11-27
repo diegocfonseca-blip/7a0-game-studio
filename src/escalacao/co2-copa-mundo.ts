@@ -4,10 +4,15 @@
 // As 32 seleções e os jogos saem IGUAIS em todo aparelho: cada clube de gente com a seleção e o XI que ELE escolheu
 // (vindo da gaveta), e os bots pegam o que sobrou, na ordem do ranking — igual à Copa da carreira solo.
 // Puro (sem React, sem banco). Trava: `node scripts/carreira-online/testa-copa-mundo.mjs`.
-import { countryPool, bestXI, formationFits, xiStrength, type Entrant, type Formation, type PoolCard } from './copa-mundo'
+import { countryPool, bestXI, piorXI, formationFits, xiStrength, type Entrant, type Formation, type PoolCard } from './copa-mundo'
 
 /** O que cada clube de gente decidiu na Copa da temporada (vai na gaveta pública). `pais: null` = recusou o convite. */
-export type Co2CopaEscolha = { season: number; pais: string | null; xiKeys?: string[]; form?: Formation }
+export type Co2CopaEscolha = { season: number; pais: string | null; xiKeys?: string[]; form?: Formation; /** ⏱️ 27/11: escolheu a seleção e está convocando (ela já sai da lista dos outros) */ reserva?: boolean }
+/** ⏱️ 27/11 (Diego): na ⚡ Dinâmica, 60 s pra escolher a seleção e 90 s pra convocar; passou, a PIOR seleção da lista e os PIORES 11 */
+export const COPA_PRAZO_ESCOLHA_S = 60
+export const COPA_PRAZO_CONVOCA_S = 90
+/** decidiu de vez (recusou, ou seleção + convocação feita) */
+export const decidiuCopa = (e: Co2CopaEscolha | undefined, season: number) => !!e && e.season === season && !e.reserva
 
 /** Uma vaga do top 32 do ranking (na ordem). `mgrId` só pra clube de gente. */
 export type Co2CopaVaga = { name: string; mgrId: number | null }
@@ -26,7 +31,7 @@ export function ordemDeEscolha(top: readonly Co2CopaVaga[]): number[] {
 export function vezDaCopa(top: readonly Co2CopaVaga[], escolhas: Readonly<Record<number, Co2CopaEscolha | undefined>>, pulados: readonly number[], season: number): number | null {
   for (const id of ordemDeEscolha(top)) {
     const e = escolhas[id]
-    if (pulados.includes(id) || (e && e.season === season)) continue
+    if (pulados.includes(id) || decidiuCopa(e, season)) continue
     return id
   }
   return null
@@ -75,7 +80,7 @@ export function entrantsDaCopa(top: readonly Co2CopaVaga[], paises: readonly str
   const list: Entrant[] = []
   vagas.forEach((v, i) => {
     const e = v.mgrId != null ? escolhas[v.mgrId] : undefined
-    if (v.mgrId != null && e && e.season === season && e.pais) {
+    if (v.mgrId != null && e && e.season === season && e.pais && !e.reserva) {
       const form = e.form ?? '4-3-3'
       const xi = xiDaEscolha(e.pais, e.xiKeys, form)
       list.push({ club: v.name, you: v.mgrId === meuId, humano: true, pais: e.pais, xi, str: xiStrength(xi), form })
@@ -90,4 +95,15 @@ export function entrantsDaCopa(top: readonly Co2CopaVaga[], paises: readonly str
     list.push({ club: v.name, you: false, pais, xi, str: xiStrength(xi), form: f })
   })
   return list
+}
+
+const forcaSel = (pais: string) => { const pool = countryPool(pais); return xiStrength(bestXI(pool, formationFits(pool, '4-3-3') ? '4-3-3' : '4-4-2')) }
+/** 🥴 a escolha automática (relógio esgotado ou o dono pulou): a seleção que ele reservou, ou a PIOR livre da lista; e os PIORES 11 */
+export function escolhaCopaAuto(season: number, reservado: string | null | undefined, paises: readonly string[], tomadas: ReadonlySet<string>): Co2CopaEscolha {
+  const livres = paises.filter(p => !tomadas.has(p) && (formationFits(countryPool(p), '4-3-3') || formationFits(countryPool(p), '4-4-2')))
+  const pais = reservado ?? [...livres].sort((a, b) => forcaSel(a) - forcaSel(b) || a.localeCompare(b))[0] ?? null
+  if (!pais) return { season, pais: null }
+  const pool = countryPool(pais)
+  const form: Formation = formationFits(pool, '4-3-3') ? '4-3-3' : '4-4-2'
+  return { season, pais, form, xiKeys: piorXI(pool, form).map(cardKey) }
 }

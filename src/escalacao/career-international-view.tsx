@@ -45,7 +45,7 @@ import { useCampo2DLigado } from './campo2d-modo'
 import { useMotor2Carreira, useTelaPC } from './sport'
 import './convocacao-pc.css' // 🖥️ 04/11: convocação no PC em 3 colunas
 import { useCo2 } from './co2'
-import type { Co2IntlEscolha, Co2IntlAmigo } from './co2-internacional'
+import { forcaIntl, type Co2IntlEscolha, type Co2IntlAmigo } from './co2-internacional'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useVel2DAqui } from './ritmo2d'
 import { LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
@@ -73,6 +73,10 @@ type Props = {
 export type Co2IntlProps = {
   fila: { mgrId: number; priority: number; name: string; estado: string }[]
   vez: number | null; meuId: number; comanda: boolean; qualificado: boolean; pulado: boolean
+  /** a vez está escolhendo o clube ou convocando; `prazo` = fim do relógio (só na ⚡ Dinâmica) */
+  fase: 'escolha' | 'convoca'; prazo: number | null
+  /** eu já decidi de vez (clube + XI, ou sem clube) · a minha foi a automática (relógio/dono) */
+  decidi: boolean; automatica: boolean
   tomados: string[]; minha?: Co2IntlEscolha
   /** `null` enquanto algum convidado ainda não decidiu */
   amigos: Co2IntlAmigo[] | null
@@ -373,11 +377,21 @@ const fechaForm = (cards: { pos: string; name: string; club: string; year: numbe
 /** o clube tem jogadores no baralho pra fechar um time? (72 dos 72 desde o Lote 40) */
 export const clubeFechaTime = (clube: string) => { const cs = internationalClubCards(clube); return fechaForm(cs, '4-3-3') || fechaForm(cs, '4-4-2') }
 /** ⭐ a força do clube = a média do melhor 4-3-3 das lendas dele no baralho (só ORDENA o mural de convites da carreira online — o número não aparece, Diego 27/11) */
-export function forcaDoClube(clube: string): number {
-  const cs = internationalClubCards(clube), xi: number[] = []
-  for (const pos of sections) xi.push(...cs.filter(c => c.pos === pos).map(c => (c.lo + c.hi) / 2).sort((a, b) => b - a).slice(0, needs['4-3-3'][pos]))
-  return xi.length ? Math.round(xi.reduce((a, b) => a + b, 0) / xi.length) : 0
+export function forcaDoClube(clube: string): number { return forcaIntl(clube) } // a MESMA régua do automático (o pior da lista é o último do mural)
+// ⏱️ o relógio da vez (⚡ Dinâmica): 60 s pra escolher, 90 s pra convocar — passou, o jogo dá o pior clube / os piores 11
+function RelogioVez({ prazo, fase, minha }: { prazo: number; fase: 'escolha' | 'convoca'; minha: boolean }) {
+  const [agora, setAgora] = useState(() => Date.now())
+  useEffect(() => { const t = setInterval(() => setAgora(Date.now()), 500); return () => clearInterval(t) }, [])
+  const s = Math.max(0, Math.ceil((prazo - agora) / 1000))
+  const pouco = s <= 15
+  return <div style={{ ...card, padding: '8px 10px', background: pouco ? '#FDE2DC' : '#FFF3C4', textAlign: 'center' }}>
+    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, color: pouco ? '#C2452F' : INK }}>⏱️ {Math.floor(s / 60)}:{String(s % 60).padStart(2, '0')}</p>
+    <p style={{ fontSize: 11, fontWeight: 700, margin: '2px 0 0', color: INK }}>{minha
+      ? (fase === 'escolha' ? tr('Escolha o seu clube. Se o tempo acabar, você fica com o PIOR clube da lista.', 'Pick your club. If time runs out, you get the WORST club on the list.') : tr('Convoque o seu time. Se o tempo acabar, o jogo escala os PIORES jogadores do clube.', 'Call up your team. If time runs out, the game picks the club\'s WORST players.'))
+      : (fase === 'escolha' ? tr('Se o tempo acabar, ele fica com o pior clube da lista.', 'If time runs out, they get the worst club on the list.') : tr('Se o tempo acabar, o jogo escala os piores jogadores dele.', 'If time runs out, the game picks their worst players.'))}</p>
+  </div>
 }
+
 // ✉️🧑‍🤝‍🧑 O MURAL DE CONVITES da carreira online (Diego 27/11: *"apareceria convites com todos os times… todos esses times te querem,
 // por qual você vai brigar pelo título?"*). Na SUA vez aparecem TODOS os clubes que ainda estão livres (os que um amigo de cima
 // já levou somem); tocar num abre a carta do convite de sempre, com o Aceitar.
@@ -641,7 +655,17 @@ export function CareerInternationalView(p: Props) {
   const escolhaSalva = salvaBruta && convites.some(cv => cv.club === salvaBruta.club && cv.comp === salvaBruta.comp) ? salvaBruta : null
   const [comp, setComp] = useState<InternationalCompetition | null>(escolhaSalva?.comp ?? null)
   const [club, setClubRaw] = useState<string | null>(escolhaSalva?.club ?? null)
-  const aceita = (cv: Convite) => { gravaEscolha(p.season, p.seed, cv.comp, cv.club); setComp(cv.comp); setClubRaw(cv.club); setRecusado(null) }
+  const aceita = (cv: Convite) => {
+    gravaEscolha(p.season, p.seed, cv.comp, cv.club); setComp(cv.comp); setClubRaw(cv.club); setRecusado(null)
+    // 🌐 carreira online: aceitou = o clube já fica RESERVADO (sai da lista dos outros) e começa o tempo da convocação
+    if (p.co2?.qualificado && !p.co2.minha) p.co2.onEscolha({ season: p.season, club: cv.club })
+  }
+  // 🌐 o clube que eu reservei manda na tela (recarregou no meio da convocação, ou o relógio decidiu): sempre a convocação DELE
+  const reservado = p.co2?.minha?.club ?? null
+  useEffect(() => {
+    if (!reservado || club === reservado) return
+    setClubRaw(reservado); setComp(INTERNATIONAL_CLUBS.find(c => c.name === reservado)?.competition ?? 'libertadores')
+  }, [reservado]) // eslint-disable-line react-hooks/exhaustive-deps
   const [modo, setModo] = useState<ModoSemVaga | null>(() => leModo(p.season, p.seed))
   // 🏆 24/10: a festa do campeão (a mesma das salas) — guarda QUAL título: Libertadores, Champions ou Mundial
   const [celebrate, setCelebrate] = useState<CompId | null>(null)
@@ -665,7 +689,7 @@ export function CareerInternationalView(p: Props) {
   const begin = (representedClub: string | null, xi: Card[]) => {
     // 🌐 carreira online: primeiro a decisão vai pra gaveta (a fila anda); a campanha só nasce quando TODO convidado decidiu
     if (p.co2) {
-      if (p.co2.qualificado && !p.co2.minha) { p.co2.onEscolha({ season: p.season, club: representedClub, ...(representedClub ? { xi } : {}) }); return }
+      if (p.co2.qualificado && !p.co2.decidi) { p.co2.onEscolha({ season: p.season, club: representedClub, ...(representedClub ? { xi } : {}) }); return }
       if (!p.co2.amigos) return
     }
     let c: InternationalCampaign
@@ -698,7 +722,7 @@ export function CareerInternationalView(p: Props) {
   useEffect(() => {
     if (!p.co2 || !co2Pronto || current || esperando) return
     if (minhaCo2?.club && minhaCo2.xi?.length === 11) { begin(minhaCo2.club, minhaCo2.xi); return }
-    if (modo && (!p.co2.qualificado || minhaCo2)) begin(null, [])
+    if (modo && (!p.co2.qualificado || p.co2.decidi)) begin(null, [])
   }, [co2Pronto, minhaCo2, modo, current]) // eslint-disable-line react-hooks/exhaustive-deps
   // ── a noite atual ──────────────────────────────────────────────────────────
   const reveal = current?.reveal ?? 0
@@ -834,19 +858,21 @@ export function CareerInternationalView(p: Props) {
 
   // 2) AINDA NÃO COMEÇOU: passo 1 (competição) → 2 (clube) → 3 (convocação) · ou sem vaga
   // 🌐 carreira online: espera a vez (quem está mais alto escolhe antes) ou espera os outros convidados decidirem
-  if (!current && p.co2 && ((p.co2.qualificado && !p.co2.minha && p.co2.vez !== p.co2.meuId) || (p.co2.minha && !p.co2.amigos) || (!p.co2.qualificado && modo && !p.co2.amigos))) {
+  if (!current && p.co2 && ((p.co2.qualificado && !p.co2.decidi && p.co2.vez !== p.co2.meuId) || (p.co2.decidi && !p.co2.amigos) || (!p.co2.qualificado && modo && !p.co2.amigos))) {
     const c2 = p.co2
     const nome = (id: number | null) => c2.fila.find(v => v.mgrId === id)?.name ?? '?'
     return <section style={frame} aria-label="Futebol internacional de clubes">
       <div style={card}>
         <span style={kicker}>{tr('Temporada', 'Season')} {p.season} · {tr('Libertadores e Champions — uma só pra todos', 'Libertadores and Champions — one for everyone')}</span>
-        <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 20, margin: '4px 0 6px', textAlign: 'center', lineHeight: 1.05, color: INK }}>✉️ {c2.minha ? tr('Convite aceito', 'Invitation accepted') : c2.vez != null ? tr(`Vez de ${nome(c2.vez)}`, `${nome(c2.vez)}'s turn`) : tr('Esperando os convidados', 'Waiting for the invited')}</h2>
-        <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '0 0 8px', color: INK }}>{c2.minha ? tr('A campanha começa quando todos os convidados decidirem.', 'The campaign starts once everyone invited decides.') : c2.qualificado ? tr('Quem terminou mais alto escolhe primeiro. O clube que ele aceitar sai da sua lista.', 'Whoever finished higher picks first. The club they accept leaves your list.') : tr('Seu clube não pegou vaga desta vez. A campanha começa quando os convidados decidirem.', 'Your club did not qualify this time. The campaign starts once the invited decide.')}</p>
+        <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 20, margin: '4px 0 6px', textAlign: 'center', lineHeight: 1.05, color: INK }}>✉️ {c2.decidi ? (c2.automatica ? tr('O tempo acabou', 'Time ran out') : tr('Convite aceito', 'Invitation accepted')) : c2.vez != null ? tr(`Vez de ${nome(c2.vez)}`, `${nome(c2.vez)}'s turn`) : tr('Esperando os convidados', 'Waiting for the invited')}</h2>
+        {c2.decidi && c2.automatica && <p style={{ fontSize: 12, fontWeight: 800, textAlign: 'center', margin: '0 0 6px', color: '#C2452F' }}>🤖 {c2.minha?.club ? tr(`Você ficou com o ${c2.minha.club}, com os piores jogadores do clube.`, `You got ${c2.minha.club}, with the club's worst players.`) : tr('Nenhum clube sobrou pra você.', 'No club was left for you.')}</p>}
+        <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '0 0 8px', color: INK }}>{c2.decidi ? tr('A campanha começa quando todos os convidados decidirem.', 'The campaign starts once everyone invited decides.') : c2.qualificado ? tr('Quem terminou mais alto escolhe primeiro. O clube que ele aceitar sai da sua lista.', 'Whoever finished higher picks first. The club they accept leaves your list.') : tr('Seu clube não pegou vaga desta vez. A campanha começa quando os convidados decidirem.', 'Your club did not qualify this time. The campaign starts once the invited decide.')}</p>
+        {c2.prazo != null && !c2.decidi && <RelogioVez prazo={c2.prazo} fase={c2.fase} minha={false} />}
         {c2.fila.map(v => <div key={v.mgrId} style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: 12.5, padding: '2px 0', color: INK }}>
           <span style={{ ...OSWALD, fontWeight: 900, minWidth: 26 }}>{v.priority}º</span>
           <span style={{ flex: 1, fontWeight: v.mgrId === c2.meuId ? 900 : 800 }}>{v.name}</span>
-          <span style={{ color: v.estado === 'vez' ? '#B8892B' : 'rgba(0,0,0,.6)' }}>{v.estado === 'vez' ? tr('escolhendo…', 'picking…') : v.estado === 'espera' ? tr('espera a vez', 'waits') : v.estado === 'pulado' ? tr('pulado', 'skipped') : v.estado === 'sem' ? tr('sem clube', 'no club') : v.estado}</span>
-          {c2.comanda && v.estado === 'vez' && v.mgrId !== c2.meuId && <button type="button" onClick={() => { if (window.confirm(tr(`Pular ${v.name}? Ele fica fora da Libertadores/Champions desta temporada e o próximo escolhe.`, `Skip ${v.name}? They sit out this season's Libertadores/Champions and the next one picks.`))) c2.onPular(v.mgrId) }} style={{ ...btn('#fff'), width: 'auto', fontSize: 11, padding: '3px 8px', boxShadow: 'none' }}>{tr('Pular', 'Skip')}</button>}
+          <span style={{ color: v.estado === 'vez' || v.estado === 'convoca' ? '#B8892B' : 'rgba(0,0,0,.6)' }}>{v.estado === 'vez' ? tr('escolhendo…', 'picking…') : v.estado === 'convoca' ? tr('convocando…', 'calling up…') : v.estado === 'espera' ? tr('espera a vez', 'waits') : v.estado === 'sem' ? tr('sem clube', 'no club') : v.estado}</span>
+          {c2.comanda && (v.estado === 'vez' || v.estado === 'convoca') && v.mgrId !== c2.meuId && <button type="button" onClick={() => { if (window.confirm(v.estado === 'vez' ? tr(`Pular ${v.name}? Ele fica com o PIOR clube da lista, com os piores jogadores, e o próximo escolhe.`, `Skip ${v.name}? They get the WORST club on the list, with its worst players, and the next one picks.`) : tr(`Pular ${v.name}? O jogo escala os PIORES jogadores do clube dele e o próximo escolhe.`, `Skip ${v.name}? The game picks their club's WORST players and the next one picks.`))) c2.onPular(v.mgrId) }} style={{ ...btn('#fff'), width: 'auto', fontSize: 11, padding: '3px 8px', boxShadow: 'none' }}>{tr('Pular', 'Skip')}</button>}
         </div>)}
         <p style={hint}>{tr('Na carreira online tudo é um mundo só: uma Libertadores, uma Champions e um Mundial, iguais pra todo mundo.', 'In the online career it is all one world: one Libertadores, one Champions and one Club World Cup, the same for everyone.')}</p>
       </div>
@@ -854,11 +880,12 @@ export function CareerInternationalView(p: Props) {
     </section>
   }
   if (!current) {
-    const temVaga = p.choices.length > 0 && podeInscrever && convites.length > 0
+    const temVaga = p.choices.length > 0 && podeInscrever && convites.length > 0 && !(p.co2?.decidi && !p.co2.minha?.club)
     const passos = <div style={{ display: 'flex', gap: 5, justifyContent: 'center', margin: '8px 0 2px', flexWrap: 'wrap' }}>
       {([tr('convite', 'invitation'), tr('convocação', 'call-up')]).map((n, k) => { const i = club ? 1 : 0; return <span key={n} style={{ border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px', fontSize: 9, fontWeight: 900, background: k < i ? GREEN : k === i ? GOLD : '#fff', color: k < i ? '#fff' : INK }}>{k < i ? '✓ ' : `${k + 1}· `}{n}</span> })}
     </div>
     return <section style={frame} aria-label="Futebol internacional de clubes">
+      {p.co2?.prazo != null && p.co2.vez === p.co2.meuId && !p.co2.decidi && <RelogioVez prazo={p.co2.prazo} fase={p.co2.fase} minha />}
       {!temVaga ? <>
         {/* ── SEM VAGA: pula, ou escolhe QUAL acompanhar (Diego 02/10: *"eu assisto qual?"*) ── */}
         <div style={card}>
