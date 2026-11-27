@@ -9,7 +9,7 @@ import type { EscState } from './types'
 import {
   useCo2, co2Abrir, co2Fechar, co2Criar, co2Entrar, co2MinhasSalas, co2Continuar, co2Mundo, co2Envia, co2PodeCriar,
   co2LeGavetas, co2Gaveta, co2Pronto, co2Comecar, co2Apito, co2Ritmo, co2EncerrarDia, co2SalvaPrivado, co2LePrivado, co2Agora,
-  type Co2Sala,
+  type Co2Sala, type Co2Mundo, TEMPOS_OPCOES, tempoPausa, tempoRodada,
 } from './co2'
 import { minhaGaveta, co2Fechamento, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
 import { useMotor2Carreira, copaBrasilLiberada } from './sport'
@@ -88,6 +88,7 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
   const [indo, setIndo] = useState(false)
   // 🤖 26/11 (Diego: *"opção nas config do host p ele decidir se deixa nenhum bot ou deixa até 5 bots"*): quantos bots disputam o leilão
   const [bots, setBots] = useState(3)
+  const [tempos, setTempos] = useState<{ pausa: number; rodada: number }>({ pausa: 60, rodada: 60 })
   useEffect(() => { void co2Abrir(salaId) }, [salaId])
   const sala = sn.sala
   const souDono = !!sala && sala.dono === sn.uid
@@ -123,7 +124,7 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
         const ordem = clubes.map(c => c.user_id)
         const eu = ordem.indexOf(sn.uid ?? '')
         dispatch({ type: 'START_CAREER_SOLO', teamName: clubes[eu]?.nome ?? 'Meu Time', formation: '4-3-3', rivals: bots, co2: { sala: sala.id, nomes: clubes.map(c => c.nome), assento: eu } })
-        await co2Mundo('virada', 1, 0, { ordem, v: 1, modo, bots })
+        await co2Mundo('virada', 1, 0, { ordem, v: 1, modo, bots, tempos })
         return
       }
       const sv = local ?? await lePrivado()
@@ -174,8 +175,9 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
                 </div>
                 <p style={{ fontWeight: 700, fontSize: 11, margin: '6px 0 0', color: 'rgba(0,0,0,.6)' }}>{bots === 0 ? tr('Sem bots: o leilão é só entre vocês.', 'No bots: the auction is just between you.') : tr(`${bots} bot${bots > 1 ? 's' : ''} disputando as cartas com vocês. A liga tem os outros clubes de sempre.`, `${bots} bot${bots > 1 ? 's' : ''} bidding against you. The league has the usual other clubs.`)}{bots === 0 && clubes.length === 2 ? tr(' Com 2 técnicos, sobra muita carta pro Monte.', ' With 2 managers, lots of cards go to the pile.') : ''}</p>
               </div>
+              <Co2Tempos valor={tempos} onMuda={setTempos} />
               <button disabled={indo} onClick={() => void comecar('dinamica')} style={botao(GOLD)}>⚡ {tr('Começar · Dinâmica', 'Start · Dynamic')}</button>
-              <p style={{ fontWeight: 800, fontSize: 11.5, margin: '-2px 0 2px', color: 'rgba(0,0,0,.6)' }}>{tr('As rodadas seguem direto. Só para quando começa uma competição nova (60 s pra mexer no time).', 'Rounds run back to back. Only pauses when a new competition starts (60 s to tweak the team).')}</p>
+              <p style={{ fontWeight: 800, fontSize: 11.5, margin: '-2px 0 2px', color: 'rgba(0,0,0,.6)' }}>{tr(`As rodadas seguem direto. Só para quando começa uma competição nova (${tempos.pausa} s pra mexer no time).`, `Rounds run back to back. Only pauses when a new competition starts (${tempos.pausa} s to tweak the team).`)}</p>
               <button disabled={indo} onClick={() => void comecar('livre')} style={botao('#fff')}>🧭 {tr('Começar · Livre', 'Start · Free')}</button>
               <p style={{ fontWeight: 800, fontSize: 11.5, margin: '-2px 0 0', color: 'rgba(0,0,0,.6)' }}>{tr('Cada rodada espera todo mundo apertar PRONTO (ou o tempo acabar).', 'Each round waits for everyone to hit READY (or the time to run out).')}</p>
             </div>
@@ -207,7 +209,6 @@ async function lePrivado(): Promise<EscState | null> {
 }
 
 // ═══ DENTRO DA TEMPORADA: a barra do PRONTO + o motor que segue o relógio do dono ═══════════════════════════════════
-const PRAZO_S = 60
 const PRAZO_DINAMICA_S = 15 // o banco aceita no mínimo 15 s; na Dinâmica o dono começa logo que a rodada anterior terminou de animar
 
 export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, onEscalacao }: {
@@ -278,7 +279,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   // 🏁 quem comanda: rodada terminou de animar → apito (próxima rodada entra no PREPARO)
   useEffect(() => {
     if (!comanda || !sala || sala.fase !== 'jogando' || !roundReady || round !== sala.rodada + 1) return
-    void co2Apito(sala.rodada + 1, dinamica ? PRAZO_DINAMICA_S : PRAZO_S)
+    void co2Apito(sala.rodada + 1, dinamica ? PRAZO_DINAMICA_S : tempoRodada(co2Agora().mundo))
   }, [comanda, sala, roundReady, round, dinamica])
 
   // ⏱️ quem comanda: todo mundo PRONTO (ou acabou o tempo, no automático) → começa
@@ -365,6 +366,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
             {!dinamica && <button onClick={() => void co2Ritmo(!sala.auto, sala.velocidade, sala.pausado)} style={{ ...botao('#fff'), fontSize: 12, padding: '8px' }}>{sala.auto ? tr('Automático ligado', 'Auto on') : tr('Automático desligado', 'Auto off')}</button>}
             <button onClick={() => void co2EncerrarDia()} disabled={sala.fase !== 'preparo'} style={{ ...botao('#fff'), fontSize: 12, padding: '8px' }}>🌙 {tr('Encerrar o dia', 'End the day')}</button>
           </div>
+          <Co2TemposDono />
           <p style={{ fontWeight: 800, fontSize: 11, margin: '6px 0 0', color: 'rgba(0,0,0,.55)' }}>{dinamica ? tr('⚡ Dinâmica · as rodadas seguem direto. Pausar segura a carreira pra todo mundo.', '⚡ Dynamic · rounds run back to back. Pause holds the career for everyone.') : sala.auto ? tr('Automático ligado · quem não apertar joga com a escalação que já está.', 'Auto on · whoever doesn\'t press plays with the current lineup.') : tr('Automático desligado · a rodada só começa quando você apertar.', 'Auto off · the round only starts when you press.')}</p>
         </div>
       )}
@@ -388,7 +390,7 @@ export function useCo2FimDaVirada() {
     const poeM2 = m2Liberado && !!mm && mm.m2 == null
     const poeFim = !!mm && !mm.fim // 🏆 26/11: a regra da copa do fim de temporada sai do DONO, igual pra todo aparelho
     const carimbo = mm && (poeM2 || poeFim) ? { ...mm, ...(poeM2 ? { m2: state.seasonNo ?? 1 } : {}), ...(poeFim ? { fim: { copaBR: copaBrasilLiberada() } } : {}) } : null
-    void co2Mundo('preparo', state.seasonNo ?? 1, 0, carimbo, mm?.modo === 'dinamica' ? 60 : 90) // ⚡ Dinâmica: 60 s de anúncio na estreia (aviso; o dono segue)
+    void co2Mundo('preparo', state.seasonNo ?? 1, 0, carimbo, mm?.modo === 'dinamica' ? tempoPausa(mm) : Math.max(90, tempoRodada(mm))) // ⚡ Dinâmica: o tempo de pausa que o dono escolheu (aviso; o dono segue)
   }, [state.co2?.comanda, state.screen, sn.sala?.fase, state.seasonNo, m2Liberado, state.round])
 }
 
@@ -443,7 +445,7 @@ export function Co2ViradaEspera() {
   useEffect(() => {
     if (!comanda || !dinamica || !sala || sala.fase !== 'virada' || sala.prazo || relogioRef.current) return
     relogioRef.current = true
-    void co2Mundo('virada', null, null, null, 60)
+    void co2Mundo('virada', null, null, null, tempoPausa(sn.mundo))
   }, [comanda, dinamica, sala])
   const restante = dinamica && sala?.prazo ? Math.max(0, Math.round((new Date(sala.prazo).getTime() - agora) / 1000)) : null
   const ordem = sn.mundo?.ordem ?? []
@@ -540,6 +542,52 @@ export function Co2Anuncio({ restante, comanda, onSeguir }: { restante: number |
       <div style={{ display: 'inline-block', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${GOLD}`, padding: '4px 18px', ...OSWALD, fontWeight: 900, fontSize: 34 }}>{mm}</div>
       <p style={{ fontWeight: 800, fontSize: 12.5, margin: '10px 0 12px', color: 'rgba(255,255,255,.85)' }}>{tr('Dá tempo de arrumar o time nas abas. ', 'There\'s time to sort your team in the tabs. ')}{comanda ? tr('Você começa a temporada quando quiser.', 'You start the season whenever you want.') : tr('Quem começa é o dono.', 'The owner starts it.')}</p>
       {botaoDono}
+    </div>
+  )
+}
+
+// ⏱️ 27/11 (Diego: *"coloque também nas configurações do host p ele escolher os tempos"*)
+export function Co2Tempos({ valor, onMuda }: { valor: { pausa: number; rodada: number }; onMuda: (v: { pausa: number; rodada: number }) => void }) {
+  const linha = (titulo: string, sub: string, k: 'pausa' | 'rodada') => (
+    <div style={{ marginBottom: 8 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, margin: '0 0 4px', textTransform: 'uppercase' }}>{titulo}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${TEMPOS_OPCOES.length}, 1fr)`, gap: 5 }}>
+        {TEMPOS_OPCOES.map(n => (
+          <button key={n} onClick={() => onMuda({ ...valor, [k]: n })} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '5px 0', fontWeight: 900, fontSize: 13, background: valor[k] === n ? GOLD : '#fff', color: INK, cursor: 'pointer', boxShadow: valor[k] === n ? `2px 2px 0 ${INK}` : 'none', ...OSWALD }}>{n < 60 ? `${n}s` : n % 60 ? `${Math.floor(n / 60)}:${n % 60}` : `${n / 60} min`}</button>
+        ))}
+      </div>
+      <p style={{ fontWeight: 700, fontSize: 10.5, margin: '3px 0 0', color: 'rgba(0,0,0,.55)' }}>{sub}</p>
+    </div>
+  )
+  return (
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 14, padding: '8px 10px 2px', background: '#fff' }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: '0 0 6px', textTransform: 'uppercase' }}>⏱️ {tr('Tempos', 'Timers')}</p>
+      {linha(tr('Pausas', 'Breaks'), tr('Anúncio de competição nova e espera do leilão. É aviso: quem segue é o dono.', 'New competition and auction wait. Just a warning: the owner moves on.'), 'pausa')}
+      {linha(tr('Rodada (modo Livre)', 'Round (Free mode)'), tr('Quanto cada rodada espera todo mundo apertar PRONTO.', 'How long each round waits for everyone to hit READY.'), 'rodada')}
+    </div>
+  )
+}
+
+/** O mesmo controle, dentro da carreira, pro dono mudar depois (vale da próxima pausa/rodada em diante). */
+function Co2TemposDono() {
+  const sn = useCo2()
+  const [aberto, setAberto] = useState(false)
+  const [msg, setMsg] = useState('')
+  const sala = sn.sala, mundo = sn.mundo
+  if (!sala || !mundo) return null
+  const atual = { pausa: tempoPausa(mundo), rodada: tempoRodada(mundo) }
+  // só grava fora do jogo rolando (gravar o mundo reinicia o relógio da fase); o relógio que está correndo continua igual
+  const podeMudar = sala.fase === 'preparo' || sala.fase === 'virada'
+  const muda = async (v: { pausa: number; rodada: number }) => {
+    if (!podeMudar) { setMsg(tr('Espere a rodada acabar pra mudar.', 'Wait for the round to end to change it.')); return }
+    const restante = sala.prazo ? Math.max(15, Math.round((new Date(sala.prazo).getTime() - Date.now()) / 1000)) : null
+    const r = await co2Mundo(sala.fase as 'preparo' | 'virada', null, null, { ...(mundo as Co2Mundo), tempos: v }, restante)
+    setMsg(r === 'ok' ? tr('✅ Salvo. Vale da próxima vez.', '✅ Saved. Applies next time.') : tr('Não deu agora. Tenta de novo.', 'Didn\'t work. Try again.'))
+  }
+  return (
+    <div style={{ marginTop: 8 }}>
+      <button onClick={() => setAberto(a => !a)} style={{ ...botao('#fff'), fontSize: 12, padding: '8px' }}>⚙️ {tr('Tempos', 'Timers')} · {atual.pausa}s / {atual.rodada}s</button>
+      {aberto && <div style={{ marginTop: 8 }}><Co2Tempos valor={atual} onMuda={v => void muda(v)} />{msg && <p style={{ fontWeight: 800, fontSize: 11, margin: '4px 0 0' }}>{msg}</p>}</div>}
     </div>
   )
 }

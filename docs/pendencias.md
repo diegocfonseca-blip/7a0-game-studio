@@ -56,6 +56,7 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
   Teste: 5 bots = 57 compras de máquina na virada · 0 bots = 0. O bot que perde jogador repõe com sobra real de over parecido.
 - ✅ (27/11) notícia de todo jogador que um clube de gente tirou de bot ("🔨 X levou Y do Z por N") · 🎬 ⚡ Dinâmica: anúncio de cinema
   (opção C) na ESTREIA de cada temporada, 60 s de aviso, só o dono segue (confirma antes do tempo). Foto `scripts/mockups/co2-anuncio-estreia.png`.
+- ✅ (27/11) anúncio da estreia fecha no ✕ e vira faixa fininha (cada um livre nas abas) · ⚙️ dono escolhe os TEMPOS (pausas e rodada da Livre: 30 s–3 min) na largada e muda depois (`Co2TemposDono`, só fora do jogo rolando).
 - ⏳ falta: sondar de amigo, anúncio C também nas copas (hoje a copa do fim roda em cada aparelho), dia dos contratos, teste com 2 contas.
 - Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).
 - Testes da v2 verdes depois da publicação do Codex (`npm run carreira-online` e `npm run carreira-online-fluxo`).
