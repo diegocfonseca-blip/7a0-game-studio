@@ -1,0 +1,4 @@
+import {createServer} from 'vite'
+// Hooks exist only in this isolated preview; no account or save is loaded.
+const server=await createServer({base:'/',cacheDir:'/tmp/carreira-viva-vite',plugins:[{name:'qa-carreira-viva',enforce:'pre',transform(code,id){if(!id.endsWith('/src/escalacao/pyramidseason.tsx'))return;return code.replace('const calBarra = (() => {',"Object.assign(window,{qaAba:(t)=>setTab(t),qaApitar:()=>{setRevealed(round);setCalApitado({r:round,s:calSn})}});const calBarra = (() => {").replace('const rivalHistory=(rivaisDaCarreira','Object.assign(window,{qaViva:{rivalNome,posJogoPendente,round,clube:euNome}});const rivalHistory=(rivaisDaCarreira')}}],server:{host:'127.0.0.1',port:5193,strictPort:true,hmr:false,watch:null}})
+await server.listen();console.log('Prévia isolada em http://127.0.0.1:5193/scripts/teste-carreira-viva/')

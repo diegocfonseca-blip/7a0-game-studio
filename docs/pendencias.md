@@ -1,3 +1,7 @@
+## 27/11 — Carreira viva: cinco itens aprovados
+
+Estreia contextual dispensável, variações factuais de personalidade e protagonistas, memória do clássico, PNG de momentos com o modelo atual do elenco e projeção das obras antes de comprar. Compartilhado entre Brasil Oficial e tradicional. Desafio semanal (4) e modos novos excluídos. Sem alterar notas, economia, sorteios ou motor. Diego aprovou as prévias e autorizou a publicação em 27/11. Escopo e provas: `docs/auditorias/carreira-viva-20261127.md`.
+
 ## 26/11 — Champions convocando: apresentação e encerramento
 
 Correção da disputa dos controles entre a liga e a copa aberta: táticas, navegação e transmissão ficam dentro do modal. Chat da Champions único, com restauração da lateral ao fechar. Tabela completa marca 1–8 oitavas, 9–24 playoff, 25–36 eliminação e legenda. Cinema do campeão deixa de ser cortado pelo timer da festa antiga; preserva a competição/tabela após terminar ou pular. Sem alteração do motor ou banco. Provas e regressões: `docs/auditorias/champions-layout-20261126.md`.

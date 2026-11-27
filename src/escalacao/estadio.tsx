@@ -1,3 +1,4 @@
+import {careerStructureImpact,STRUCTURE_VISUALS} from './career-structure-impact'
 import {ObrasDoClube,InformacoesDoEstadio} from './clube-organizacao'
 import { useState, type ReactNode } from 'react'
 import { Saf2Regras, saf2LoanSub } from './saf2-telas' // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com a chave)
@@ -691,6 +692,18 @@ export function StadiumSvg({ st, perkOverride, bb = false }: { st: StadiumSave |
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
 const fmtN = (n: number, l: 'pt' | 'en') => n.toLocaleString(l === 'en' ? 'en-US' : 'pt-BR')
+function StructurePreview({st,id,kind,occupancy,store}:{st?:StadiumSave;id:string;kind:'sector'|'extra';occupancy?:number;store:boolean}){
+ const value=careerStructureImpact(st,id,kind,occupancy??100,store)
+ if(!value)return null
+ return <details data-career-structure-impact={id} style={{fontSize:11,lineHeight:1.5,marginTop:8}}><summary style={{...OSW,cursor:'pointer',fontWeight:800}}>{tr('Antes de investir: o que muda?','Before investing: what changes?')}</summary>
+  <p>{tr(`Próximo investimento: ${value.cost} moedas · obra de ${Math.round(value.progress)}% para ${Math.round(value.nextProgress)}%.`,`Next investment: ${value.cost} coins · construction from ${Math.round(value.progress)}% to ${Math.round(value.nextProgress)}%.`)}</p>
+  <p>{tr(`Capacidade do estádio: ${value.seats.toLocaleString('pt-BR')} → ${value.nextSeats.toLocaleString('pt-BR')} lugares.`,`Stadium capacity: ${value.seats.toLocaleString('en-US')} → ${value.nextSeats.toLocaleString('en-US')} seats.`)}</p>
+  {value.parking&&<p>{tr(`Vagas de estacionamento: ${value.parking.before} → ${value.parking.after}.`,`Parking spaces: ${value.parking.before} → ${value.parking.after}.`)}</p>}
+  <p>{value.variable?tr('A loja rende com camisas e fornecedor; não há retorno fixo prometido nesta projeção.','The shop earns from shirts and the kit supplier; this projection promises no fixed return.'):tr(`Projeção de aumento nesta etapa: +${value.nextIncome-value.income} ${value.nextIncome-value.income===1?'moeda':'moedas'} por temporada, à mesma lotação. A lotação futura pode mudar.`,`Projected increase for this stage: +${value.nextIncome-value.income} ${value.nextIncome-value.income===1?'coin':'coins'} per season, at the same attendance. Future attendance may change.`)}</p>
+  <p>{tr('Manutenção adicional: esta obra não tem cobrança específica nas regras atuais.','Additional upkeep: this upgrade has no separate charge under the current rules.')}</p>
+  {STRUCTURE_VISUALS[id]&&<p><b>{tr('No mapa: ','On the map: ')}</b>{tr(...STRUCTURE_VISUALS[id])}</p>}
+ </details>
+}
 export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, museumImprovement, initialSection, clubPage, saf2, bb = false, atalhos }: {
   clubPage?: 'map' | 'works' | 'business'
   /** 🧭 22/11: atalhos logo embaixo do mapa (só na página do mapa) — recebe se dá pra pagar alguma obra e o % pronto */
@@ -946,6 +959,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                 <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : ACC, transition: 'width .35s ease' }} />
               </div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b>{typeof torcidaPct === 'number' && torcidaPct < 100 ? <span style={{ opacity: .75 }}> {tr(`(hoje +${Math.floor(s.inc * torcidaPct / 100)} — estádio ${torcidaPct}% cheio)`, `(today +${Math.floor(s.inc * torcidaPct / 100)} — stadium ${torcidaPct}% full)`)}</span> : null}{s.seats > 0 ? <> · {s.seats.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</> : null}</div>
+              {!bb&&!full&&<StructurePreview st={st} id={s.k} kind="sector" occupancy={torcidaPct} store={lojaLiberada()}/>}
               {locked&&<p style={{fontSize:11,margin:'4px 0 0'}}>{tr('Conclua Geral, Cadeiras e Visitante para construir o 2º andar.','Finish Terraces, Seats and Away end before the upper tier.')}</p>}
             </div>
             {clubPage&&!full&&<p className="clube-obra-context" data-insuficiente={poor}>{locked?tr('Conclua primeiro o andar inferior.','Complete the lower tier first.'):poor?tr(`Faltam ${stepPay-coins} moedas.`,`You need ${stepPay-coins} more coins.`):tr(`Após investir: ${coins-stepPay} moedas.`,`After investing: ${coins-stepPay} coins.`)}</p>}
@@ -979,6 +993,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                 <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : ACC, transition: 'width .35s ease' }} />
               </div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b> · <b>{tr('sem lugares', 'no seats')}</b></div>
+              {!bb&&!full&&<StructurePreview st={st} id={s.k} kind="sector" occupancy={torcidaPct} store={lojaLiberada()}/> }
             </div>
             {clubPage&&!full&&<p className="clube-obra-context" data-insuficiente={poor}>{poor?tr(`Faltam ${stepPay-coins} moedas.`,`You need ${stepPay-coins} more coins.`):tr(`Após investir: ${coins-stepPay} moedas.`,`After investing: ${coins-stepPay} coins.`)}</p>}
             <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
@@ -1002,6 +1017,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                 <p style={{fontSize:10.5,fontWeight:700,margin:'4px 0',color:'rgba(0,0,0,.65)'}}>{parking.complete?tr('Renda +4/temp · requisito da estação concluído','Income +4/season · station requirement complete'):tr('Renda +4/temp e acesso à compra da estação na etapa 4/4.','Income +4/season and access to the station purchase at stage 4/4.')}</p>
                 {!parking.complete&&!unlocked&&<p style={{fontSize:11,margin:'4px 0'}}>{tr('Construa a Loja do Clube para começar.','Build the Club Store to begin.')}</p>}
                 {!parking.complete&&unlocked&&poor&&<p style={{fontSize:11,margin:'4px 0'}}>{tr(`São necessárias ${parking.nextCost} moedas para a próxima etapa.`,`The next stage requires ${parking.nextCost} coins.`)}</p>}
+                {!bb&&!parking.complete&&unlocked&&<StructurePreview st={st} id="estac" kind="extra" occupancy={torcidaPct} store={lojaLiberada()}/>}
               </>:<p role="status" style={{fontSize:11,margin:'4px 0'}}>{tr('Não foi possível conferir a obra. Reabra a carreira antes de investir.','The construction could not be verified. Reopen your career before investing.')}</p>}
             </div>
             <button type="button" disabled={disabled} onClick={()=>!disabled&&onInvestParking?.(parking.stage)} style={{flex:'none',minWidth:88,border:'none',borderRadius:10,padding:'9px 11px',fontWeight:900,fontSize:12.5,cursor:disabled?'default':'pointer',lineHeight:1.15,...OSW,background:parking.complete?GOLD:disabled?'#d9cfb4':INK,color:parking.complete?INK:disabled?'#7d7358':'#fff'}}>
@@ -1037,6 +1053,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                   : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{rendeTxt ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b>{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>
                   : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{projectLayout ? requisitoExtraNoProjeto(e.k,getLang()==='en')??extraReq(e) : extraReq(e)}</b> · {tr('custaria', 'would cost')} {e.cost} 💰 · {rendeTxt??tr(`renderia +${e.inc}/temp`, `would earn +${e.inc}/season`)}{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
               </div>
+              {!bb&&!done&&<StructurePreview st={st} id={e.k} kind="extra" occupancy={torcidaPct} store={lojaLiberada()}/>}
             </div>
             {clubPage&&!done&&unlocked&&<p className="clube-obra-context" data-insuficiente={poor}>{poor?tr(`Faltam ${e.cost-coins} moedas.`,`You need ${e.cost-coins} more coins.`):tr(`Após construir: ${coins-e.cost} moedas.`,`After building: ${coins-e.cost} coins.`)}</p>}
             <button onClick={() => !done && unlocked && !poor && onBuild(e.k)} disabled={done || !unlocked || poor}

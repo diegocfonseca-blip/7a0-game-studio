@@ -1,3 +1,4 @@
+import {careerMoments,careerRivalStory,type CareerMoment} from './career-living-model'
 import {postMatchTable} from './career-post-match-table'
 import {COPA_CARREIRA_ANCORA,COPA_CARREIRA_CICLO} from './copa-mundo-calendario'
 import {gestaoAtiva,carreiraSoloFutebol} from './carreira-regras'
@@ -6666,11 +6667,11 @@ function ElencoField({ navigationRequest, mgr, col, xiIds, xi, goals, assists, s
 }
 // 📤 Compartilhar elenco: gera a arte aprovada (header na cor do time + campinho
 // + listas com gols/valor + rodapé) e abre o compartilhar nativo do celular.
-function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonNo, coins, titles }: {
+function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonNo, coins, titles, moment }: {
   mgr: Manager; col: FCol; xi: WonCard[]; xiIds: Set<string>; goals: Record<string, number>
-  divName: string; tablePos: number; seasonNo: number; coins: number; titles: number
+  divName: string; tablePos: number; seasonNo: number; coins: number; titles: number; moment?:CareerMoment
 }) {
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(false),[shareError,setShareError]=useState(false)
   // 🧑 a MESMA regra do campinho (`useLegendPresentation`): se a pessoa vê o
   // rosto da lenda na tela, a imagem compartilhada sai com rosto também.
   // ⚠️ Tem que ser ESTE hook, não o `useOnlinePreview` daqui de cima — aquele é
@@ -6678,7 +6679,7 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
   const rostosOn = useLegendPresentation()
   const go = async () => {
     if (busy) return
-    setBusy(true)
+    setBusy(true);setShareError(false)
     try {
       const g = (c: WonCard) => goals[c.id] ?? 0
       const of = (pos: Sector) => xi.filter(c => c.pos === pos)
@@ -6695,22 +6696,23 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
       // brilho) pra imagem compartilhada também — igual à aba Elenco.
       const perk = myApoioPerk()
       await shareElenco({
+        moment:moment?{title:tr(...moment.title),detail:tr(...moment.detail)}:undefined,
         teamName: mgr.teamName + apoioSelo(), divName, tablePos, seasonNo, formation: mgr.formation,
         titles, squadValue: mgr.squad.reduce((s2, c) => s2 + (c.paid ?? 0), 0), coins,
         color: col.solid, tierGrad: perk?.grad, tierHolo: perk?.holo ?? 0, fieldRows, reservas,
         // 🛡️👕 nome LIMPO (chave do escudo/mascote) e o manto medido do clube
         teamRaw: mgr.teamName, manto: meuManto(), rostos: rostosOn,
       })
-    } finally { setBusy(false) }
+    } catch {setShareError(true)} finally { setBusy(false) }
   }
   return (
     <div style={{ marginBottom: 12 }}>
       <button onClick={go} disabled={busy}
         style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 8px', fontWeight: 900, fontSize: 15, ...OSWALD, background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', color: INK }}>
-        {busy ? tr('🎨 Gerando a arte…', '🎨 Building the image…') : tr('📤 COMPARTILHAR MEU ELENCO', '📤 SHARE MY SQUAD')}
+        {busy ? tr('🎨 Gerando a arte…', '🎨 Building the image…') : (moment?tr('📤 COMPARTILHAR ESTE MOMENTO','📤 SHARE THIS MOMENT'):tr('📤 COMPARTILHAR MEU ELENCO', '📤 SHARE MY SQUAD'))}
       </button>
       <p style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', marginTop: 5 }}>
-        {tr('gera a imagem do teu time — mostra teu elenco e marca a gente! 📲 @leilaolegendscom', 'builds your team image — show off your squad and tag us! 📲 @leilaolegendscom')}
+        {shareError?tr('Não foi possível gerar a imagem. Tente novamente.','The image could not be generated. Try again.'):moment?tr(...moment.detail):tr('gera a imagem do teu time — mostra teu elenco e marca a gente! 📲 @leilaolegendscom', 'builds your team image — show off your squad and tag us! 📲 @leilaolegendscom')}
       </p>
     </div>
   )
@@ -13992,7 +13994,13 @@ export function PyramidSeasonScreen() {
       setClubeSub('estadio'); escolheAba('estadio')
       setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
     }
-    return <CentralCarreira pendingDecision={!!eventoPendente||criseTrava||(halfMode&&!halftimeDone&&(halftimeOpen||roundReady))||(penMode&&!penaltyDone&&(penaltyOpen||roundReady))||(round===0&&!decisoesOk&&!copaPlaying)} onSedeRever={todasCenasSede.some(c=>cenasLidas.includes(c.chave)||diario?.seen.some(v=>v.id===c.chave))?()=>{
+    const rivalMatch=posJogoPendente&&myMatch?{casa:myMatch.h,fora:myMatch.a}:compProximo??(compPalco?null:proximoCentral)
+    const rivalNome=rivalMatch?(rivalMatch.casa===euNome?rivalMatch.fora:rivalMatch.casa):''
+    const rivalHistory=(rivaisDaCarreira.includes(rivalNome)||coletivaSave.arquirrival===rivalNome)?careerRivalStory(state.careerMemory?.[youId],rivalNome,euNome,state.careerTransferHistory):null
+    const moments=careerMoments(state,youId,done&&copaFinished)
+    if(done&&copaFinished&&desfecho&&(desfecho.tipo==='acesso'||desfecho.tipo==='campeao'&&desfecho.de!==desfecho.para))moments.unshift({id:`acesso:${sn}`,title:[`Acesso para ${desfecho.para}!`,`Promotion to ${desfecho.para}!`],detail:[`${euNome} · Temporada ${sn}`,`${euNome} · Season ${sn}`]})
+    const momentos=mgrMe&&moments.length?<details className="ll-central-card" style={{gridColumn:'1/-1',background:'#F4ECD6',color:INK,padding:14}} data-career-share-moments><summary style={{...OSWALD,cursor:'pointer',fontWeight:800}}>{tr('📤 MOMENTOS PARA COMPARTILHAR','📤 MOMENTS TO SHARE')}</summary><p style={{fontSize:12}}>{tr('Registros da sua carreira. A imagem mostra este momento e o elenco atual. Escolha o aplicativo ou baixe a imagem.','Your career records. The image shows this moment and the current squad. Choose an app or download the image.')}</p>{moments.slice(0,4).map(moment=><div key={moment.id} data-career-share-moment={moment.id}><b style={OSWALD}>{tr(...moment.title)}</b><ShareElencoBtn moment={moment} mgr={mgrMe} col={myCol} xi={myXI as WonCard[]} xiIds={myXIids} goals={golsTemporada} divName={DIV_NAME[myDiv]} tablePos={minhaPos} seasonNo={sn} coins={state.careerCoins?.[youId]??0} titles={Object.values(state.careerHonors?.[`m${youId}`]??{}).reduce((a,b)=>a+(b??0),0)}/></div>)}</details>:null
+    return <CentralCarreira rivalHistory={rivalHistory} momentos={momentos} pendingDecision={!!eventoPendente||criseTrava||(halfMode&&!halftimeDone&&(halftimeOpen||roundReady))||(penMode&&!penaltyDone&&(penaltyOpen||roundReady))||(round===0&&!decisoesOk&&!copaPlaying)} onSedeRever={todasCenasSede.some(c=>cenasLidas.includes(c.chave)||diario?.seen.some(v=>v.id===c.chave))?()=>{
       try{localStorage.removeItem('esc-sede-fechada')}catch{}
       if(todasCenasSede[0].apresentacaoCentral)repetirCenaCentral(todasCenasSede[0].chave);else{pedeVistaDoMapa('original');prepararRepeticaoCena(todasCenasSede[0].chave)}setReverCena(true)
       requestAnimationFrame(()=>requestAnimationFrame(()=>{const el=Array.from(document.querySelectorAll('[data-neighborhood-preview]')).find(el=>el.getClientRects().length>0);el?.closest('.ll-c-sede')?.scrollIntoView({block:'center',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}))
