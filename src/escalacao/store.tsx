@@ -6645,6 +6645,7 @@ type Action =
   | { type: 'COLETIVA_H2H'; mgrId: number; rival: string; chave: string; res: 'V' | 'E' | 'D'; arqui: boolean; temporada: number }
   | { type: 'COLETIVA_FECHA'; mgrId: number; temporada: number; res: ColetivaResultado }
   | { type: 'CO2_ESPELHO'; newState: EscState; meuId: number } // 🌐 v2: leilão do dono na MINHA tela (o que eu aperto vai pra ele)
+  | { type: 'CO2_INTL_ESCOLHA'; escolha: import('./co2-internacional').Co2IntlEscolha } // 🌎 27/11: aceitei um convite da Libertadores/Champions única (clube + XI) ou fiquei sem clube
   | { type: 'CO2_COPA_ESCOLHA'; escolha: import('./co2-copa-mundo').Co2CopaEscolha } // 🌍 27/11: aceitei (seleção + XI) ou recusei o convite da Copa do Mundo única
   | { type: 'CO2_FECHA' } // 🔄 26/11 virada: este aparelho fechou o próprio clube (a tela sobe a gaveta com o `fechamento`)
   | { type: 'CO2_ABRE_VIRADA'; fechamentos: Record<number, Fechamento | undefined> } // 🔄 26/11 virada: o DONO põe os fechamentos de todos e abre o leilão de todos
@@ -8717,7 +8718,7 @@ export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
 // (regra de ouro contra botão mudo, 19/09). Devolve null quando a campanha pode começar.
 export function motivoRecusaInternacional(s: EscState, c: InternationalCampaign): string | null {
   if (!internacionalCarreiraLiberada()) return 'liberacao'
-  if (!s.careerOnline || s.onlineMode === 'online' || s.seasonNo < 40) return 'modo'
+  if (!s.careerOnline || s.onlineMode === 'online' || (!s.co2 && s.seasonNo < 40)) return 'modo' // 🌐 27/11 carreira online: desde a T1
   if (s.copaDoneSeason !== s.seasonNo) return 'copa'
   if (s.careerInternational?.season === s.seasonNo) return 'ja-comecou'
   if (c.season !== s.seasonNo) return 'temporada'
@@ -9900,6 +9901,16 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     // 🔄 26/11 VIRADA da carreira online: cada aparelho fecha o PRÓPRIO clube (contas do fim + janela de contratos, já
     // feitas no OPEN_RESERVE_LIST local) e trava. A tela sobe o `fechamento` na gaveta. Nada aqui mexe em outro clube.
+    case 'CO2_INTL_ESCOLHA': {
+      if (!s.co2 || action.escolha.season !== s.seasonNo) return s
+      if (s.co2.minhaIntl?.season === action.escolha.season) return s // aceitou, está aceito (a fila dos outros andou com isso)
+      const e = action.escolha
+      if (e.club && (!validInternationalXI(e.xi ?? []) || !(e.xi ?? []).every(card => isInternationalClubCard(e.club!, card)))) return s
+      // 🛡️ clube que um amigo já levou não pode (a tela nem mostra, mas a regra mora aqui também)
+      if (e.club && s.co2.gavetas.some(g => g.intl?.season === e.season && g.intl.club === e.club)) return s
+      s.co2 = { ...s.co2, minhaIntl: e }
+      return s
+    }
     case 'CO2_COPA_ESCOLHA': {
       if (!s.co2 || s.co2.espelho) return s
       if (s.co2.minhaCopa?.season === action.escolha.season) return s // decidiu, está decidido (a fila dos outros andou com isso)
@@ -9908,6 +9919,8 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'CO2_FECHA': {
       if (!s.co2 || s.co2.espelho || s.screen !== 'reserveList') return s
+      // 🌎 27/11: a temporada internacional (única, desde a T1) tem que estar encerrada neste aparelho — o prêmio dela entra no caixa que o fechamento leva
+      if (internacionalCarreiraLiberada() && !(s.careerInternationalHistory ?? []).some(e => e.season === s.seasonNo)) return s
       s.co2 = { ...s.co2, fechou: s.seasonNo }
       return s
     }

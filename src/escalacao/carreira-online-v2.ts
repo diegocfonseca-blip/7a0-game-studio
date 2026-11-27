@@ -33,6 +33,8 @@ export type GavetaPublica = {
   fechamento?: Fechamento
   /** 🌍 27/11: a decisão dele na Copa do Mundo da temporada (seleção + XI, ou recusou) */
   copaMundo?: import('./co2-copa-mundo').Co2CopaEscolha
+  /** 🌎 27/11: o clube que ele aceitou na Libertadores/Champions (e o XI), ou ficou sem clube */
+  intl?: import('./co2-internacional').Co2IntlEscolha
   /** 🌍 27/11: o caixa (só pro desempate do ranking de clubes sair igual em todo aparelho) */
   caixa?: number
 }

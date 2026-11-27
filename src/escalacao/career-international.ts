@@ -138,10 +138,12 @@ export function isInternationalClubCard(club: string, card: { id: string; name: 
  * Devolve erro explícito se o catálogo não sustentar todos os XI.
  */
 export function internationalBotSquads<T extends InternationalCard>(
-  cards: readonly T[], representedClub: string | null, userCards: readonly Pick<T, 'name' | 'club' | 'year'>[] = [],
+  cards: readonly T[], representedClub: string | null | readonly string[], userCards: readonly Pick<T, 'name' | 'club' | 'year'>[] = [],
 ): Map<string, T[]> {
-  if (representedClub !== null && !INTERNATIONAL_CLUBS.some(club => club.name === representedClub)) throw new Error('Escolha uma instituição internacional antes de distribuir os bots')
-  const bots = INTERNATIONAL_CLUBS.filter(club => club.name !== representedClub)
+  // 🌐 27/11 carreira online: vários clubes de gente na mesma campanha (cada amigo com o clube que aceitou)
+  const reps: readonly string[] = representedClub === null ? [] : typeof representedClub === 'string' ? [representedClub] : representedClub
+  if (reps.some(r => !INTERNATIONAL_CLUBS.some(club => club.name === r))) throw new Error('Escolha uma instituição internacional antes de distribuir os bots')
+  const bots = INTERNATIONAL_CLUBS.filter(club => !reps.includes(club.name))
   const used = new Set(userCards.map(internationalCardKey))
   const sorted = [...cards].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi) || internationalCardKey(a).localeCompare(internationalCardKey(b)))
   const result = new Map(bots.map(club => [club.name, [] as T[]]))

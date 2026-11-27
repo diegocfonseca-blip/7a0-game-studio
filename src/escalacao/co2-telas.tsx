@@ -12,7 +12,7 @@ import {
   type Co2Sala, type Co2Mundo, TEMPOS_OPCOES, tempoPausa, tempoRodada,
 } from './co2'
 import { minhaGaveta, co2Fechamento, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
-import { useMotor2Carreira, copaBrasilLiberada } from './sport'
+import { useMotor2Carreira, copaBrasilLiberada, internacionalCarreiraLiberada } from './sport'
 import { avisoFechado, fechaAviso } from './avisos-fechados'
 import { CMModal, ConvocacaoScreen, CupScreen, simulaCopaMundo, loadCopaSave, type CopaSave, type Formation, type CMStatCarta } from './copa-mundo'
 import { rankingSelecoes } from './paises'
@@ -231,8 +231,9 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   // 📦 a minha gaveta pública (sobe quando muda, com folga) — é ela que os outros usam pra simular o meu clube
   // 🌍 27/11: a gaveta leva também a decisão da Copa do Mundo e o caixa (desempate do ranking igual em todo aparelho)
   const minhaCopa = state.co2?.minhaCopa
+  const minhaIntl = state.co2?.minhaIntl
   const meuCaixa = me ? Math.round(state.careerCoins?.[me.id] ?? 0) : 0
-  const gaveta = useMemo<GavetaPublica | null>(() => (me ? { ...minhaGaveta(me, entradasLocais), ...(minhaCopa ? { copaMundo: minhaCopa } : {}), caixa: meuCaixa } : null), [me, entradasLocais, minhaCopa, meuCaixa])
+  const gaveta = useMemo<GavetaPublica | null>(() => (me ? { ...minhaGaveta(me, entradasLocais), ...(minhaCopa ? { copaMundo: minhaCopa } : {}), ...(minhaIntl ? { intl: minhaIntl } : {}), caixa: meuCaixa } : null), [me, entradasLocais, minhaCopa, minhaIntl, meuCaixa])
   const gavetaJson = useMemo(() => (gaveta ? JSON.stringify(gaveta) : ''), [gaveta])
   const enviadaRef = useRef('')
   const sobeGaveta = async (): Promise<boolean> => {
@@ -410,7 +411,10 @@ export function useCo2FimDaVirada() {
 // ═══ VIRADA (26/11): cada um fecha o próprio clube; o dono abre o leilão de todos ═══════════════════════════════════
 /** O botão no fim da janela de contratos (no lugar do "Começar o leilão" da carreira solo). */
 export function Co2FecharTemporada() {
-  const { dispatch } = useEsc()
+  const { state, dispatch } = useEsc()
+  // 🌎 27/11: a MESMA régua do CO2_FECHA — sem a temporada internacional encerrada aqui, o botão diz por quê (nunca botão mudo)
+  const intlFalta = internacionalCarreiraLiberada() && !(state.careerInternationalHistory ?? []).some(e => e.season === state.seasonNo)
+  if (intlFalta) return <p style={{ fontWeight: 800, fontSize: 12, margin: 0, textAlign: 'center' }}>🌎 {tr('Falta a temporada internacional (Libertadores/Champions). Volte ao fim da temporada e conclua ela pra fechar.', 'The international season (Libertadores/Champions) is still open. Go back to the season wrap-up and finish it to close.')}</p>
   return (
     <div>
       <button onClick={() => dispatch({ type: 'CO2_FECHA' })} style={botao(GREEN, '#fff')}>✅ {tr('Fechar minha temporada', 'Close my season')}</button>
@@ -436,7 +440,9 @@ export function Co2ViradaEspera() {
     const f = co2Fechamento(state)
     if (!me || !f) { setSubiu('erro'); return }
     setSubiu('indo')
-    const r = await co2Gaveta({ ...minhaGaveta(me, vazio), fechamento: f } as unknown as Record<string, unknown>)
+    // 🌍🌎 a gaveta leva junto as decisões da Copa do Mundo e da Libertadores/Champions (amigo mais lento ainda monta a campanha com elas)
+    const extra = { ...(state.co2?.minhaCopa ? { copaMundo: state.co2.minhaCopa } : {}), ...(state.co2?.minhaIntl ? { intl: state.co2.minhaIntl } : {}), caixa: Math.round(state.careerCoins?.[me.id] ?? 0) }
+    const r = await co2Gaveta({ ...minhaGaveta(me, vazio), ...extra, fechamento: f } as unknown as Record<string, unknown>)
     setSubiu(r === 'ok' ? 'ok' : 'erro')
   }
   useEffect(() => { void sobe() }, []) // eslint-disable-line react-hooks/exhaustive-deps

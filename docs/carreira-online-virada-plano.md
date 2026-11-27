@@ -36,7 +36,7 @@ Ainda não coberto: contrato vencido de quem faltou (na T1→T2 ninguém vence; 
 | Liga (V, D, C, B, A) | todo aparelho simula com as gavetas congeladas | ✅ teste 38 rodadas + T2 (140+ carreiras sem diferença) |
 | Copa do Brasil / Copa Legends + Supercopa | escalação congelada pelo DONO (`mundo.copaXi`) + regra do dono (`mundo.fim`) | ✅ e agora **trava**: sem os dois carimbos a copa nem é calculada e a temporada não fecha (`copaCo2Pronta`) |
 | Copa do Mundo (convite, a cada 4 temporadas desde a T1) | ⚠️ cada aparelho joga a SUA (convite pessoal) | ❌ dois amigos podem ser campeões na mesma temporada — decidir com o Diego |
-| Libertadores / Champions / Mundial (T40+, convite) | ⚠️ cada aparelho joga a SUA campanha | ❌ idem — decidir com o Diego |
+| Libertadores / Champions / Mundial (convite) | ✅ 27/11: ÚNICOS desde a T1 (Diego: *"que temporada 40 o quê… desde o início"*) — fila pela prioridade (campeão da A, campeão da Copa, 2º–8º), 2 convites do bloco, clube aceito sai da lista dos outros, dono pula quem sumiu, mesma campanha em todo aparelho (`co2-internacional.ts`, `amigos` em `makeInternationalCampaign`), títulos carimbados pelo dono (`mundo.intlHist`) entram no ranking na temporada seguinte | ✅ `node scripts/carreira-online/testa-internacional.mjs` |
 | Playoff B, estaduais, Liberta/Sula/Intercontinental reais | só Brasil Oficial (o co2 não é Oficial) | — |
 Consertos de 27/11: o mundo da tela refaz quando o elenco de um amigo muda (antes só olhava QUANTOS clubes); copa só com a escalação
 do dono; carreira antiga sem carimbo ganha o carimbo do dono na hora de congelar. Motor novo: a versão "recepção" e os critérios novos

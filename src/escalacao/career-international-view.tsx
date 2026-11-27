@@ -45,6 +45,7 @@ import { useCampo2DLigado } from './campo2d-modo'
 import { useMotor2Carreira, useTelaPC } from './sport'
 import './convocacao-pc.css' // 🖥️ 04/11: convocação no PC em 3 colunas
 import { useCo2 } from './co2'
+import type { Co2IntlEscolha, Co2IntlAmigo } from './co2-internacional'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useVel2DAqui } from './ritmo2d'
 import { LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
@@ -66,6 +67,16 @@ type Props = {
   onStart: (campaign: InternationalCampaign) => void; onAdvance: () => void; onFinish: (entry: InternationalHistoryEntry) => void
   /** o cabeçalho de cima da carreira já mostra a competição e a fase (não repetir a faixa) */
   topoGrande?: boolean
+  /** 🌐 27/11 carreira online: Libertadores/Champions ÚNICAS — fila dos convites, clubes que amigos levaram e os amigos da campanha */
+  co2?: Co2IntlProps
+}
+export type Co2IntlProps = {
+  fila: { mgrId: number; priority: number; name: string; estado: string }[]
+  vez: number | null; meuId: number; comanda: boolean; qualificado: boolean; pulado: boolean
+  tomados: string[]; minha?: Co2IntlEscolha
+  /** `null` enquanto algum convidado ainda não decidiu */
+  amigos: Co2IntlAmigo[] | null
+  onEscolha: (e: Co2IntlEscolha) => void; onPular: (mgrId: number) => void
 }
 
 import { rotuloFormacao } from './types'
@@ -580,7 +591,8 @@ export function CareerInternationalView(p: Props) {
   const toggleManual = () => { toggleSim() } /* ⏩ 06/11 (Diego): voltar pro AUTO mantém a velocidade escolhida no Manual */
   // 🔒 o clube escolhido fica GRAVADO por temporada: recarregar a tela não reabre a escolha
   const champsOk = championsLiberada(p.history)
-  const convites = useMemo(() => convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk, clubeDaRenovacao(p.history, p.season)), [p.seed, p.season, p.priority, p.choices, champsOk, p.history])
+  const renovaLivre = useMemo(() => { const r = clubeDaRenovacao(p.history, p.season); return r && p.co2?.tomados.includes(r.club) ? null : r }, [p.history, p.season, p.co2?.tomados])
+  const convites = useMemo(() => convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk, renovaLivre), [p.seed, p.season, p.priority, p.choices, champsOk, renovaLivre])
   // 🛡️ a escolha guardada só vale se for um dos convites DESTA carreira (senão o motor recusa)
   const salvaBruta = leEscolha(p.season, p.seed)
   const escolhaSalva = salvaBruta && convites.some(cv => cv.club === salvaBruta.club && cv.comp === salvaBruta.comp) ? salvaBruta : null
@@ -608,8 +620,13 @@ export function CareerInternationalView(p: Props) {
   const m2Liberado = useMotor2Carreira(), co2M2 = useCo2().mundo?.m2
   const m2Intl = state.co2 ? co2M2 != null && (state.seasonNo ?? 1) >= co2M2 : m2Liberado && !!state.motor2Desde
   const begin = (representedClub: string | null, xi: Card[]) => {
+    // 🌐 carreira online: primeiro a decisão vai pra gaveta (a fila anda); a campanha só nasce quando TODO convidado decidiu
+    if (p.co2) {
+      if (p.co2.qualificado && !p.co2.minha) { p.co2.onEscolha({ season: p.season, club: representedClub, ...(representedClub ? { xi } : {}) }); return }
+      if (!p.co2.amigos) return
+    }
     let c: InternationalCampaign
-    try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [], motor2: m2Intl, versaoM2: versaoComCriterios(recepcaoM2Desde(state, loggedEmail()) !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state)) }) }
+    try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [], motor2: m2Intl, versaoM2: versaoComCriterios(recepcaoM2Desde(state, loggedEmail()) !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state)), ...(p.co2 ? { amigos: p.co2.amigos ?? [] } : {}) }) }
     catch { apagaEscolha(); setClubRaw(null); setComp(null); setRecusado('campanha'); return }
     // ✉️ guarda os convites que ficaram na mesa — o jornal cobra se um deles levantar a taça
     const recusados = representedClub ? convites.filter(cv => cv.club !== representedClub).map(cv => cv.club) : []
@@ -632,6 +649,14 @@ export function CareerInternationalView(p: Props) {
     return () => clearTimeout(t)
   }, [esperando, current])
   const escolheModo = (m: ModoSemVaga) => { gravaModo(p.season, p.seed, m); setModo(m); if (!current) begin(null, []) }
+  // 🌐 carreira online: todo convidado decidiu → a MESMA campanha nasce aqui (com o clube que eu aceitei, ou sem clube)
+  const co2Pronto = !!p.co2?.amigos
+  const minhaCo2 = p.co2?.minha
+  useEffect(() => {
+    if (!p.co2 || !co2Pronto || current || esperando) return
+    if (minhaCo2?.club && minhaCo2.xi?.length === 11) { begin(minhaCo2.club, minhaCo2.xi); return }
+    if (modo && (!p.co2.qualificado || minhaCo2)) begin(null, [])
+  }, [co2Pronto, minhaCo2, modo, current]) // eslint-disable-line react-hooks/exhaustive-deps
   // ── a noite atual ──────────────────────────────────────────────────────────
   const reveal = current?.reveal ?? 0
   const step = current && reveal < current.steps.length ? current.steps[reveal] : null
@@ -765,6 +790,26 @@ export function CareerInternationalView(p: Props) {
   }
 
   // 2) AINDA NÃO COMEÇOU: passo 1 (competição) → 2 (clube) → 3 (convocação) · ou sem vaga
+  // 🌐 carreira online: espera a vez (quem está mais alto escolhe antes) ou espera os outros convidados decidirem
+  if (!current && p.co2 && ((p.co2.qualificado && !p.co2.minha && p.co2.vez !== p.co2.meuId) || (p.co2.minha && !p.co2.amigos) || (!p.co2.qualificado && modo && !p.co2.amigos))) {
+    const c2 = p.co2
+    const nome = (id: number | null) => c2.fila.find(v => v.mgrId === id)?.name ?? '?'
+    return <section style={frame} aria-label="Futebol internacional de clubes">
+      <div style={card}>
+        <span style={kicker}>{tr('Temporada', 'Season')} {p.season} · {tr('Libertadores e Champions — uma só pra todos', 'Libertadores and Champions — one for everyone')}</span>
+        <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 20, margin: '4px 0 6px', textAlign: 'center', lineHeight: 1.05, color: INK }}>✉️ {c2.minha ? tr('Convite aceito', 'Invitation accepted') : c2.vez != null ? tr(`Vez de ${nome(c2.vez)}`, `${nome(c2.vez)}'s turn`) : tr('Esperando os convidados', 'Waiting for the invited')}</h2>
+        <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '0 0 8px', color: INK }}>{c2.minha ? tr('A campanha começa quando todos os convidados decidirem.', 'The campaign starts once everyone invited decides.') : c2.qualificado ? tr('Quem terminou mais alto escolhe primeiro. O clube que ele aceitar sai da sua lista.', 'Whoever finished higher picks first. The club they accept leaves your list.') : tr('Seu clube não pegou vaga desta vez. A campanha começa quando os convidados decidirem.', 'Your club did not qualify this time. The campaign starts once the invited decide.')}</p>
+        {c2.fila.map(v => <div key={v.mgrId} style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: 12.5, padding: '2px 0', color: INK }}>
+          <span style={{ ...OSWALD, fontWeight: 900, minWidth: 26 }}>{v.priority}º</span>
+          <span style={{ flex: 1, fontWeight: v.mgrId === c2.meuId ? 900 : 800 }}>{v.name}</span>
+          <span style={{ color: v.estado === 'vez' ? '#B8892B' : 'rgba(0,0,0,.6)' }}>{v.estado === 'vez' ? tr('escolhendo…', 'picking…') : v.estado === 'espera' ? tr('espera a vez', 'waits') : v.estado === 'pulado' ? tr('pulado', 'skipped') : v.estado === 'sem' ? tr('sem clube', 'no club') : v.estado}</span>
+          {c2.comanda && v.estado === 'vez' && v.mgrId !== c2.meuId && <button type="button" onClick={() => { if (window.confirm(tr(`Pular ${v.name}? Ele fica fora da Libertadores/Champions desta temporada e o próximo escolhe.`, `Skip ${v.name}? They sit out this season's Libertadores/Champions and the next one picks.`))) c2.onPular(v.mgrId) }} style={{ ...btn('#fff'), width: 'auto', fontSize: 11, padding: '3px 8px', boxShadow: 'none' }}>{tr('Pular', 'Skip')}</button>}
+        </div>)}
+        <p style={hint}>{tr('Na carreira online tudo é um mundo só: uma Libertadores, uma Champions e um Mundial, iguais pra todo mundo.', 'In the online career it is all one world: one Libertadores, one Champions and one Club World Cup, the same for everyone.')}</p>
+      </div>
+      {rodape}
+    </section>
+  }
   if (!current) {
     const temVaga = p.choices.length > 0 && podeInscrever && convites.length > 0
     const passos = <div style={{ display: 'flex', gap: 5, justifyContent: 'center', margin: '8px 0 2px', flexWrap: 'wrap' }}>

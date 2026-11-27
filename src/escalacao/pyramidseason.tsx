@@ -164,6 +164,7 @@ import { useCampo2DLigado, useCampo2DExtras, ligaCampo2D, useQuadra2DLigada } fr
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
+import { vezDaIntl, clubesTomados, amigosDaIntl, filaIntl, titulosDaIntl, contaTitulosIntl, type Co2IntlEscolha } from './co2-internacional' // 🌎 27/11 Libertadores/Champions únicas na carreira online
 import { CareerInternationalView, topoInternacional, CarreiraPresidente } from './career-international-view'
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
@@ -10560,7 +10561,8 @@ export function PyramidSeasonScreen() {
   const youId = state.managers[state.youIdx]?.id ?? 0
   // 🌍 27/11: na carreira online a Liberta/Champions/Mundial vai ser UMA só pra turma (em construção) — até lá, a campanha individual
   // fica desligada lá (senão dois amigos seriam campeões da mesma Libertadores)
-  const intlEnabled = useInternacionalCarreiraLiberada() && !state.co2
+  const intlEnabled = useInternacionalCarreiraLiberada() // 🌎 27/11: na carreira online também (única pra todos, desde a T1)
+  const intlDesde = state.co2 ? 1 : 40 // 🌐 Diego 27/11: *"que temporada 40 o quê… desde o início já"* (só na carreira online)
   // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
   // nova, pra montar o rank travado na temporada de quem olha (anti-spoiler — ver
   // `esc_pyramid_rank` no banco). Só carreira com Agência 2.0, offline, e só 1×
@@ -10993,11 +10995,40 @@ export function PyramidSeasonScreen() {
   const intlAuthReady = useInternacionalCarreiraAuthResolvida()
   const intlHistory = intlEnabled ? (state.careerInternationalHistory ?? []) : []
   const intlCampaign = intlEnabled && state.careerInternational?.season === state.seasonNo ? state.careerInternational : null
-  const intlRequired = intlEnabled && !!state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= 40 && done
-  const intlPendente = state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= 40 && done && ((!intlAuthReady) || (intlRequired && !intlHistory.some(entry => entry.season === state.seasonNo)))
+  const intlRequired = intlEnabled && !!state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= intlDesde && done
+  const intlPendente = state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= intlDesde && done && ((!intlAuthReady) || (intlRequired && !intlHistory.some(entry => entry.season === state.seasonNo)))
   const intlQualifiers = useMemo(() => internationalQualifiers(tables.A, copaBrOk ? copaBR?.champion : null, teamKey), [tables.A, copaBrOk, copaBR?.champion])
-  const intlPriority = intlQualifiers.find(entry => entry.team.teamId === youId)?.priority ?? null
-  const intlChoices = internationalChoice(intlEnabled, state.seasonNo, intlQualifiers, `m${youId}`, teamKey)
+  // 🌎🧑‍🤝‍🧑 27/11 CARREIRA ONLINE: a fila dos convites (clubes de gente no G8/Copa, na ordem da prioridade), quem já aceitou qual
+  // clube e — quando todos decidiram — os amigos que entram na MESMA campanha em todo aparelho
+  const intlCo2 = useMemo(() => {
+    if (!state.co2 || !intlEnabled) return null
+    const season = state.seasonNo ?? 1
+    const fila = filaIntl(intlQualifiers.filter(q => q.team.human && q.team.teamId >= 0).map(q => ({ mgrId: q.team.teamId, priority: q.priority, name: q.team.name })))
+    const escolhas: Record<number, Co2IntlEscolha | undefined> = {}
+    for (const g of state.co2.gavetas) if (g.intl) escolhas[g.mgrId] = g.intl
+    if (state.co2.minhaIntl) escolhas[youId] = state.co2.minhaIntl
+    const pulados = mundoCo2?.intlPula?.season === season ? mundoCo2.intlPula.ids : []
+    const vez = vezDaIntl(fila, escolhas, pulados, season)
+    const nomeDe = (id: number) => state.managers.find(m => m.id === id)?.teamName ?? fila.find(v => v.mgrId === id)?.name ?? '?'
+    const filaVez = fila.map(v => ({ ...v, estado: (pulados.includes(v.mgrId) ? 'pulado' : escolhas[v.mgrId]?.season === season ? (escolhas[v.mgrId]!.club ?? 'sem') : v.mgrId === vez ? 'vez' : 'espera') as string }))
+    return {
+      fila: filaVez, vez, pulado: pulados.includes(youId), qualificado: fila.some(v => v.mgrId === youId) && !pulados.includes(youId),
+      tomados: clubesTomados(escolhas, season, youId), minha: escolhas[youId]?.season === season ? escolhas[youId] : undefined,
+      amigos: vez === null ? amigosDaIntl(escolhas, season, youId, nomeDe, pulados) : null,
+    }
+  }, [state.co2, intlEnabled, intlQualifiers, state.seasonNo, youId, mundoCo2?.intlPula, state.managers])
+  const intlPriority = intlCo2?.pulado ? null : intlQualifiers.find(entry => entry.team.teamId === youId)?.priority ?? null
+  const intlChoices = useMemo(() => {
+    if (intlCo2?.pulado) return []
+    const base = internationalChoice(intlEnabled, state.co2 ? Math.max(40, state.seasonNo ?? 1) : state.seasonNo, intlQualifiers, `m${youId}`, teamKey)
+    return intlCo2 ? base.filter(c => !intlCo2.tomados.includes(c.name)) : base // 🌎 clube que amigo já aceitou sai da lista
+  }, [intlEnabled, state.co2, state.seasonNo, intlQualifiers, youId, intlCo2])
+  // 🏆 o DONO carimba no mundo quem levou cada título (é o que entra no ranking de clubes, igual em todo aparelho)
+  useEffect(() => {
+    if (!state.co2?.comanda || !intlCampaign || !mundoCo2 || (mundoCo2.intlHist ?? []).some(h => h.season === intlCampaign.season)) return
+    const mm = co2Agora().mundo ?? mundoCo2
+    void co2Mundo('virada', null, null, { ...mm, intlHist: [...(mm.intlHist ?? []), titulosDaIntl(intlCampaign)] })
+  }, [state.co2?.comanda, intlCampaign, mundoCo2])
   const intlStats = useMemo(() => intlCampaign && !intlPendente ? intlCampaign.statistics : [], [intlCampaign, intlPendente])
   const intlPorCarta = useMemo(() => {
     const gl: Record<string, number> = {}, ass: Record<string, number> = {}, jogos: Record<string, number> = {}
@@ -11983,6 +12014,7 @@ export function PyramidSeasonScreen() {
     if (state.oficial) for (const e of state.oficialCampeoes ?? []) { if (e.liberta) libOfG[e.liberta] = (libOfG[e.liberta] ?? 0) + 1; if (e.sula) sulaOfG[e.sula] = (sulaOfG[e.sula] ?? 0) + 1; if (e.intercontinental) interOfG[e.intercontinental] = (interOfG[e.intercontinental] ?? 0) + 1 }
     const estOfG: Record<string, number> = {}
     if (state.oficial) for (const e of state.oficialEstaduais ?? []) estOfG[e.campeao] = (estOfG[e.campeao] ?? 0) + 1
+    let ordemTab = 0
     const rws = DIVS.flatMap(d => tables[d]).map(t => {
       const key = teamKey(t)
       const olds = oldChain(key)
@@ -11992,21 +12024,24 @@ export function PyramidSeasonScreen() {
       const caixaAmigo = state.co2 && t.human && t.teamId !== youId ? state.co2.gavetas.find(g => g.mgrId === t.teamId)?.caixa : undefined
       const money = t.human ? (caixaAmigo ?? (t.teamId === youId || !state.co2 ? (state.careerCoins?.[t.teamId] ?? 0) : 0)) : Math.round(pick(cc) ?? 0)
       const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + ((state.co2 ? cmTitlesCo2 : cmTitlesG)[o] ?? 0), 0)
-      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId && !state.co2 ? intlHistory : [], libOf: libOfG[t.name] ?? 0, sulaOf: sulaOfG[t.name] ?? 0, interOf: interOfG[t.name] ?? 0, estOf: estOfG[t.name] ?? 0 }
+      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId && !state.co2 ? intlHistory : [], ordem: ordemTab++, libOf: libOfG[t.name] ?? 0, sulaOf: sulaOfG[t.name] ?? 0, interOf: interOfG[t.name] ?? 0, estOf: estOfG[t.name] ?? 0 }
     })
     // 🏅 MESMA CONTA DE PONTOS do Rank (Diego 17/08) — e isto aqui não é
     // detalhe: é este sort que escolhe o TOP 32 que entra na Copa do
     // Mundo. Se a ordem daqui discordar da do Rank, a pessoa vê uma
     // colocação e se classifica por outra (bug de 10/08).
     const ptsDe = (x: typeof rws[number]) => {
-      const intl = internationalTitleCounts(x.intl, state.seasonNo)
+      // 🌎 27/11 carreira online: os internacionais são únicos — títulos carimbados pelo dono, só de temporadas já fechadas
+      const intl = state.co2 ? (x.t.human && x.t.teamId >= 0 ? contaTitulosIntl(mundoCo2?.intlHist, x.t.teamId, state.seasonNo ?? 1) : { mundial_titles: 0, libertadores_titles: 0, champions_titles: 0 }) : internationalTitleCounts(x.intl, state.seasonNo)
       return pontosDeTitulos({
         world: x.wc, copa: x.copas, supercopa: x.supercopa,
         mundial: intl.mundial_titles + x.interOf, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles, sula: x.sulaOf, estadual: x.estOf,
         A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
       })
     }
-    rws.sort((a, b) => ptsDe(b) - ptsDe(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
+    // 🌐 27/11 carreira online: desempate pela ordem das tabelas (igual em todo aparelho na hora) — o caixa muda no fim da temporada
+    // (prêmios da Libertadores/Copa chegam em momentos diferentes em cada aparelho) e mudaria a Copa do Mundo no meio
+    rws.sort((a, b) => ptsDe(b) - ptsDe(a) || (state.co2 ? a.ordem - b.ordem : b.money - a.money || a.t.name.localeCompare(b.t.name)))
     // 🏛️ SÓ O CLUBE PRINCIPAL VAI PRA COPA DO MUNDO (regra NOVA do Diego,
     // 11/09 — substitui a de 04/08, em que os DOIS clubes contavam).
     // Palavras dele: *"não quero mais que o segundo clube (multiclube)
@@ -12024,7 +12059,7 @@ export function PyramidSeasonScreen() {
     const meusNoTop = rws.slice(0, 32).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
     return { top16, meusNoTop, principalId }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tables, state.careerHonors, state.careerCopaHonors, state.careerSupercopaHonors, state.clubCash, state.careerCoins, state.seed, state.multiClubeAtivo, state.multiClube, youId, state.copaMundoMural, state.careerInternationalHistory, state.oficial, state.oficialCampeoes, state.oficialEstaduais, state.co2?.gavetas, mundoCo2?.copaHist])
+  }, [tables, state.careerHonors, state.careerCopaHonors, state.careerSupercopaHonors, state.clubCash, state.careerCoins, state.seed, state.multiClubeAtivo, state.multiClube, youId, state.copaMundoMural, state.careerInternationalHistory, state.oficial, state.oficialCampeoes, state.oficialEstaduais, state.co2?.gavetas, mundoCo2?.copaHist, mundoCo2?.intlHist])
   // 🌍 ANO DE COPA DO MUNDO: ELA VEM ANTES DO JORNAL (Diego 26/09: *"a copa do
   // mundo deveria ser jogada antes então de chegar o passo 1 do jornal"*). Motivo:
   // a Bola de Ouro sai no jornal e soma gol + assistência de TODAS as competições —
@@ -13534,7 +13569,7 @@ export function PyramidSeasonScreen() {
       { k: 'liga', ic: '⚽', nome: round > 0 && !done ? tr(`Liga · R${round}/38`, `League · R${round}/38`) : tr('Liga', 'League') },
       { k: 'copa', ic: '🏆', nome: !done ? tr('Copa', 'Cup') : copaBrOk ? 'Copa do Brasil' : tr('Copa Legends', 'Legends Cup') },
       ...(temSuper ? [{ k: 'super', ic: '⭐', nome: tr('Supercopa', 'Super Cup') }] : []),
-      ...(intlEnabled && (state.seasonNo ?? 1) >= 40 ? [{ k: 'intl', ic: '🌎', nome: tr('Internacional', 'International') }] : []),
+      ...(intlEnabled && (state.seasonNo ?? 1) >= intlDesde ? [{ k: 'intl', ic: '🌎', nome: tr('Internacional', 'International') }] : []),
       ...(mundoAntes ? [{ k: 'mundo', ic: '🌍', nome: tr('Copa do Mundo', 'World Cup') }] : []),
     ]
     const agora = !done ? 'liga'
@@ -13632,7 +13667,7 @@ export function PyramidSeasonScreen() {
       for (const c of m.squad as WonCard[]) { if (c.fake || c.cria || !(c.paid > 0)) continue; if (!maisCaro || c.paid > maisCaro.paid) maisCaro = { name: c.name, teamName: m.teamName, paid: c.paid, you: m.id === youId,club:c.club,year:c.year } }
     }
     for(const item of [maiorLance,maisCaro])if(item)item.deal=[...(state.careerTransferHistory??[])].reverse().find(d=>d.name===item.name&&d.team===item.teamName&&d.paid===item.paid&&(!item.club||d.club===item.club&&d.year===item.year))
-    const intlAberta = intlEnabled && sn >= 40
+    const intlAberta = intlEnabled && sn >= intlDesde
     const g8Faltam = Math.max(0, (tables.A?.[7]?.pts ?? 0) - meusPts)
     const outra: Div = myDiv === 'A' ? 'B' : 'A'
     // 🏆 DEPOIS DA LIGA, A CENTRAL SEGUE A COMPETIÇÃO NO AR (04/10, Diego: *"começou outras copas
@@ -13744,7 +13779,7 @@ export function PyramidSeasonScreen() {
       })(),
       copaChegando: [
         ...(!seasonOver && 38 - round <= 5 ? [{ nome: (copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']) as [string, string], rodadasFaltam: 38 - round }] : []),
-        ...(intlEnabled && sn === 39 ? [{ nome: ['Libertadores', 'Libertadores'] as [string, string], proximaTemporada: true }] : []),
+        ...(intlEnabled && sn === intlDesde - 1 ? [{ nome: ['Libertadores', 'Libertadores'] as [string, string], proximaTemporada: true }] : []),
         ...(sn >= cmAncora - 1 && cmAgenda.ano && !cmAgenda.jogada ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], esteAno: true }] : cmAgenda.proxima===sn+1 ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], proximaTemporada: true }] : []),
       ],
     })
@@ -14508,7 +14543,12 @@ export function PyramidSeasonScreen() {
           squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} choices={intlChoices} priority={intlPriority} campaign={intlCampaign} history={intlHistory}
           onStart={campaign => dispatch({ type: 'START_INTERNATIONAL_CAMPAIGN', campaign })}
           onAdvance={() => dispatch({ type: 'ADVANCE_INTERNATIONAL_CAMPAIGN' })}
-          onFinish={entry => dispatch({ type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry })} topoGrande={privateCareer && intlNoAr} />}
+          onFinish={entry => dispatch({ type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry })} topoGrande={privateCareer && intlNoAr}
+          co2={intlCo2 ? { ...intlCo2, comanda: !!state.co2?.comanda, meuId: youId,
+            onEscolha: (e: Co2IntlEscolha) => dispatch({ type: 'CO2_INTL_ESCOLHA', escolha: e }),
+            onPular: (id: number) => { const mm = co2Agora().mundo ?? mundoCo2; const season = state.seasonNo ?? 1; if (!mm) return
+              const ja = mm.intlPula?.season === season ? mm.intlPula.ids : []
+              void co2Mundo('virada', null, null, { ...mm, intlPula: { season, ids: [...new Set([...ja, id])] } }) } } : undefined} />}
         {/* 📰 PASSO 1: a NOTÍCIA. Primeiro o jornal, que é o que a cabeça quer saber. */}
         {copaFinished && me && (!roteiroOn || fimPasso === 1) && (
           <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copaBase} oficial={state.oficial && desfecho ? { tipo: desfecho.tipo, para: desfecho.para, playoff: !!playoffB } : undefined} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}

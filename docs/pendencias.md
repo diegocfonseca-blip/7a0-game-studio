@@ -70,6 +70,14 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
   PULAR quem sumiu · as 32 seleções e os jogos (motor novo pra toda seleção de gente) saem iguais — trava `testa-copa-mundo.mjs`.
   Foto `scripts/mockups/co2-copa-mundo-vez.png`. ⏳ Liberta/Champions/Mundial únicos = próximo (enquanto isso a campanha individual
   fica DESLIGADA no co2 e a virada da T40+ não espera por ela).
+- ✅ (27/11) 🌎🌍🌐 LIBERTADORES/CHAMPIONS/MUNDIAL ÚNICOS na carreira online, DESDE A T1 (Diego: *"que temporada 40 o quê… desde o início já, tem que liberar"*).
+  Fila de convites pela prioridade da regra de sempre (campeão da A → campeão da Copa → 2º–8º); cada um recebe os 2 convites do bloco dele e aceita UM;
+  o clube aceito sai da lista dos de baixo; o dono pula quem sumiu; quando todos decidiram, a MESMA campanha nasce em todo aparelho (amigos nos clubes
+  deles, motor novo em todo jogo de gente). Champions continua abrindo só depois de ganhar a Libertadores. Fechar a temporada exige a internacional
+  encerrada no aparelho (o prêmio vai no caixa do fechamento). Ranking: títulos carimbados pelo dono contam a partir da temporada seguinte, e o
+  desempate do ranking no co2 virou a ordem das tabelas (o caixa muda no fim da temporada em momentos diferentes e mexeria na Copa do Mundo).
+  A virada agora sobe a gaveta com Copa/Libertadores/caixa juntos (antes o fechamento apagava a escolha da Copa — amigo mais lento podia montar outra Copa).
+  ⏳ Falta: teste real com 2 contas; quem faltou a virada inteira não joga a internacional daquela temporada.
 - ⚠️ (27/11) o teste da Copa do fim falhou 1 vez em ~20 rodadas (Copa diferente entre aparelhos, semente aleatória). Não reproduziu em 18 seguidas; o teste agora imprime a semente quando falhar — investigar antes de liberar.
 - ⏳ falta: anúncio C também nas copas (hoje a copa do fim roda em cada aparelho), dia dos contratos, teste com 2 contas.
 - Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).
