@@ -39,12 +39,12 @@ export function selecoesTomadas(escolhas: Readonly<Record<number, Co2CopaEscolha
   return out
 }
 
-/** Os convites do clube `mgrId`: as seleções da posição dele pra baixo que nenhum amigo levou. */
+/** Os convites do clube `mgrId`: TODAS as seleções que nenhum amigo levou (Diego 27/11: *"todos esses times te querem"* — quem está
+ *  mais alto no ranking escolhe primeiro, e a escolhida sai da lista dos de baixo). */
 export function convitesDaCopa(top: readonly Co2CopaVaga[], paises: readonly string[], mgrId: number, escolhas: Readonly<Record<number, Co2CopaEscolha | undefined>>, season: number): string[] {
-  const pos = top.findIndex(v => v.mgrId === mgrId)
-  if (pos < 0) return []
+  if (!top.some(v => v.mgrId === mgrId)) return []
   const tomadas = selecoesTomadas(escolhas, season, mgrId)
-  return paises.slice(pos).filter(p => !tomadas.has(p))
+  return paises.filter(p => !tomadas.has(p))
 }
 
 /** Remonta o XI escolhido (pelas chaves nome|clube|ano) no elenco do país; buraco = o melhor livre da posição. */

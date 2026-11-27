@@ -69,6 +69,8 @@ export const bandeiraDe = (pais: string) => FLAG[pais] ?? '🌍' // 📰 o jorna
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
 
 const FLAG: Record<string, string> = {
+  // 🏳️ 27/11: bandeiras que faltavam (apareciam como 🌍 no mural de convites)
+  'Angola': '🇦🇴', 'Armênia': '🇦🇲', 'Arábia Saudita': '🇸🇦', 'Bulgária': '🇧🇬', 'Bósnia': '🇧🇦', 'Cabo Verde': '🇨🇻', 'China': '🇨🇳', 'Congo': '🇨🇬', 'Egito': '🇪🇬', 'Eslováquia': '🇸🇰', 'Eslovênia': '🇸🇮', 'Estados Unidos': '🇺🇸', 'Finlândia': '🇫🇮', 'Gabão': '🇬🇦', 'Geórgia': '🇬🇪', 'Grécia': '🇬🇷', 'Guiné': '🇬🇳', 'Haiti': '🇭🇹', 'Honduras': '🇭🇳', 'Hungria': '🇭🇺', 'Irlanda do Norte': '🇬🇧', 'Libéria': '🇱🇷', 'Mali': '🇲🇱', 'Marrocos': '🇲🇦', 'Montenegro': '🇲🇪', 'Nigéria': '🇳🇬', 'Noruega': '🇳🇴', 'País de Gales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Polônia': '🇵🇱', 'RD Congo': '🇨🇩', 'Rep. Tcheca': '🇨🇿', 'Romênia': '🇷🇴', 'Rússia': '🇷🇺', 'Suíça': '🇨🇭', 'Togo': '🇹🇬', 'Trinidad e Tobago': '🇹🇹', 'Ucrânia': '🇺🇦', 'Zimbábue': '🇿🇼', 'África do Sul': '🇿🇦', 'Áustria': '🇦🇹',
   'Brasil': '🇧🇷', 'Argentina': '🇦🇷', 'França': '🇫🇷', 'Espanha': '🇪🇸',
   'Inglaterra': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Itália': '🇮🇹', 'Alemanha': '🇩🇪', 'Holanda': '🇳🇱',
   'Portugal': '🇵🇹', 'México': '🇲🇽', 'Colômbia': '🇨🇴', 'Uruguai': '🇺🇾',

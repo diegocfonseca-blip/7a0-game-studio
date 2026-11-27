@@ -372,6 +372,43 @@ type PoolCard = Card
 const fechaForm = (cards: { pos: string; name: string; club: string; year: number }[], form: Shape) => sections.every(pos => new Set(cards.filter(c => c.pos === pos).map(internationalCardKey)).size >= needs[form][pos])
 /** o clube tem jogadores no baralho pra fechar um time? (72 dos 72 desde o Lote 40) */
 export const clubeFechaTime = (clube: string) => { const cs = internationalClubCards(clube); return fechaForm(cs, '4-3-3') || fechaForm(cs, '4-4-2') }
+/** ⭐ a força do clube = a média do melhor 4-3-3 das lendas dele no baralho (o que aparece no mural de convites da carreira online) */
+export function forcaDoClube(clube: string): number {
+  const cs = internationalClubCards(clube), xi: number[] = []
+  for (const pos of sections) xi.push(...cs.filter(c => c.pos === pos).map(c => (c.lo + c.hi) / 2).sort((a, b) => b - a).slice(0, needs['4-3-3'][pos]))
+  return xi.length ? Math.round(xi.reduce((a, b) => a + b, 0) / xi.length) : 0
+}
+// ✉️🧑‍🤝‍🧑 O MURAL DE CONVITES da carreira online (Diego 27/11: *"apareceria convites com todos os times… todos esses times te querem,
+// por qual você vai brigar pelo título?"*). Na SUA vez aparecem TODOS os clubes que ainda estão livres (os que um amigo de cima
+// já levou somem); tocar num abre a carta do convite de sempre, com o Aceitar.
+function MuralConvites({ convites, champsOk, season, onVer }: { convites: Convite[]; champsOk: boolean; season: number; onVer: (cv: Convite) => void }) {
+  const bloco = (comp: InternationalCompetition) => {
+    const lista = convites.filter(cv => cv.comp === comp)
+    return <div style={{ ...card, padding: 10 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 8px', color: INK }}>{emojiComp(comp)} {nomeComp(comp)}{comp === 'champions' && !champsOk ? ' 🔒' : ` · ${lista.length} ${tr('clubes', 'clubs')}`}</p>
+      {comp === 'champions' && !champsOk ? <p style={{ fontSize: 11.5, fontWeight: 700, margin: 0, color: '#555' }}>🔒 {tr('A Europa só chama depois que você levantar a Libertadores.', 'Europe only calls once you lift the Libertadores.')}</p>
+        : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 8 }}>
+          {lista.map(cv => <button key={cv.club} type="button" onClick={() => onVer(cv)} style={{ display: 'flex', alignItems: 'center', gap: 7, background: cv.renova ? '#FFF3C4' : '#FBF5E4', border: `2.5px solid ${INK}`, borderRadius: 10, boxShadow: `2px 2px 0 ${INK}`, padding: '6px 7px', cursor: 'pointer', textAlign: 'left', color: INK }}>
+            <SeloClube clube={cv.club} size={30} />
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontWeight: 900, fontSize: 12, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cv.club}</span>
+              <span style={{ display: 'block', fontSize: 10, fontWeight: 800, color: '#6c604a' }}>{cv.renova ? tr('🔁 quer renovar', '🔁 wants to renew') : `⭐ ${forcaDoClube(cv.club)} · ✉️`}</span>
+            </span>
+          </button>)}
+        </div>}
+    </div>
+  }
+  return <>
+    <div style={{ ...card, background: '#FBF5E4' }}>
+      <span style={kicker}>{tr('Temporada', 'Season')} {season} · O MARTELO · {tr('edição extra', 'special edition')}</span>
+      <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 22, margin: '4px 0 4px', textAlign: 'center', lineHeight: 1.05, color: INK }}>✉️ {tr('Todos esses clubes querem você', 'All these clubs want you')}</h2>
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: 13.5, lineHeight: 1.4, textAlign: 'center', margin: 0, color: INK }}>{tr('Por qual você vai brigar pelo título?', 'Which one will you fight for the title with?')}</p>
+      <p style={{ ...hint, marginTop: 6 }}>{tr('Você escolhe antes de quem ficou abaixo — e o clube que você aceitar sai da lista deles. ⭐ = força do elenco de lendas.', 'You pick before those who finished below — and the club you accept leaves their list. ⭐ = strength of the legends squad.')}</p>
+    </div>
+    {bloco('libertadores')}
+    {bloco('champions')}
+  </>
+}
 // 💬 O RECADO DA LENDA (Diego 02/10: "faz o 3"). Ao aceitar o convite, o maior nome do clube no
 // baralho manda boas-vindas curtas. Entra no tempo morto da convocação, sem passo novo.
 // ⚠️ Frases GENÉRICAS de vestiário: não imitam o jeito de nenhum jogador real (regra "não inventar
@@ -592,7 +629,13 @@ export function CareerInternationalView(p: Props) {
   // 🔒 o clube escolhido fica GRAVADO por temporada: recarregar a tela não reabre a escolha
   const champsOk = championsLiberada(p.history)
   const renovaLivre = useMemo(() => { const r = clubeDaRenovacao(p.history, p.season); return r && p.co2?.tomados.includes(r.club) ? null : r }, [p.history, p.season, p.co2?.tomados])
-  const convites = useMemo(() => convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk, renovaLivre), [p.seed, p.season, p.priority, p.choices, champsOk, renovaLivre])
+  const convites = useMemo(() => p.co2
+    // 🌐 carreira online: TODOS os clubes livres convidam (os de amigos de cima já saíram de `choices`), do mais forte pro mais fraco
+    ? (p.priority == null ? [] : p.choices.filter(c => (c.competition === 'libertadores' || champsOk) && clubeFechaTime(c.name))
+        .map(c => ({ club: c.name, comp: c.competition, ...(renovaLivre?.club === c.name ? { renova: true } : {}) }) as Convite)
+        .sort((a, b) => Number(!!b.renova) - Number(!!a.renova) || forcaDoClube(b.club) - forcaDoClube(a.club) || a.club.localeCompare(b.club)))
+    : convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk, renovaLivre), [p.co2, p.seed, p.season, p.priority, p.choices, champsOk, renovaLivre])
+  const [espiando, setEspiando] = useState<Convite | null>(null)
   // 🛡️ a escolha guardada só vale se for um dos convites DESTA carreira (senão o motor recusa)
   const salvaBruta = leEscolha(p.season, p.seed)
   const escolhaSalva = salvaBruta && convites.some(cv => cv.club === salvaBruta.club && cv.comp === salvaBruta.comp) ? salvaBruta : null
@@ -845,13 +888,17 @@ export function CareerInternationalView(p: Props) {
         <p style={hint}>⏭️ {tr('Pulou? A temporada fecha os campeões por trás e segue pro jornal. Nada trava.', 'Skipped? The season settles the champions behind the scenes and moves on to the paper. Nothing gets stuck.')}</p>
       </> : !club || !comp ? <>
         {/* ── ✉️ OS CONVITES (no lugar de escolher competição e clube num cardápio) ── */}
-        <div style={card}>
+        {p.co2 ? (recusado && recusado !== 'liberacao' ? <AvisoRecusa motivo={recusado} /> : null) : <div style={card}>
           <span style={kicker}>{tr('Temporada', 'Season')} {p.season} · {tr('Futebol internacional de clubes', 'International club football')}</span>
           <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 22, margin: '4px 0 2px', textAlign: 'center', lineHeight: 1.05, color: INK }}>✉️ {convites.length} {tr('convites chegaram', 'invitations arrived')}</h2>
           {recusado && recusado !== 'liberacao' && <AvisoRecusa motivo={recusado} />}
           <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '6px 0 0', color: INK }}>{tr('Pela sua campanha na Série A, clubes grandes querem você como técnico convidado. Aceite UM — depois de aceitar, não troca.', 'After your Série A campaign, big clubs want you as guest coach. Accept ONE — once accepted, no switching.')}</p>
-        </div>
-        {convites.map(cv => <CartaConvite key={cv.club} convite={cv} userTeam={p.userTeam} season={p.season} onAceitar={() => aceita(cv)} />)}
+        </div>}
+        {p.co2 ? (espiando
+          ? <><CartaConvite convite={espiando} userTeam={p.userTeam} season={p.season} onAceitar={() => { aceita(espiando); setEspiando(null) }} />
+              <button type="button" style={{ ...btn('#fff'), marginBottom: 12 }} onClick={() => setEspiando(null)}>← {tr('Ver todos os convites', 'See all invitations')}</button></>
+          : <MuralConvites convites={convites} champsOk={champsOk} season={p.season} onVer={setEspiando} />)
+          : convites.map(cv => <CartaConvite key={cv.club} convite={cv} userTeam={p.userTeam} season={p.season} onAceitar={() => aceita(cv)} />)}
         <p style={hint}>🌐 {tr('O Mundial de Clubes vem só no fim: o campeão da sua competição pega o campeão da outra, em jogo único.', 'The Club World Cup comes only at the end: your champion faces the other champion in a single match.')}{!champsOk && <> 🔒 {tr('A Europa (Champions) só manda convite depois que você levantar a Libertadores — e aí fica aberta pra sempre nesta carreira.', 'Europe (Champions) only sends invitations after you lift the Libertadores — then it stays open for good in this career.')}</>}</p>
       </> : <>
         {/* ── PASSO 3: a convocação ── */}

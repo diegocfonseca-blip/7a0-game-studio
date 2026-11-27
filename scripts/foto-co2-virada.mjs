@@ -18,6 +18,7 @@ const casos = [
   { nome: 'anuncio-estreia', fase: 'preparo', temporada: 1, tela: 'anuncio', w: 420 },
   { nome: 'anuncio-faixa', fase: 'preparo', temporada: 1, tela: 'faixa', w: 420 },
   { nome: 'copa-mundo-vez', fase: 'virada', temporada: 1, tela: 'copa', w: 420 },
+  { nome: 'copa-mundo-convites', fase: 'virada', temporada: 1, tela: 'copa', w: 420, clica: 'Sua vez' },
 ]
 for (const c of casos) {
   const ctx = await b.newContext({ viewport: { width: c.w, height: 900 }, deviceScaleFactor: 2 })
@@ -52,6 +53,7 @@ for (const c of casos) {
     C._bancadaCo2({ uid: ${JSON.stringify(DONO)}, aqui: ORDEM_AQUI })
     await new Promise(r=>setTimeout(r,1500))
   })()`.replace('ORDEM_AQUI', JSON.stringify(ORDEM.slice(0, 3))))
+  if (c.clica) { await p.getByText(c.clica).first().click(); await p.waitForTimeout(800) }
   await p.screenshot({ path: `${OUT}/co2-${c.nome}.png`, fullPage: c.w < 1000 })
   console.log('📸', `${OUT}/co2-${c.nome}.png`)
   await ctx.close()

@@ -163,7 +163,7 @@ import { useRitmo2D, useVel2DAqui, useVel3DAqui, setVel2D } from './ritmo2d'
 import { useCampo2DLigado, useCampo2DExtras, ligaCampo2D, useQuadra2DLigada } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
-import { internationalQualifiers, internationalChoice, isInternationalCareerTester, intlDesdeDe } from './career-international'
+import { internationalQualifiers, internationalChoice, isInternationalCareerTester, intlDesdeDe, INTERNATIONAL_CLUBS } from './career-international'
 import { vezDaIntl, clubesTomados, amigosDaIntl, filaIntl, titulosDaIntl, contaTitulosIntl, type Co2IntlEscolha } from './co2-internacional' // 🌎 27/11 Libertadores/Champions únicas na carreira online
 import { CareerInternationalView, topoInternacional, CarreiraPresidente } from './career-international-view'
 import type { InternationalHistoryEntry } from './career-international-season'
@@ -11021,7 +11021,8 @@ export function PyramidSeasonScreen() {
   const intlChoices = useMemo(() => {
     if (intlCo2?.pulado) return []
     const base = internationalChoice(intlEnabled && (state.seasonNo ?? 1) >= intlDesde, state.seasonNo ?? 1, intlQualifiers, `m${youId}`, teamKey)
-    return intlCo2 ? base.filter(c => !intlCo2.tomados.includes(c.name)) : base // 🌎 clube que amigo já aceitou sai da lista
+    // 🌎 carreira online (Diego 27/11): TODOS os clubes convidam quem tem vaga — o de cima escolhe primeiro; clube que amigo já aceitou sai da lista
+    return intlCo2 ? (base.length ? INTERNATIONAL_CLUBS.filter(c => !intlCo2.tomados.includes(c.name)) : []) : base
   }, [intlEnabled, intlDesde, state.seasonNo, intlQualifiers, youId, intlCo2])
   // 🏆 o DONO carimba no mundo quem levou cada título (é o que entra no ranking de clubes, igual em todo aparelho)
   useEffect(() => {

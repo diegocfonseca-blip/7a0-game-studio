@@ -8734,7 +8734,8 @@ export function motivoRecusaInternacional(s: EscState, c: InternationalCampaign)
     // mesmo que ele seja de um bloco melhor que a posição de agora — a mesma régua do convite na tela.
     const renova = (s.careerInternationalHistory ?? []).some(e => e.season === c.season - 1 && e.representedClub === c.representedClub && (e.libertadores || e.champions))
     if (!myTeam?.you || myTeam.teamId !== me.id) return 'tecnico'
-    if (!INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && (club.block >= (c.priority ?? 10) || renova))) return 'bloco'
+    // 🌐 carreira online (27/11): todo clube livre convida quem tem vaga — o bloco da posição não limita
+    if (!INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && (s.co2 || club.block >= (c.priority ?? 10) || renova))) return 'bloco'
     if (!validInternationalXI(myTeam.xi)) return 'onze'
     if (!myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return 'cartas'
   } else if (c.registeredXI.length || c.teams.some(team => team.you)) return 'sem-vaga'

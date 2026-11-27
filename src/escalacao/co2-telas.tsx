@@ -14,7 +14,9 @@ import {
 import { minhaGaveta, co2Fechamento, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
 import { useMotor2Carreira, copaBrasilLiberada, internacionalCarreiraLiberada } from './sport'
 import { avisoFechado, fechaAviso } from './avisos-fechados'
-import { CMModal, ConvocacaoScreen, CupScreen, simulaCopaMundo, loadCopaSave, type CopaSave, type Formation, type CMStatCarta } from './copa-mundo'
+import { CMModal, ConvocacaoScreen, CupScreen, simulaCopaMundo, loadCopaSave, bandeiraDe, countryPool, bestXI, formationFits, xiStrength, type CopaSave, type Formation, type CMStatCarta } from './copa-mundo'
+/** ⭐ força da seleção = média do melhor XI dela no baralho */
+const forcaSelecao = (pais: string) => { const pool = countryPool(pais); return Math.round(xiStrength(bestXI(pool, formationFits(pool, '4-3-3') ? '4-3-3' : '4-4-2'))) }
 import { rankingSelecoes } from './paises'
 import { vezDaCopa, convitesDaCopa, entrantsDaCopa, ordemDeEscolha, type Co2CopaVaga, type Co2CopaEscolha } from './co2-copa-mundo'
 
@@ -685,11 +687,21 @@ export function Co2CopaMundo({ top, seasonNo, seed, motor2, onPrize, onCard, onA
       )}
       {aberto === 'convite' && meuId != null && (
         <CMModal>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>✉️ {tr('Convites de seleções', 'National team invitations')}</p>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', textAlign: 'center', margin: '4px 0 10px' }}>{tr('Pela posição do seu clube no ranking. Seleção que um amigo já levou não aparece.', 'By your club\'s ranking position. Teams a friend already took don\'t show up.')}</p>
-          {convitesDaCopa(top, paises, meuId, escolhas, seasonNo).map(p => (
-            <button key={p} onClick={() => { setPaisEscolhido(p); setAberto('convoca') }} style={{ ...botao('#fff'), textAlign: 'left', fontSize: 14, marginBottom: 6, boxShadow: `2px 2px 0 ${INK}` }}>{p} 👉</button>
-          ))}
+          {/* ✉️ 27/11 (Diego): *"todos esses times te querem… por qual você vai brigar pelo título?"* — TODAS as seleções livres, a mais forte primeiro */}
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>✉️ {tr('Todas essas seleções querem você', 'All these national teams want you')}</p>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: 13.5, textAlign: 'center', margin: '4px 0 2px' }}>{tr('Por qual você vai brigar pelo título?', 'Which one will you fight for the title with?')}</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', textAlign: 'center', margin: '0 0 10px' }}>{tr('Você escolhe antes de quem ficou abaixo no ranking — e a seleção que você levar sai da lista deles. ⭐ = força da seleção.', 'You pick before those below you in the ranking — and the team you take leaves their list. ⭐ = team strength.')}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 8, marginBottom: 8 }}>
+            {convitesDaCopa(top, paises, meuId, escolhas, seasonNo).map(p => ({ p, f: forcaSelecao(p) })).sort((a, b) => b.f - a.f || a.p.localeCompare(b.p)).map(({ p, f }) => (
+              <button key={p} onClick={() => { setPaisEscolhido(p); setAberto('convoca') }} style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#FBF5E4', border: `2.5px solid ${INK}`, borderRadius: 10, boxShadow: `2px 2px 0 ${INK}`, padding: '6px 7px', cursor: 'pointer', textAlign: 'left', color: INK }}>
+                <span style={{ fontSize: 24, lineHeight: 1 }}>{bandeiraDe(p)}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontWeight: 900, fontSize: 12, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p}</span>
+                  <span style={{ display: 'block', fontSize: 10, fontWeight: 800, color: '#6c604a' }}>⭐ {f} · ✉️</span>
+                </span>
+              </button>
+            ))}
+          </div>
           <button onClick={() => { dispatch({ type: 'CO2_COPA_ESCOLHA', escolha: { season: seasonNo, pais: null } }); onStats?.([]); setAberto(null) }} style={{ ...botao('#fff'), fontSize: 13, marginTop: 4 }}>{tr('Recusar os convites', 'Decline the invitations')}</button>
           <p style={{ textAlign: 'center', marginTop: 8 }}><button onClick={() => setAberto(null)} style={{ background: 'none', border: 'none', fontSize: 11, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer' }}>{tr('Fechar', 'Close')}</button></p>
         </CMModal>

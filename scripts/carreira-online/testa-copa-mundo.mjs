@@ -12,7 +12,7 @@ const top = Array.from({ length: 32 }, (_, i) => ({ name: `Clube ${i + 1}`, mgrI
 const S = 5
 let esc = {}
 ok(C.vezDaCopa(top, esc, [], S) === 0, 'o mais alto no ranking escolhe primeiro')
-ok(JSON.stringify(C.convitesDaCopa(top, paises, 0, esc, S)) === JSON.stringify(paises.slice(2)), 'convites = da posição dele pra baixo')
+ok(JSON.stringify(C.convitesDaCopa(top, paises, 0, esc, S)) === JSON.stringify(paises), 'convites = TODAS as seleções (o de cima escolhe primeiro)')
 const p0 = paises[4]
 esc = { 0: { season: S, pais: p0, form: '4-3-3' } }
 ok(C.vezDaCopa(top, esc, [], S) === 1, 'depois dele, o próximo amigo')
