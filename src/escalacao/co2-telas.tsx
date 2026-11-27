@@ -14,6 +14,9 @@ import {
 import { minhaGaveta, co2Fechamento, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
 import { useMotor2Carreira, copaBrasilLiberada } from './sport'
 import { avisoFechado, fechaAviso } from './avisos-fechados'
+import { CMModal, ConvocacaoScreen, CupScreen, simulaCopaMundo, loadCopaSave, type CopaSave, type Formation, type CMStatCarta } from './copa-mundo'
+import { rankingSelecoes } from './paises'
+import { vezDaCopa, convitesDaCopa, entrantsDaCopa, ordemDeEscolha, type Co2CopaVaga, type Co2CopaEscolha } from './co2-copa-mundo'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -226,7 +229,10 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   useEffect(() => { const t = setInterval(() => setAgora(Date.now()), 1000); return () => clearInterval(t) }, [])
 
   // 📦 a minha gaveta pública (sobe quando muda, com folga) — é ela que os outros usam pra simular o meu clube
-  const gaveta = useMemo<GavetaPublica | null>(() => (me ? minhaGaveta(me, entradasLocais) : null), [me, entradasLocais])
+  // 🌍 27/11: a gaveta leva também a decisão da Copa do Mundo e o caixa (desempate do ranking igual em todo aparelho)
+  const minhaCopa = state.co2?.minhaCopa
+  const meuCaixa = me ? Math.round(state.careerCoins?.[me.id] ?? 0) : 0
+  const gaveta = useMemo<GavetaPublica | null>(() => (me ? { ...minhaGaveta(me, entradasLocais), ...(minhaCopa ? { copaMundo: minhaCopa } : {}), caixa: meuCaixa } : null), [me, entradasLocais, minhaCopa, meuCaixa])
   const gavetaJson = useMemo(() => (gaveta ? JSON.stringify(gaveta) : ''), [gaveta])
   const enviadaRef = useRef('')
   const sobeGaveta = async (): Promise<boolean> => {
@@ -595,6 +601,107 @@ function Co2TemposDono() {
     <div style={{ marginTop: 8 }}>
       <button onClick={() => setAberto(a => !a)} style={{ ...botao('#fff'), fontSize: 12, padding: '8px' }}>⚙️ {tr('Tempos', 'Timers')} · {atual.pausa}s / {atual.rodada}s</button>
       {aberto && <div style={{ marginTop: 8 }}><Co2Tempos valor={atual} onMuda={v => void muda(v)} />{msg && <p style={{ fontWeight: 800, fontSize: 11, margin: '4px 0 0' }}>{msg}</p>}</div>}
+    </div>
+  )
+}
+
+// ═══ 🌍 COPA DO MUNDO ÚNICA (27/11, regra principal do Diego: *"tudo é único… não existe dois campeões"*) ════════════════
+// Convite pela regra: o ranking de clubes dá a ordem; quem está mais alto escolhe primeiro (da posição dele pra baixo) e a
+// seleção escolhida sai da lista dos de baixo. Quando todos os convidados decidiram, a MESMA Copa roda em todo aparelho.
+export function Co2CopaMundo({ top, seasonNo, seed, motor2, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn }: {
+  top: Co2CopaVaga[]; seasonNo: number; seed: number; motor2: boolean
+  onPrize?: (coins: number) => void
+  onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void
+  onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void
+  onStats?: (linhas: CMStatCarta[]) => void
+  onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void
+  agenciaOn?: boolean
+}) {
+  const { state, dispatch } = useEsc()
+  const sn = useCo2()
+  const meuId = state.managers[state.youIdx]?.id ?? null
+  const comanda = !!state.co2?.comanda
+  const [aberto, setAberto] = useState<null | 'convite' | 'convoca' | 'copa'>(null)
+  const [paisEscolhido, setPaisEscolhido] = useState<string | null>(null)
+  const ehAnoDeCopa = (seasonNo - 1) % 4 === 0
+  const paises = useMemo(() => rankingSelecoes().slice(0, 32).map(p => p.pais), [])
+  const escolhas = useMemo(() => {
+    const out: Record<number, Co2CopaEscolha | undefined> = {}
+    for (const g of state.co2?.gavetas ?? []) if (g.copaMundo) out[g.mgrId] = g.copaMundo
+    if (meuId != null && state.co2?.minhaCopa) out[meuId] = state.co2.minhaCopa
+    return out
+  }, [state.co2?.gavetas, state.co2?.minhaCopa, meuId])
+  const pula = sn.mundo?.copaPula?.season === seasonNo ? sn.mundo.copaPula.ids : []
+  const vez = vezDaCopa(top, escolhas, pula, seasonNo)
+  const nomeDe = (id: number) => top.find(v => v.mgrId === id)?.name ?? '?'
+  const convidado = meuId != null && top.some(v => v.mgrId === meuId)
+  const entrants = useMemo(() => (vez === null ? entrantsDaCopa(top, paises, escolhas, seasonNo, meuId) : null), [vez, top, paises, escolhas, seasonNo, meuId])
+  // 🏆 o dono carimba o campeão no mundo (é o que entra no ranking de clubes, igual em todo aparelho)
+  useEffect(() => {
+    if (!comanda || !entrants || !sn.mundo || (sn.mundo.copaHist ?? []).some(h => h.season === seasonNo)) return
+    const w = simulaCopaMundo(entrants, seed, seasonNo, true, true, motor2)
+    const c = entrants[w.final.champion]
+    if (c) void co2Mundo('virada', null, null, { ...sn.mundo, copaHist: [...(sn.mundo.copaHist ?? []), { season: seasonNo, campeao: c.club, pais: c.pais }] })
+  }, [comanda, entrants, sn.mundo, seasonNo, seed, motor2])
+  if (!ehAnoDeCopa) return null
+  const pular = (id: number) => {
+    if (!sn.mundo || !window.confirm(tr(`Pular ${nomeDe(id)}? Ele fica fora desta Copa do Mundo e o próximo escolhe.`, `Skip ${nomeDe(id)}? They sit out this World Cup and the next one picks.`))) return
+    void co2Mundo('virada', null, null, { ...sn.mundo, copaPula: { season: seasonNo, ids: [...new Set([...pula, id])] } })
+  }
+  const minha = meuId != null ? escolhas[meuId] : undefined
+  const ordem = ordemDeEscolha(top)
+  const save: CopaSave = loadCopaSave(seed) ?? { anchor: 1, ciclo: 4, calendario: 2, mural: [], played: [] }
+  return (
+    <div style={{ ...caixa('#FFF8DC'), padding: 12, marginBottom: 10 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: '0 0 6px', textTransform: 'uppercase' }}>🌍 {tr(`Copa do Mundo · temporada ${seasonNo}`, `World Cup · season ${seasonNo}`)}</p>
+      {ordem.length > 0 && (
+        <div style={{ display: 'grid', gap: 3, marginBottom: 8 }}>
+          {ordem.map(id => {
+            const e = escolhas[id]
+            const st = pula.includes(id) ? tr('pulado', 'skipped') : e?.season === seasonNo ? (e.pais ? `${e.pais}` : tr('recusou', 'declined')) : id === vez ? tr('escolhendo…', 'picking…') : tr('espera a vez', 'waits')
+            return (
+              <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: 12.5 }}>
+                <span style={{ ...OSWALD, fontWeight: 900, minWidth: 30 }}>{top.findIndex(v => v.mgrId === id) + 1}º</span>
+                <span style={{ flex: 1, fontWeight: id === meuId ? 900 : 800 }}>{nomeDe(id)}</span>
+                <span style={{ color: id === vez ? '#B8892B' : 'rgba(0,0,0,.6)' }}>{st}</span>
+                {comanda && id === vez && id !== meuId && <button onClick={() => pular(id)} style={{ ...botao('#fff'), width: 'auto', fontSize: 11, padding: '3px 8px', boxShadow: 'none' }}>{tr('Pular', 'Skip')}</button>}
+              </div>
+            )
+          })}
+        </div>
+      )}
+      {vez === null ? (
+        <button onClick={() => setAberto('copa')} style={botao(GOLD)}>🌍 {tr('Ver a Copa do Mundo', 'Watch the World Cup')}</button>
+      ) : vez === meuId ? (
+        <button onClick={() => setAberto('convite')} style={botao(GOLD)}>✉️ {tr('Sua vez: ver os convites', 'Your turn: see the invitations')}</button>
+      ) : (
+        <p style={{ fontWeight: 800, fontSize: 12, margin: 0, color: 'rgba(0,0,0,.65)' }}>{!convidado ? tr('Seu clube não está entre os 32 do ranking desta vez. A Copa começa quando os convidados decidirem.', 'Your club is not in the ranking top 32 this time. The Cup starts once the invited decide.') : minha?.season === seasonNo ? tr('Você já decidiu. A Copa começa quando todos os convidados decidirem.', 'You have decided. The Cup starts once everyone invited decides.') : tr(`Vez de ${nomeDe(vez)} escolher. A seleção que ele levar sai da sua lista.`, `${nomeDe(vez)} is picking. The team they take leaves your list.`)}</p>
+      )}
+      {aberto === 'convite' && meuId != null && (
+        <CMModal>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>✉️ {tr('Convites de seleções', 'National team invitations')}</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', textAlign: 'center', margin: '4px 0 10px' }}>{tr('Pela posição do seu clube no ranking. Seleção que um amigo já levou não aparece.', 'By your club\'s ranking position. Teams a friend already took don\'t show up.')}</p>
+          {convitesDaCopa(top, paises, meuId, escolhas, seasonNo).map(p => (
+            <button key={p} onClick={() => { setPaisEscolhido(p); setAberto('convoca') }} style={{ ...botao('#fff'), textAlign: 'left', fontSize: 14, marginBottom: 6, boxShadow: `2px 2px 0 ${INK}` }}>{p} 👉</button>
+          ))}
+          <button onClick={() => { dispatch({ type: 'CO2_COPA_ESCOLHA', escolha: { season: seasonNo, pais: null } }); onStats?.([]); setAberto(null) }} style={{ ...botao('#fff'), fontSize: 13, marginTop: 4 }}>{tr('Recusar os convites', 'Decline the invitations')}</button>
+          <p style={{ textAlign: 'center', marginTop: 8 }}><button onClick={() => setAberto(null)} style={{ background: 'none', border: 'none', fontSize: 11, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer' }}>{tr('Fechar', 'Close')}</button></p>
+        </CMModal>
+      )}
+      {aberto === 'convoca' && paisEscolhido && (
+        <CMModal>
+          <ConvocacaoScreen pais={paisEscolhido} onBack={() => setAberto('convite')} onDone={(xi, f) => {
+            dispatch({ type: 'CO2_COPA_ESCOLHA', escolha: { season: seasonNo, pais: paisEscolhido, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f } })
+            setAberto(null)
+          }} />
+        </CMModal>
+      )}
+      {aberto === 'copa' && entrants && (
+        <CMModal wide cinematic>
+          <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} potes forte m2={motor2} myForm={(minha?.form ?? '4-3-3') as Formation}
+            onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={() => setAberto(null)} />
+        </CMModal>
+      )}
     </div>
   )
 }

@@ -31,6 +31,10 @@ export type GavetaPublica = {
   entradas: EntradasSim
   /** 🔄 26/11: o clube FECHOU a temporada (contratos decididos, caixa do fim). Só existe na virada. */
   fechamento?: Fechamento
+  /** 🌍 27/11: a decisão dele na Copa do Mundo da temporada (seleção + XI, ou recusou) */
+  copaMundo?: import('./co2-copa-mundo').Co2CopaEscolha
+  /** 🌍 27/11: o caixa (só pro desempate do ranking de clubes sair igual em todo aparelho) */
+  caixa?: number
 }
 
 /**

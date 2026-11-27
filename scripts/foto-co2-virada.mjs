@@ -10,13 +10,14 @@ const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const DONO = 'u-dono', AMIGO = 'u-amigo'
 const NOMES = ['Neymarzetti', 'Futpoint FC', 'Tricolor do Arruda', 'Low profile F.C']
 const ORDEM = [DONO, AMIGO, 'u3', 'u4']
-const clubes = NOMES.map((nome, i) => ({ sala: 's1', assento: i, user_id: ORDEM[i], nome, pronto_rodada: null, na_sala_em: null, publico: i < 2 ? { mgrId: i, nome, squad: [], entradas: {}, fechamento: { temporada: 1, caixa: 50, squad: [], listados: [], soltar: [], sondados: [] } } : null }))
+const clubes = NOMES.map((nome, i) => ({ sala: 's1', assento: i, user_id: ORDEM[i], nome, pronto_rodada: null, na_sala_em: null, publico: i < 2 ? { mgrId: i, nome, squad: [], entradas: {}, fechamento: { temporada: 1, caixa: 50, squad: [], listados: [], soltar: [], sondados: [] } } : i === 2 ? { mgrId: 2, nome, squad: [], entradas: {}, copaMundo: { season: 1, pais: 'Argentina', form: '4-3-3' } } : null }))
 const casos = [
   { nome: 'largada-bots', fase: 'espera', temporada: 0, tela: 'espera', w: 420 },
   { nome: 'virada-espera-dono', fase: 'virada', temporada: 1, tela: 'virada', w: 420 },
   { nome: 'virada-espera-dono-pc', fase: 'virada', temporada: 1, tela: 'virada', w: 1280 },
   { nome: 'anuncio-estreia', fase: 'preparo', temporada: 1, tela: 'anuncio', w: 420 },
   { nome: 'anuncio-faixa', fase: 'preparo', temporada: 1, tela: 'faixa', w: 420 },
+  { nome: 'copa-mundo-vez', fase: 'virada', temporada: 1, tela: 'copa', w: 420 },
 ]
 for (const c of casos) {
   const ctx = await b.newContext({ viewport: { width: c.w, height: 900 }, deviceScaleFactor: 2 })
@@ -41,10 +42,11 @@ for (const c of casos) {
       createRoot(root).render(h(S.EscProvider, null, h(T.Co2Espera, { salaId: 's1', onSair(){} })))
     } else {
       await C.co2Abrir('s1')
-      const V = () => { const { state, dispatch } = S.useEsc(); window.__d = dispatch; return state.co2 ? (['anuncio','faixa'].includes(${JSON.stringify(c.tela)}) ? h('div', { style: { padding: 14 } }, h(T.Co2Anuncio, { restante: 47, comanda: true, onSeguir(){} })) : h(T.Co2ViradaEspera)) : null }
+      const V = () => { const { state, dispatch } = S.useEsc(); window.__d = dispatch; if (state.co2 && ${JSON.stringify(c.tela)} === 'copa') return h('div', { style: { padding: 14 } }, h(T.Co2CopaMundo, { top: [{ name: 'Tricolor do Arruda', mgrId: 2 }, { name: 'Real Madrid', mgrId: null }, { name: 'Neymarzetti', mgrId: 0 }, { name: 'Boca Juniors', mgrId: null }, { name: 'Futpoint FC', mgrId: 1 }], seasonNo: 1, seed: 1, motor2: false })); return state.co2 ? (['anuncio','faixa'].includes(${JSON.stringify(c.tela)}) ? h('div', { style: { padding: 14 } }, h(T.Co2Anuncio, { restante: 47, comanda: true, onSeguir(){} })) : h(T.Co2ViradaEspera)) : null }
       createRoot(root).render(h(S.EscProvider, null, h(V)))
       await new Promise(r=>setTimeout(r,800))
       window.__d({ type: 'START_CAREER_SOLO', teamName: 'Neymarzetti', formation: '4-3-3', rivals: 3, co2: { sala: 's1', nomes: ${JSON.stringify(NOMES)}, assento: 0 } })
+      if (${JSON.stringify(c.tela)} === 'copa') { await new Promise(r=>setTimeout(r,300)); window.__d({ type: 'CO2_GAVETAS', gavetas: [{ mgrId: 2, nome: 'Tricolor do Arruda', squad: [], entradas: {}, copaMundo: { season: 1, pais: 'Argentina', form: '4-3-3' } }] }) }
     }
     await new Promise(r=>setTimeout(r,1500))
     C._bancadaCo2({ uid: ${JSON.stringify(DONO)}, aqui: ORDEM_AQUI })

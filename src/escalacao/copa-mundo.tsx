@@ -738,7 +738,7 @@ export function ConviteSelecao({ pais, clube, onAceita, onRecusa }: { pais: stri
 }
 
 // ── tela 1: escolha da seleção (trava pela posição no ranking de clubes) ──
-function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose,onDecline }: { onDecline?:()=>void; paises16: string[]; myPos: number; myClub: string; onPick: (p: string) => void; onClose: () => void }) {
+export function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose,onDecline }: { onDecline?:()=>void; paises16: string[]; myPos: number; myClub: string; onPick: (p: string) => void; onClose: () => void }) {
   return (
     <>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>{tr('✉️ Convites de seleções', '✉️ National team invitations')}</p>
@@ -1043,7 +1043,7 @@ function jogoM2(entrants: Entrant[], seed: number, seasonNo: number, jogo: strin
   let n = 0
   for (let i = 0; i < jogo.length; i++) n = Math.imul(n ^ jogo.charCodeAt(i), 0x01000193) >>> 0
   const H = entrants[h], A = entrants[a]
-  const e = entradaM2({ versao, preservarGuardado:true, partidaId:`mundial:${seed}:${seasonNo}:${n}:${h}:${a}`, seed: sementeM2((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, 'M', n, h, a), casa: H.xi as never, fora: A.xi as never, fCasa: H.form, fFora: A.form, tatica: [0, 0], bots: [!H.you, !A.you] })
+  const e = entradaM2({ versao, preservarGuardado:true, partidaId:`mundial:${seed}:${seasonNo}:${n}:${h}:${a}`, seed: sementeM2((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, 'M', n, h, a), casa: H.xi as never, fora: A.xi as never, fCasa: H.form, fFora: A.form, tatica: [0, 0], bots: [!(H.you || H.humano), !(A.you || A.humano)] })
   const res = resultadoM2(e)
   const ev: ScoreGoal[] = res.gols.map(g => g.contra ? { home: g.home, min: g.min, name: g.nome + GOL_CONTRA } : { home: g.home, min: g.min, name: g.nome, assist: g.assist })
   return { e, g: [res.placar[0], res.placar[1]], ev }
@@ -1052,7 +1052,9 @@ function jogoM2(entrants: Entrant[], seed: number, seasonNo: number, jogo: strin
  *  Sem ela, a Copa é idêntica à de sempre. */
 export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number, potes = false, forte = false, m2 = false, tat?: QualTatica, versao?: VersaoM2) {
   const peso = forte ? PESO_FORCA : PESO_FORCA_VELHO
-  const meu = (h: number, a: number) => m2 && (!!entrants[h]?.you || !!entrants[a]?.you)
+  // 🌍 27/11 carreira online: o jogo de QUALQUER seleção de gente (`humano`) usa o motor novo, não só o da tela de quem vê — senão
+  // cada aparelho calcularia diferente. Salas online mandam m2=false e a solo não tem `humano`: nada muda nelas.
+  const meu = (h: number, a: number) => m2 && (!!entrants[h]?.you || !!entrants[a]?.you || !!entrants[h]?.humano || !!entrants[a]?.humano)
   {
     const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ 0xC0FA) >>> 0)
     const aBase = (seed ^ Math.imul(seasonNo, 2654435761) ^ 0x5A5511) >>> 0 // 🅰️ dado das assistências (não encosta no rng)

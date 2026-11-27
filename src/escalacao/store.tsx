@@ -6645,6 +6645,7 @@ type Action =
   | { type: 'COLETIVA_H2H'; mgrId: number; rival: string; chave: string; res: 'V' | 'E' | 'D'; arqui: boolean; temporada: number }
   | { type: 'COLETIVA_FECHA'; mgrId: number; temporada: number; res: ColetivaResultado }
   | { type: 'CO2_ESPELHO'; newState: EscState; meuId: number } // 🌐 v2: leilão do dono na MINHA tela (o que eu aperto vai pra ele)
+  | { type: 'CO2_COPA_ESCOLHA'; escolha: import('./co2-copa-mundo').Co2CopaEscolha } // 🌍 27/11: aceitei (seleção + XI) ou recusei o convite da Copa do Mundo única
   | { type: 'CO2_FECHA' } // 🔄 26/11 virada: este aparelho fechou o próprio clube (a tela sobe a gaveta com o `fechamento`)
   | { type: 'CO2_ABRE_VIRADA'; fechamentos: Record<number, Fechamento | undefined> } // 🔄 26/11 virada: o DONO põe os fechamentos de todos e abre o leilão de todos
   | { type: 'CO2_ALCANCA_RODADAS'; gavetas: GavetaPublica[]; ate: number } // 🔄 26/11: fiquei fora umas rodadas — jogo aqui, de uma vez, as que a turma já jogou (com as gavetas do banco)
@@ -9899,6 +9900,12 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     // 🔄 26/11 VIRADA da carreira online: cada aparelho fecha o PRÓPRIO clube (contas do fim + janela de contratos, já
     // feitas no OPEN_RESERVE_LIST local) e trava. A tela sobe o `fechamento` na gaveta. Nada aqui mexe em outro clube.
+    case 'CO2_COPA_ESCOLHA': {
+      if (!s.co2 || s.co2.espelho) return s
+      if (s.co2.minhaCopa?.season === action.escolha.season) return s // decidiu, está decidido (a fila dos outros andou com isso)
+      s.co2 = { ...s.co2, minhaCopa: action.escolha }
+      return s
+    }
     case 'CO2_FECHA': {
       if (!s.co2 || s.co2.espelho || s.screen !== 'reserveList') return s
       s.co2 = { ...s.co2, fechou: s.seasonNo }
@@ -14115,7 +14122,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'REAUCTION_ONLINE': {
-      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
+      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && !s.co2 && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       s.simV = 8 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
@@ -14169,7 +14176,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
       if (s.co2 && (action.mesmo || s.co2.espelho)) return s // 🌐 v2 (26/11): cada aparelho fecha o PRÓPRIO clube aqui; "mesmo time" não existe na carreira online (o leilão é de todos)
-      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
+      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && !s.co2 && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       // 🧯 ANTI-TOQUE-DUBLADO (bug 10/08): tocar 2× rápido no "Abrir leilão"/"Mesmo
       // time" rodava este case DE NOVO — creditava prêmio/bilheteria/patrocínio 2×,
       // cobrava a folha 2× e pulava a temporada de 2 em 2 (o guard de applySeasonMoney

@@ -429,6 +429,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
    leem.
 
 ## 💛 Gostos do Diego (aprendidos na prática — respeitar)
+- **🌍 27/11: NA CARREIRA ONLINE TUDO É UM MUNDO SÓ (regra principal do jogo, ele se irritou de eu perguntar).** *"isso é óbvio… tudo que aconteceu
+  em qualquer copa e jogadores aparece pra todo mundo, tudo é único… não existe dois campeões diferentes e dois Neymar 2011 do Santos"*. Toda
+  competição (liga, Copa do Brasil, Supercopa, Copa do Mundo, Libertadores, Champions, Mundial) é UMA só, igual em todo aparelho. **Convites** são
+  pela REGRA: Liberta/Champions pela posição (sempre 2 opções pro usuário escolher uma), Copa do Mundo pelo ranking de clubes; **clube/seleção que um
+  escolheu ninguém mais pode**. Não perguntar de novo se competição deve ser compartilhada: é sempre.
 - **🧩 27/11: ESCALAÇÃO JÁ ENGLOBA TÁTICA.** *"escalacao já engloba táticas e etc"*. Nada de botão 🎯 Tática separado do 🧩 Escalação nas telas novas (anúncio, PRONTO da carreira online): um botão só.
 - **🌐🧑‍🤝‍🧑 26/11: CARREIRA ONLINE — REGRAS DELE.** Até 20 clubes de gente · **sem vice** (sem o dono, espera) · **criar só com plano** · entrar
   de graça só ANTES de começar; depois, só com plano + convite aceito (igual Liga Draft, nem na virada) · quem não jogou **não perde o clube**:
