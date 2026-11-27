@@ -11,6 +11,7 @@ import {
   co2LeGavetas, co2Gaveta, co2Pronto, co2Comecar, co2Apito, co2Ritmo, co2EncerrarDia, co2SalvaPrivado, co2LePrivado, co2Agora,
   type Co2Sala, type Co2Mundo, TEMPOS_OPCOES, tempoPausa, tempoRodada,
   co2Pedidos, co2PedidoDecide, co2PedidoEntra, co2MeusPedidos, co2LeVirada, type Co2Pedido,
+  co2Sair, co2Saidas, co2SaidaAplicada, type Co2Saida,
 } from './co2'
 import { minhaGaveta, co2Fechamento, vagasDeNovos, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
 import { useMotor2Carreira, copaBrasilLiberada, internacionalCarreiraLiberada } from './sport'
@@ -37,8 +38,21 @@ export function Co2Painel({ nomeClube }: { nomeClube: string }) {
   const [aberta, setAberta] = useState<string | null>(null)
   const [pedidos, setPedidos] = useState<{ sala: string; nome: string; status: string; carreira: string }[]>([])
   const [aviso, setAviso] = useState('')
+  const [uma, setUma] = useState<{ sala: string; nome: string } | null>(null) // 🚪 sem plano, já está noutra carreira
+  const [saindo, setSaindo] = useState(false)
   const recarrega = () => { void co2MinhasSalas().then(setSalas); void co2MeusPedidos().then(setPedidos) }
   useEffect(() => { recarrega(); void co2PodeCriar().then(setPodeCriar) }, [])
+  // 🚪 27/11 (Diego): sem plano só dá pra estar em UMA carreira — sai da outra (o clube fica pra máquina) e já entra nesta
+  const saiDaOutraEEntra = async () => {
+    if (!uma || saindo) return
+    if (!window.confirm(tr(`Sair da carreira "${uma.nome}"? O seu clube de lá vira da máquina, com todos os jogadores, e você não volta mais pra ela.`, `Leave the career "${uma.nome}"? Your club there becomes a computer club, with all its players, and you won't go back to it.`))) return
+    setSaindo(true)
+    const r = await co2Sair(uma.sala)
+    setSaindo(false)
+    if (r === 'dono') { setErro(tr('Você é o dono daquela carreira: o dono não sai dela.', 'You own that career: the owner can\'t leave it.')); setUma(null); return }
+    if (r !== 'ok' && r !== 'nao_membro') { setErro(tr('Não deu pra sair agora. Tenta de novo.', 'Could not leave right now. Try again.')); return }
+    setUma(null); recarrega(); void entrar()
+  }
   const criar = async () => {
     setErro('')
     const r = await co2Criar(nome.trim() || tr('Carreira dos amigos', 'Friends career'), clube.trim())
@@ -48,9 +62,11 @@ export function Co2Painel({ nomeClube }: { nomeClube: string }) {
   const entrar = async () => {
     setErro('')
     setAviso('')
+    setUma(null)
     const r = await co2Entrar(codigo.trim(), clube.trim())
+    if (r.erro === 'uma' && r.outra_sala) { setUma({ sala: r.outra_sala, nome: r.outra_nome ?? '—' }); return }
     // 🙋 27/11: carreira já começada = pedido pro dono (só com plano); entra na virada da temporada
-    if (r.pedido) { setAviso(tr('✉️ Pedido enviado! A carreira já começou: quando o dono aceitar, você entra na virada da temporada, num clube que ele escolher.', '✉️ Request sent! The career has already started: once the owner accepts, you join at the season turnover, in a club they pick.')); recarrega(); return }
+    if (r.pedido) { setAviso(tr('✉️ Pedido enviado! A carreira já começou: quando o dono aceitar, você entra na virada da temporada, com o nome e o escudo do seu clube, no lugar de um clube da máquina da Série D (fica com os jogadores, o valor e o caixa dele).', '✉️ Request sent! The career has already started: once the owner accepts, you join at the season turnover, with your club\'s name and crest, taking a computer club\'s place in Série D (keeping its players, value and cash).')); recarrega(); return }
     if (r.erro === 'plano') { setErro(tr('Essa carreira já começou: entrar agora é só pra quem tem plano (qualquer plano). Antes de começar, entra todo mundo de graça.', 'This career has already started: joining now is only for players with a plan (any plan). Before it starts, everyone joins for free.')); return }
     if (r.erro || !r.id) {
       setErro(r.erro === 'nao_achou' ? tr('Código não encontrado.', 'Code not found.') : r.erro === 'comecou' ? tr('Essa carreira já começou — só entra quem já é dela.', 'This career already started — only its members can enter.') : r.erro === 'cheia' ? tr('Sala cheia (20 clubes).', 'Room full (20 clubs).') : r.erro === 'nome' ? tr('Nome do clube com pelo menos 2 letras.', 'Club name needs at least 2 letters.') : tr('Não deu pra entrar agora.', 'Could not join right now.'))
@@ -85,6 +101,23 @@ export function Co2Painel({ nomeClube }: { nomeClube: string }) {
         <input style={campo} value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase().slice(0, 6))} placeholder={tr('Código da carreira', 'Career code')} />
         <button onClick={() => void entrar()} style={{ ...botao('#fff'), width: 'auto', fontSize: 13, padding: '8px 12px', boxShadow: `2px 2px 0 ${INK}` }}>{tr('Entrar', 'Join')}</button>
       </div>
+      <details style={{ marginTop: 6 }}>
+        <summary style={{ fontWeight: 800, fontSize: 11.5, cursor: 'pointer', color: '#1E3A8A' }}>{tr('ℹ️ Como funciona entrar', 'ℹ️ How joining works')}</summary>
+        <ul style={{ fontWeight: 700, fontSize: 11, margin: '4px 0 0', paddingLeft: 18, color: 'rgba(0,0,0,.7)', lineHeight: 1.45 }}>
+          <li>{tr('Criar uma carreira online é só pra quem tem plano.', 'Creating an online career is only for players with a plan.')}</li>
+          <li>{tr('Antes de começar, entra todo mundo de graça. Sem plano você participa de UMA carreira por vez.', 'Before it starts, everyone joins for free. Without a plan you take part in ONE career at a time.')}</li>
+          <li>{tr('Carreira já começada: só com plano. O dono aceita o pedido e você entra na virada da temporada, com o nome e o escudo do seu clube, no lugar de um clube da máquina da Série D — fica com os jogadores, o valor e o caixa dele.', 'Career already started: plan only. The owner accepts your request and you join at the season turnover, with your club\'s name and crest, taking a computer club\'s place in Série D — keeping its players, value and cash.')}</li>
+          <li>{tr('Quem sai de uma carreira não volta pra ela: o clube vira da máquina, com todos os jogadores.', 'Whoever leaves a career can\'t go back: the club becomes a computer club, with all its players.')}</li>
+        </ul>
+      </details>
+      {uma && (
+        <div style={{ ...caixa('#FFF4D6'), padding: 10, marginTop: 8 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 4px', textTransform: 'uppercase' }}>🚪 {tr('Uma carreira por vez', 'One career at a time')}</p>
+          <p style={{ fontWeight: 700, fontSize: 11.5, margin: '0 0 8px', color: 'rgba(0,0,0,.7)' }}>{tr(`Sem plano você só participa de uma carreira online. Você já está na "${uma.nome}". Pra entrar nesta, saia daquela: o seu clube de lá vira da máquina, com todos os jogadores.`, `Without a plan you can only be in one online career. You're already in "${uma.nome}". To join this one, leave that one: your club there becomes a computer club, with all its players.`)}</p>
+          <button disabled={saindo} onClick={() => void saiDaOutraEEntra()} style={{ ...botao('#FFE1DB'), fontSize: 13, padding: '9px 10px' }}>🚪 {tr(`Sair da "${uma.nome}" e entrar`, `Leave "${uma.nome}" and join`)}</button>
+          <p style={{ fontWeight: 700, fontSize: 11, margin: '6px 0 0', color: 'rgba(0,0,0,.6)' }}>{tr('Com qualquer plano você participa de quantas quiser.', 'With any plan you can join as many as you like.')}</p>
+        </div>
+      )}
       {erro && <p style={{ fontWeight: 800, fontSize: 11.5, color: '#B23B2E', margin: '6px 0 0' }}>{erro}</p>}
       {aviso && <p style={{ fontWeight: 800, fontSize: 11.5, color: GREEN, margin: '6px 0 0' }}>{aviso}</p>}
       {pedidos.map(p => (
@@ -192,6 +225,14 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
       dispatch({ type: 'CO2_ABRE', save: { ...sv, co2: { ...sv.co2!, comanda: true } } })
     } finally { setIndo(false) }
   }
+  // 🚪 27/11 (Diego): sair de vez — o clube vira da máquina (com os jogadores e tudo) e a pessoa não volta mais pra esta carreira
+  const sairDeVez = async () => {
+    if (!sala || souDono) return
+    if (!window.confirm(tr(`Deixar a carreira "${sala.nome}" de vez? O seu clube vira da máquina, com todos os jogadores, e você não volta mais pra ela.`, `Quit the career "${sala.nome}" for good? Your club becomes a computer club, with all its players, and you won't come back.`))) return
+    const r = await co2Sair(sala.id)
+    if (r !== 'ok') { setErro(tr('Não deu pra sair agora. Tenta de novo.', 'Could not leave right now. Try again.')); return }
+    onSair()
+  }
   if (!sala) return <div style={{ ...caixa(CREAM), padding: 16, textAlign: 'center', fontWeight: 800 }}>{tr('Abrindo a carreira…', 'Opening the career…')}</div>
   const clubes = [...sn.clubes].sort((a, b) => a.assento - b.assento)
   const nomeDono = clubes.find(c => c.user_id === sala.dono)?.nome ?? '—'
@@ -255,7 +296,11 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
         </p>
         {erro && <p style={{ fontWeight: 800, fontSize: 11.5, color: '#B23B2E', margin: '6px 0 0', textAlign: 'center' }}>{erro}</p>}
         <button onClick={onSair} style={{ marginTop: 10, width: '100%', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 800, fontSize: 12.5, color: 'rgba(0,0,0,.6)', cursor: 'pointer' }}>{tr('🚪 Sair (a carreira fica guardada)', '🚪 Leave (the career stays saved)')}</button>
+        {!souDono && (
+          <button onClick={() => void sairDeVez()} style={{ marginTop: 2, width: '100%', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 800, fontSize: 11.5, color: '#B23B2E', cursor: 'pointer' }}>{tr('❌ Deixar esta carreira de vez', '❌ Quit this career for good')}</button>
+        )}
       </div>
+      <Co2AvisoSaidas />
     </div>
   )
 }
@@ -269,6 +314,34 @@ async function lePrivado(): Promise<EscState | null> {
 
 // ═══ DENTRO DA TEMPORADA: a barra do PRONTO + o motor que segue o relógio do dono ═══════════════════════════════════
 const PRAZO_DINAMICA_S = 15 // o banco aceita no mínimo 15 s; na Dinâmica o dono começa logo que a rodada anterior terminou de animar
+
+// 🚪 27/11 (Diego: *"vai ter que aparecer alguma coisa… que o usuário saiu dessa carreira… volta um bot no lugar"*): linha pra todo
+// mundo da carreira, com ✕ que não volta (regra do aviso fechado). O clube vira da máquina na virada, com o elenco inteiro.
+export function Co2AvisoSaidas() {
+  const sn = useCo2()
+  const [lista, setLista] = useState<Co2Saida[]>([])
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (!sn.sala?.id) return
+    const le = () => { void co2Saidas().then(setLista) }
+    le(); const t = setInterval(le, 60000); return () => clearInterval(t)
+  }, [sn.sala?.id])
+  const chave = (x: Co2Saida) => `co2-saida:${sn.sala?.id ?? ''}:${x.user_id}:${x.em}`
+  const vis = lista.filter(x => x.user_id !== sn.uid && !avisoFechado(chave(x)))
+  if (!vis.length) return null
+  return (
+    <div style={{ display: 'grid', gap: 4 }}>
+      {vis.map(x => (
+        <p key={chave(x)} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', background: '#FFF4D6', border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 8px' }}>
+          <span style={{ flex: 1 }}>🚪 {x.aplicada
+            ? tr(`${x.nome} saiu da carreira. O clube agora é da máquina, com os mesmos jogadores.`, `${x.nome} left the career. The club is now a computer club, with the same players.`)
+            : tr(`${x.nome} saiu da carreira. Na virada da temporada o clube vira da máquina, com os mesmos jogadores; até lá ele joga sozinho.`, `${x.nome} left the career. At the season turnover the club becomes a computer club, with the same players; until then it plays by itself.`)}</span>
+          <button aria-label={tr('Fechar', 'Close')} onClick={() => { fechaAviso(chave(x)); setTick(n => n + 1) }} style={{ background: 'none', border: 'none', fontWeight: 900, fontSize: 13, cursor: 'pointer', color: 'rgba(0,0,0,.5)' }}>✕</button>
+        </p>
+      ))}
+    </div>
+  )
+}
 
 // ✍️ 27/11 (Diego, 26/11: *"pra quem não estava, um recado discreto ao voltar… nada de banner grande"*): linha miúda com quem renovou
 // sozinho enquanto a pessoa estava fora da virada; fecha no ✕ e não volta (regra do aviso fechado).
@@ -554,16 +627,22 @@ export function Co2ViradaEspera() {
     const aceitos = (await co2Pedidos()).filter(p => p.status === 'aceito')
     const vagas = vagasDeNovos(state.managers, state.careerPlacements as Record<string, string> | undefined, aceitos.length)
     const novos = aceitos.slice(0, vagas.length).map((p, i) => ({ ...p, mgr: vagas[i] }))
-    dispatch({ type: 'CO2_ABRE_VIRADA', fechamentos: f, novos: novos.map(p => ({ mgr: p.mgr, nome: p.nome })) })
-    if (novos.length) {
+    // 🚪 quem saiu da carreira: o clube dele (achado pelo lugar no mundo) vira da máquina, com o elenco inteiro
+    const ordemAntes = (co2Agora().mundo ?? sn.mundo)?.ordem ?? []
+    const saidas = (await co2Saidas()).filter(x => !x.aplicada).map(x => ({ ...x, id: ordemAntes.indexOf(x.user_id) }))
+    const saiIds = saidas.map(x => x.id).filter(id => id >= 0)
+    dispatch({ type: 'CO2_ABRE_VIRADA', fechamentos: f, novos: novos.map(p => ({ mgr: p.mgr, nome: p.nome })), saidas: saiIds })
+    if (novos.length || saiIds.length) {
       const mm = co2Agora().mundo ?? sn.mundo
       if (mm) {
         const ordem = [...mm.ordem]
+        for (const id of saiIds) ordem[id] = null as unknown as string
         for (const p of novos) ordem[p.mgr] = p.user_id
         await co2Mundo('virada', null, null, { ...mm, ordem })
       }
       for (const p of novos) await co2PedidoEntra(p.user_id, p.mgr)
     }
+    for (const x of saidas) if (x.mgr != null) await co2SaidaAplicada(x.mgr)
   }
   return (
     <div className="palco tela-cheia" style={{ background: CREAM, color: INK, padding: '20px 14px 48px' }}>

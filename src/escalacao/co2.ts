@@ -120,10 +120,10 @@ export async function co2Criar(nome: string, clube: string): Promise<{ id?: stri
   if (error) return { erro: error.message }
   return data as { id?: string; codigo?: string; erro?: string }
 }
-export async function co2Entrar(codigo: string, clube: string): Promise<{ id?: string; erro?: string; pedido?: boolean; status?: string }> {
+export async function co2Entrar(codigo: string, clube: string): Promise<{ id?: string; erro?: string; pedido?: boolean; status?: string; outra_sala?: string; outra_nome?: string }> {
   const { data, error } = await supabase.rpc('esc_carr_entrar', { p_codigo: codigo, p_clube: clube })
   if (error) return { erro: error.message }
-  return data as { id?: string; erro?: string; pedido?: boolean; status?: string }
+  return data as { id?: string; erro?: string; pedido?: boolean; status?: string; outra_sala?: string; outra_nome?: string }
 }
 // 🙋 27/11 (Diego 26/11): carreira já começada = só com plano, pedido aceito pelo dono, e a pessoa entra na VIRADA num clube da
 // máquina que o dono escolhe (igual à Liga Draft)
@@ -146,6 +146,23 @@ export async function co2PedidoEntra(user: string, mgr: number): Promise<string>
   if (!canalSala) return 'erro'
   const { data, error } = await supabase.rpc('esc_carr_pedido_entra', { p_sala: canalSala, p_user: user, p_mgr: mgr })
   return error ? 'erro' : String(data ?? 'erro')
+}
+// 🚪 27/11 (Diego): sem plano, UMA carreira só; quem sai deixa o clube pra máquina (elenco e tudo), e os outros são avisados
+export async function co2Sair(sala: string): Promise<string> {
+  const { data, error } = await supabase.rpc('esc_carr_sair', { p_sala: sala })
+  if (error) return 'erro'
+  try { const r = localStorage.getItem('esc-co2-atual'); if (r && (JSON.parse(r) as { sala?: string }).sala === sala) localStorage.removeItem('esc-co2-atual') } catch { /* ignora */ }
+  return String(data ?? 'erro')
+}
+export type Co2Saida = { user_id: string; nome: string; mgr: number | null; em: string; aplicada: boolean }
+export async function co2Saidas(): Promise<Co2Saida[]> {
+  if (!canalSala) return []
+  const { data, error } = await supabase.rpc('esc_carr_saidas', { p_sala: canalSala })
+  return error || !Array.isArray(data) ? [] : (data as Co2Saida[])
+}
+export async function co2SaidaAplicada(mgr: number): Promise<void> {
+  if (!canalSala) return
+  await supabase.rpc('esc_carr_saida_aplicada', { p_sala: canalSala, p_mgr: mgr }).then(() => {}, () => {})
 }
 export async function co2MinhasSalas(): Promise<(Co2Sala & { assento: number; meuClube: string })[]> {
   const uid = await meuUid()

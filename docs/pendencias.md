@@ -11,6 +11,7 @@ Correção da disputa dos controles entre a liga e a copa aberta: táticas, nave
 Nome corrigido de Arena de Pernambuco para **Arruda**, a pedido de Diego, no catálogo compartilhado por agenda e estádio do Brasil Oficial. Consulta `estadioDoClube("Santa Cruz")` conferida; sem alteração de saves.
 
 ## 27/11 — ⏪ LIGA DRAFT: CONVIDADO "PISCAVA" PRA TELA DO CAMPEÃO JÁ PASSADO (vídeo do Anesp, Duarte FC campeão T4)
+- ✅ **27/11 · Carreira online: uma carreira só sem plano + sair de vez** — criar só com plano (banco); sem plano, entrar de graça só antes de começar e em UMA carreira; tentou outra → aviso "uma carreira por vez" com botão "Sair da X e entrar". Membro (não dono) tem "❌ Deixar esta carreira de vez". Quem sai: os outros veem a linha 🚪 (✕ não volta) e, na virada, o clube vira da máquina com o mesmo nome, elenco e caixa. Explicação "ℹ️ Como funciona entrar" no painel. Trava `node scripts/carreira-online/testa-fluxo.mjs`. ⚠️ Falta o teste real com 2 contas (conta 2 é grátis: serve pra regra de uma carreira).
 - Sintoma: escalando a temporada nova, a tela voltava sozinha pro fim da temporada anterior (campeão, artilheiros) e depois voltava.
 - Suspeita (não confirmada — sala não achada no banco): 2º aparelho/aba do DONO parado no fim da T4 seguia mandando estado velho; o
   convidado aceitava qualquer estado do dono (`recebeEstado` → SYNC_STATE sem conferir se é mais velho).

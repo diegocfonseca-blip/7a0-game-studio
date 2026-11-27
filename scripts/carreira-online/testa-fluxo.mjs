@@ -185,6 +185,15 @@ const vagaNovo = vagasDeNovos(aparelhos[0].managers, aparelhos[0].careerPlacemen
 const botNovo = aparelhos[0].managers.find(m => m.id === vagaNovo)
 ok(botNovo && ['D', 'V'].includes(aparelhos[0].careerPlacements?.[`m${botNovo.id}`] ?? 'V'), `a vaga do amigo novo é um bot da máquina lá de baixo (${aparelhos[0].careerPlacements?.[`m${botNovo?.id}`]})`)
 const caixaBot = aparelhos[0].careerCoins?.[botNovo?.id] ?? botNovo?.money
+// 🚪 27/11: quem SAIU da carreira — o clube vira da máquina na virada, com o mesmo elenco (teste num ramo à parte)
+{
+  const hs = reducer(aparelhos[0], { type: 'CO2_ABRE_VIRADA', fechamentos: { 1: fech1 }, saidas: [2, 0] })
+  const m2 = (hs.managers ?? []).find(m => m.id === 2)
+  ok(m2 && !m2.isHuman, 'quem saiu: o clube vira da máquina na virada')
+  ok(m2 && m2.squad.length > 0 && !(hs.co2?.fora ?? []).includes(2), 'e o bot assume o elenco (não fica "fora" como quem só faltou)')
+  ok(hs.managers.find(m => m.id === 0)?.isHuman, 'o MEU clube nunca vira da máquina, mesmo se vier na lista')
+  ok((hs.marketLog ?? []).some(l => l.includes('agora é da máquina')), 'a notícia conta que o clube virou da máquina')
+}
 let h = reducer(aparelhos[0], { type: 'CO2_ABRE_VIRADA', fechamentos: { 1: fech1 }, novos: botNovo ? [{ mgr: botNovo.id, nome: 'Amigo Novo' }] : [] })
 ok(!!botNovo && h.managers.find(m => m.id === botNovo.id)?.isHuman && h.managers.find(m => m.id === botNovo.id)?.teamName === 'Amigo Novo', `o amigo novo assume o clube da máquina na virada (${botNovo?.teamName} → Amigo Novo)`)
 ok(!!botNovo && (h.co2?.fora ?? []).includes(botNovo.id), 'o amigo novo fica de fora do leilão da virada (não fechou nada)')

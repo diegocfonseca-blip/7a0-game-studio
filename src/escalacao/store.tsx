@@ -6648,7 +6648,7 @@ type Action =
   | { type: 'CO2_INTL_ESCOLHA'; escolha: import('./co2-internacional').Co2IntlEscolha } // 🌎 27/11: aceitei um convite da Libertadores/Champions única (clube + XI) ou fiquei sem clube
   | { type: 'CO2_COPA_ESCOLHA'; escolha: import('./co2-copa-mundo').Co2CopaEscolha } // 🌍 27/11: aceitei (seleção + XI) ou recusei o convite da Copa do Mundo única
   | { type: 'CO2_FECHA' } // 🔄 26/11 virada: este aparelho fechou o próprio clube (a tela sobe a gaveta com o `fechamento`)
-  | { type: 'CO2_ABRE_VIRADA'; fechamentos: Record<number, Fechamento | undefined>; /** 🙋 27/11: amigos aceitos pelo dono que entram agora, cada um num clube da máquina */ novos?: { mgr: number; nome: string }[] }
+  | { type: 'CO2_ABRE_VIRADA'; fechamentos: Record<number, Fechamento | undefined>; /** 🙋 27/11: amigos aceitos pelo dono que entram agora, cada um num clube da máquina */ novos?: { mgr: number; nome: string }[]; /** 🚪 27/11: quem saiu da carreira — o clube vira da máquina, com o elenco inteiro */ saidas?: number[] }
   | { type: 'CO2_NOVO'; newState: EscState; meuId: number } // 🙋 27/11: entrei na carreira na virada — carrego a foto do leilão de todos já com o meu clube // 🔄 26/11 virada: o DONO põe os fechamentos de todos e abre o leilão de todos
   | { type: 'CO2_ALCANCA_RODADAS'; gavetas: GavetaPublica[]; ate: number } // 🔄 26/11: fiquei fora umas rodadas — jogo aqui, de uma vez, as que a turma já jogou (com as gavetas do banco)
   | { type: 'CO2_ALCANCA'; newState: EscState; meuId: number } // 🔄 26/11: eu faltei na virada — junto a foto do leilão de todos (do banco) com o meu clube fechado
@@ -9958,12 +9958,20 @@ function reducerBase(state: EscState, action: Action): EscState {
         const m = s.managers.find(x => x.id === n.mgr)
         const nome = (n.nome ?? '').trim()
         if (!m || m.isHuman || m.rival || m.auctionOnly || nome.length < 2) continue
+        const antigo = m.teamName
         m.isHuman = true; m.teamName = nome
         // fica com os jogadores, o valor e o CAIXA do bot (Diego 27/11: "só vai pegar as coisas do time… jogadores, valor, tudo")
-        const antigo = m.teamName
         s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: Math.max(0, Math.round(s.careerCoins?.[m.id] ?? m.money ?? 100)) }
         m.money = s.careerCoins[m.id]
         chegadas.push(`🙋 ${nome} chegou na carreira no lugar do ${antigo}`)
+      }
+      // 🚪 27/11 (Diego: *"volta um bot no lugar, assumindo todos os jogadores, as coisas todas… não fica mais preso ao usuário"*):
+      // o clube de quem saiu vira da máquina AQUI, na virada — mesmo nome, mesmo elenco, mesmo caixa; nunca o meu clube
+      for (const id of action.saidas ?? []) {
+        const m = s.managers.find(x => x.id === id)
+        if (!m || !m.isHuman || m.id === s.managers[s.youIdx]?.id) continue
+        m.isHuman = false
+        chegadas.push(`🚪 ${m.teamName} agora é da máquina (o técnico saiu da carreira)`)
       }
       s.humanCount = s.managers.filter(m => m.isHuman).length
       const f = aplicaFechamentos(s, action.fechamentos ?? {})
