@@ -15855,3 +15855,12 @@ esconde, o banco recusa com 'antigo', e a virada não usa esse time nem como res
   `carreira-online-fluxo` verdes.
 - Falta: anúncio C (pausa de 60 s) quando começa competição nova + dia dos contratos — dependem das copas e da VIRADA, que ainda
   travam na carreira online (próximo passo: a virada). Depois: alcance de quem faltou, entrada só com plano, crise de -500 no online.
+
+## 🧭 27/11 — Fim de jogo leva pra Central (print do Diego: Santa Cruz parado na aba Jogos com "Seguir pra Central")
+- Pedido: *"qd acaba qlqr jogo seja 2d 3d ou placar vai p central já"*. O retorno automático existia desde 26/11 (fe13d102), mas a vez de
+  levar podia ser gasta sem levar, e ele esperava a coletiva. Agora só conta o apito de verdade (`calApitado`) e não espera a coletiva
+  (a Central abre ela no "Seguir"). Quem está em OUTRA aba (Elenco, Mercado…) no apito continua não sendo puxado (regra de 26/10).
+- Bancada `scripts/teste-central-pos-jogo/verifica.mjs`: os 5 casos de jogo normal passam (placar/2D/3D, Oficial e tradicional). O caso
+  "intervalo" da bancada está velho: o modo "só no intervalo" saiu do futebol em 8fdf5b9b. Pra rodar aqui, trocar o executablePath pra /opt/pw-browsers/chromium.
+- ⚠️ Não reproduzi o print na bancada (o código velho também passa nela). Se voltar: perguntar se ele estava em outra aba no apito, se tinha coletiva,
+  e se o jogo estava aberto desde antes de 26/11 (publicar não recarrega ninguém).

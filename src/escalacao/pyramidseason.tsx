@@ -13287,10 +13287,15 @@ export function PyramidSeasonScreen() {
   const escolheAba = (t: AbaCarr) => { tabTocada.current = true; if (t !== 'estadio') viu3d.current = false; setTab(jogoTabela && t === 'tabelas' ? 'jogos' : t) }
   const posJogoEntregue=useRef('')
   useEffect(()=>{
-    if(!posJogoPendente||coletivaOpen||coletivaSala||(halfMode&&!halftimeDone)||(penMode&&!penaltyDone)||posJogoEntregue.current===posJogoChave)return
+    // 🧭 27/11 (Diego, print do Santa Cruz parado na aba Jogos com "Seguir pra Central"): *"qd acaba qlqr jogo seja 2d 3d ou placar vai p
+    // central já"*. Antes a vez era GASTA mesmo sem levar (se o apito pegava a tela fora da aba Jogos por um instante) e esperava a coletiva
+    // (que a própria Central abre no "Seguir"). Agora: só conta o apito de VERDADE (`calApitado`, nunca o roundReady velho da rodada
+    // anterior) e a vez só é gasta quando leva — ou quando a pessoa está em outra aba por escolha (aí não puxa ninguém).
+    const apitou=calApitado.r===round&&calApitado.s===calSn
+    if(!posJogoPendente||!apitou||coletivaSala||(halfMode&&!halftimeDone)||(penMode&&!penaltyDone)||posJogoEntregue.current===posJogoChave)return
     posJogoEntregue.current=posJogoChave
     if(tab==='jogos'||(tab==='estadio'&&clubeSub==='estadio'&&viu3d.current))escolheAba('central')
-  },[posJogoPendente,posJogoChave,coletivaOpen,coletivaSala,halfMode,halftimeDone,penMode,penaltyDone,tab,clubeSub]) // eslint-disable-line react-hooks/exhaustive-deps
+  },[posJogoPendente,posJogoChave,calApitado,coletivaSala,halfMode,halftimeDone,penMode,penaltyDone,tab,clubeSub]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🗺️ 03/11 (Diego): saiu da aba Clube com um lugar do mapa aberto → o painel fecha (antes reabria sozinho ao voltar)
   useEffect(() => { if (tab !== 'estadio' && mapaComoClube) setClubeSub('estadio') }, [tab, mapaComoClube])
   // 📊 com Jogos + Tabela juntos, qualquer caminho antigo que abria "Tabelas" (link, aba lembrada) cai na aba Jogos
