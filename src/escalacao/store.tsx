@@ -6648,7 +6648,8 @@ type Action =
   | { type: 'CO2_INTL_ESCOLHA'; escolha: import('./co2-internacional').Co2IntlEscolha } // 🌎 27/11: aceitei um convite da Libertadores/Champions única (clube + XI) ou fiquei sem clube
   | { type: 'CO2_COPA_ESCOLHA'; escolha: import('./co2-copa-mundo').Co2CopaEscolha } // 🌍 27/11: aceitei (seleção + XI) ou recusei o convite da Copa do Mundo única
   | { type: 'CO2_FECHA' } // 🔄 26/11 virada: este aparelho fechou o próprio clube (a tela sobe a gaveta com o `fechamento`)
-  | { type: 'CO2_ABRE_VIRADA'; fechamentos: Record<number, Fechamento | undefined> } // 🔄 26/11 virada: o DONO põe os fechamentos de todos e abre o leilão de todos
+  | { type: 'CO2_ABRE_VIRADA'; fechamentos: Record<number, Fechamento | undefined>; /** 🙋 27/11: amigos aceitos pelo dono que entram agora, cada um num clube da máquina */ novos?: { mgr: number; nome: string }[] }
+  | { type: 'CO2_NOVO'; newState: EscState; meuId: number } // 🙋 27/11: entrei na carreira na virada — carrego a foto do leilão de todos já com o meu clube // 🔄 26/11 virada: o DONO põe os fechamentos de todos e abre o leilão de todos
   | { type: 'CO2_ALCANCA_RODADAS'; gavetas: GavetaPublica[]; ate: number } // 🔄 26/11: fiquei fora umas rodadas — jogo aqui, de uma vez, as que a turma já jogou (com as gavetas do banco)
   | { type: 'CO2_ALCANCA'; newState: EscState; meuId: number } // 🔄 26/11: eu faltei na virada — junto a foto do leilão de todos (do banco) com o meu clube fechado
   | { type: 'CO2_ASSUME'; newState: EscState; meuId: number } // 🌐 v2: acabou a fase de todos — a partir daqui o MEU aparelho toca o MEU clube
@@ -9332,6 +9333,21 @@ function reducerBase(state: EscState, action: Action): EscState {
     reancoraEsporte(sv)
     return { ...sv, isHost: true, onlineMode: 'cpu', co2: { ...sv.co2, espelho: false, comanda: !!sv.co2.comanda, gavetas: sv.co2.gavetas ?? [] } }
   }
+  if (action.type === 'CO2_NOVO') {
+    // 🙋 27/11: quem acabou de entrar não tem carreira neste aparelho — parte da foto do fim do leilão de todos (do banco), já
+    // dono do clube que assumiu. O que é pessoal de quem comanda (extrato, internacional) não vem junto.
+    const ns = action.newState
+    if (!ns?.co2 || !Array.isArray(ns.managers) || (state.co2 && state.co2.sala === ns.co2.sala)) return state
+    const idx = ns.managers.findIndex(m => m.id === action.meuId && m.isHuman)
+    if (idx < 0) return state
+    reancoraEsporte(ns)
+    return {
+      ...ns, youIdx: idx, isHost: true, onlineMode: 'cpu',
+      careerLedger: ns.careerLedgers?.[action.meuId] ?? [], careerLedgers: undefined,
+      careerInternational: undefined, careerInternationalHistory: [], careerIntlBotTotals: undefined, copaMundoStats: undefined,
+      co2: { sala: ns.co2.sala, assento: action.meuId, gavetas: [], comanda: false, espelho: false },
+    }
+  }
   if (action.type === 'CO2_ALCANCA') {
     const ns = action.newState
     const fechado = !!state.co2 && !state.co2.espelho && state.screen === 'reserveList' && state.co2.fechou === state.seasonNo
@@ -9934,6 +9950,19 @@ function reducerBase(state: EscState, action: Action): EscState {
     // roda o MESMO leilão de reservas da carreira solo (RESERVE_AUCTION_ONLINE).
     case 'CO2_ABRE_VIRADA': {
       if (!s.co2?.comanda || s.co2.espelho || s.screen !== 'reserveList' || s.co2.fechou !== s.seasonNo) return s
+      // 🙋 27/11 (Diego 26/11: depois de começar, só com plano + convite aceito, e entra na virada): o clube da máquina que o
+      // dono escolheu vira do amigo (com o elenco que tinha; caixa de largada). Fica de fora deste leilão (não fechou nada) e
+      // o contrato vencido renova sozinho, como quem faltou.
+      for (const n of action.novos ?? []) {
+        const m = s.managers.find(x => x.id === n.mgr)
+        const nome = (n.nome ?? '').trim()
+        if (!m || m.isHuman || m.rival || m.auctionOnly || nome.length < 2) continue
+        m.isHuman = true; m.teamName = nome
+        s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: Math.max(100, Math.round(s.careerCoins?.[m.id] ?? 0)) }
+        m.money = s.careerCoins[m.id]
+        ;(s.marketLog = s.marketLog ?? []).push(`🙋 ${nome} chegou na carreira e assumiu o clube da máquina`)
+      }
+      s.humanCount = s.managers.filter(m => m.isHuman).length
       const f = aplicaFechamentos(s, action.fechamentos ?? {})
       s.managers = f.managers; s.careerCoins = f.careerCoins; s.reserveListed = f.reserveListed
       s.contratoRelease = f.contratoRelease; s.aliciarJogadores = f.aliciarJogadores

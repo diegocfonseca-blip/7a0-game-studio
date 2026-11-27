@@ -250,8 +250,16 @@ export function co2JuntaVirada(base: EscState, cmd: EscState, meuId: number, fal
   out.careerLedger = [...(base.careerLedger ?? []), ...linhas.filter(e => !ja.has(e.id))].slice(-250)
   out.careerLedgers = undefined
   out.isHost = true
-  out.co2 = { ...(base.co2 ?? { sala: cmd.co2?.sala ?? '', gavetas: [] }), sala: cmd.co2?.sala ?? base.co2?.sala ?? '', assento: meuId, comanda: false, espelho: false, base: undefined, fora: undefined, gavetas: base.co2?.gavetas ?? [] }
+  out.co2 = { ...(base.co2 ?? { sala: cmd.co2?.sala ?? '', gavetas: [] }), sala: cmd.co2?.sala ?? base.co2?.sala ?? '', assento: meuId, comanda: false, espelho: false, base: undefined, fora: undefined, gavetas: base.co2?.gavetas ?? [], ...(faltou ? { renovadosFora: renovadosNaVirada(meuBase?.squad ?? [], cmd.managers.find(m => m.id === meuId)?.squad ?? [], base.seasonNo ?? 1) } : {}) }
   return out
+}
+
+/** ✍️ 27/11 (Diego, 26/11: *"pra quem não estava, um recado discreto ao voltar"*): quem faltou na virada e teve contrato vencido
+ *  renovado sozinho no leilão de todos — os nomes, pra a linha miúda "enquanto você estava fora, renovamos…". */
+export function renovadosNaVirada(antes: readonly Card[], depois: readonly Card[], temporada: number): { season: number; nomes: string[] } {
+  const venceu = new Set(antes.filter(c => typeof (c as Card & { contratoAte?: number }).contratoAte === 'number' && (c as Card & { contratoAte?: number }).contratoAte! <= temporada).map(c => String(c.id)))
+  const nomes = depois.filter(c => venceu.has(String(c.id)) && ((c as Card & { contratoAte?: number }).contratoAte ?? 0) > temporada).map(c => c.name)
+  return { season: temporada + 1, nomes }
 }
 
 /**

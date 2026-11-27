@@ -179,9 +179,13 @@ ok(fech1 && fech1.temporada === 2 && fech1.squad.length >= 11, 'o fechamento do 
 // o 1 tenta abrir o leilão sozinho: nada acontece
 ok(reducer(aparelhos[1], { type: 'RESERVE_AUCTION_ONLINE' }) === aparelhos[1] || reducer(aparelhos[1], { type: 'RESERVE_AUCTION_ONLINE' }).screen === 'reserveList', 'quem não é dono não abre o leilão de todos')
 const expiradosAus = aparelhos[0].managers.find(m => m.id === 2).squad.filter(c => c.contratoAte != null && c.contratoAte < 2).length
-let h = reducer(aparelhos[0], { type: 'CO2_ABRE_VIRADA', fechamentos: { 1: fech1 } })
+// 🙋 27/11: um amigo novo (pedido aceito pelo dono) entra NA VIRADA assumindo um clube da máquina
+const botNovo = aparelhos[0].managers.find(m => !m.isHuman && !m.rival && !m.auctionOnly)
+let h = reducer(aparelhos[0], { type: 'CO2_ABRE_VIRADA', fechamentos: { 1: fech1 }, novos: botNovo ? [{ mgr: botNovo.id, nome: 'Amigo Novo' }] : [] })
+ok(!!botNovo && h.managers.find(m => m.id === botNovo.id)?.isHuman && h.managers.find(m => m.id === botNovo.id)?.teamName === 'Amigo Novo', `o amigo novo assume o clube da máquina na virada (${botNovo?.teamName} → Amigo Novo)`)
+ok(!!botNovo && (h.co2?.fora ?? []).includes(botNovo.id), 'o amigo novo fica de fora do leilão da virada (não fechou nada)')
 ok(h.screen !== 'reserveList', `o dono abre o leilão de todos (${h.screen}/${h.phase})`)
-ok(JSON.stringify(h.co2?.fora) === '[2]', 'quem não fechou fica fora do leilão')
+ok((h.co2?.fora ?? []).includes(2) && !(h.co2?.fora ?? []).includes(1), 'quem não fechou fica fora do leilão')
 ok(h.careerCoins?.[1] === caixa1, `caixa do 1 no leilão = o caixa que o aparelho dele fechou (${h.careerCoins?.[1]} = ${caixa1})`)
 // o aparelho 1 assiste (espelho) e o dono roda o leilão
 let a1 = reducer(aparelhos[1], { type: 'CO2_ESPELHO', newState: unpack(pack(sanitizeParaSala(h))), meuId: 1 })
@@ -191,6 +195,12 @@ ok(!!lote && lote.sondadoPor === 1 && lote.seller === 0 && !h.managers[0].squad.
 h = rodaLeilao(h, [2])
 ok(h.screen === 'season' && h.seasonNo === 2 && h.round === 0, `o leilão da virada termina na T2 (${h.screen})`)
 a1 = reducer(a1, { type: 'CO2_ASSUME', newState: unpack(pack(sanitizeParaSala(h))), meuId: 1 })
+if (botNovo) {
+  const novo = reducer(structuredClone(INITIAL), { type: 'CO2_NOVO', newState: unpack(pack(sanitizeParaSala(h))), meuId: botNovo.id })
+  ok(novo.managers[novo.youIdx]?.id === botNovo.id && novo.managers[novo.youIdx].teamName === 'Amigo Novo' && novo.co2?.comanda === false && novo.screen === 'season', 'o aparelho do amigo novo carrega a carreira pela foto da virada, no clube dele')
+  ok(!(novo.careerLedger ?? []).some(e => e.mgrId != null && e.mgrId !== botNovo.id), 'o extrato do amigo novo não traz o do dono')
+  ok(reducer(novo, { type: 'CO2_NOVO', newState: unpack(pack(sanitizeParaSala(h))), meuId: botNovo.id }) === novo, 'quem já tem a carreira no aparelho não é sobrescrito pela foto')
+}
 ok(a1.screen === 'season' && a1.seasonNo === 2 && !a1.co2?.espelho && !a1.co2?.base, 'o aparelho 1 volta a tocar o próprio clube na T2')
 ok(a1.careerTorcida?.marca1 === 77, 'o que é do clube do 1 (fora do leilão) não se perde na virada')
 ok(a1.managers[a1.youIdx].id === 1 && JSON.stringify(a1.managers[a1.youIdx].squad.map(c => c.id)) === JSON.stringify(h.managers.find(m => m.id === 1).squad.map(c => c.id)), 'o elenco do 1 depois do leilão é o mesmo nos dois aparelhos')
@@ -245,6 +255,16 @@ aparelhos[2] = reducer(aparelhos[2], { type: 'CO2_ALCANCA_RODADAS', gavetas: ult
 const t3 = resultado(aparelhos[0])
 ok(aparelhos[2].round === 10, `quem voltou alcança a rodada da turma (rodada ${aparelhos[2].round})`)
 ok(aparelhos.every(s => resultado(s) === t3), 'quem voltou vê as MESMAS tabelas que a turma viu')
+// 🚨 27/11: a crise dos -500 vale na carreira online (cada aparelho cuida do próprio clube, igual à tradicional)
+{
+  const a = aparelhos[1], me = a.managers[a.youIdx]
+  const alvo = [...me.squad].sort((x, y) => (y.fame - x.fame) || (y.hi - x.hi))[0]
+  const c = reducer(a, { type: 'START_CAREER_CRISE', mgrId: me.id, barrier: -500, playerId: alvo.id, playerName: alvo.name, pos: alvo.pos })
+  ok(c.careerCrise?.[me.id]?.playerId === alvo.id, `crise dos -500 dispara na carreira online (${alvo.name} anuncia saída)`)
+  const r = reducer(c, { type: 'RESOLVE_CAREER_CRISE', mgrId: me.id, choice: 'base' })
+  const eu = r.managers[r.youIdx]
+  ok(!eu.squad.some(x => x.id === alvo.id) && eu.squad.length === me.squad.length && !eu.squad.some(x => x.fake), 'resolvida com a Cria da Base: sai o craque, entra o guri (nunca fake)')
+}
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ fluxo da carreira online v2 ok')
 await vite.close()
 process.exit(falhas ? 1 : 0)

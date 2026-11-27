@@ -1,0 +1,8 @@
+-- 27/11 APLICADO (Diego 26/11): entrar de graça só ANTES de começar; depois, só com plano + pedido aceito pelo dono, e a pessoa
+-- entra na VIRADA assumindo um clube da máquina que o dono escolhe (igual à Liga Draft). Corrige também a brecha de entrar no meio
+-- da carreira quando a sala ficava em 'espera' entre uma noite e outra.
+-- Tabela esc_carr_pedido (sala, user_id, nome, mgr, status pedido|aceito|recusado|entrou, em) + funções:
+--   esc_carr_entrar (começou = temporada >= 1 ou fase <> espera → exige esc_pago_uid e vira pedido)
+--   esc_carr_pedidos(p_sala) · esc_carr_meu_pedido() · esc_carr_pedido_decide(p_sala, p_user, p_mgr) [dono]
+--   esc_carr_pedido_efetiva(p_sala, p_user) [quem comanda, na virada: cria o esc_carr_clube no assento = mgr]
+-- O texto completo aplicado está na migration "carreira_online_pedido_entrada_20261127" do projeto (Supabase).

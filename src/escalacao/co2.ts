@@ -120,10 +120,32 @@ export async function co2Criar(nome: string, clube: string): Promise<{ id?: stri
   if (error) return { erro: error.message }
   return data as { id?: string; codigo?: string; erro?: string }
 }
-export async function co2Entrar(codigo: string, clube: string): Promise<{ id?: string; erro?: string }> {
+export async function co2Entrar(codigo: string, clube: string): Promise<{ id?: string; erro?: string; pedido?: boolean; status?: string }> {
   const { data, error } = await supabase.rpc('esc_carr_entrar', { p_codigo: codigo, p_clube: clube })
   if (error) return { erro: error.message }
-  return data as { id?: string; erro?: string }
+  return data as { id?: string; erro?: string; pedido?: boolean; status?: string }
+}
+// 🙋 27/11 (Diego 26/11): carreira já começada = só com plano, pedido aceito pelo dono, e a pessoa entra na VIRADA num clube da
+// máquina que o dono escolhe (igual à Liga Draft)
+export type Co2Pedido = { user_id: string; nome: string; mgr: number | null; status: 'pedido' | 'aceito' }
+export async function co2Pedidos(): Promise<Co2Pedido[]> {
+  if (!canalSala) return []
+  const { data, error } = await supabase.rpc('esc_carr_pedidos', { p_sala: canalSala })
+  return error || !Array.isArray(data) ? [] : (data as Co2Pedido[])
+}
+export async function co2MeusPedidos(): Promise<{ sala: string; nome: string; status: string; carreira: string }[]> {
+  const { data, error } = await supabase.rpc('esc_carr_meu_pedido')
+  return error || !Array.isArray(data) ? [] : (data as { sala: string; nome: string; status: string; carreira: string }[])
+}
+export async function co2PedidoDecide(user: string, mgr: number | null): Promise<string> {
+  if (!canalSala) return 'erro'
+  const { data, error } = await supabase.rpc('esc_carr_pedido_decide', { p_sala: canalSala, p_user: user, p_mgr: mgr })
+  return error ? 'erro' : String(data ?? 'erro')
+}
+export async function co2PedidoEfetiva(user: string): Promise<string> {
+  if (!canalSala) return 'erro'
+  const { data, error } = await supabase.rpc('esc_carr_pedido_efetiva', { p_sala: canalSala, p_user: user })
+  return error ? 'erro' : String(data ?? 'erro')
 }
 export async function co2MinhasSalas(): Promise<(Co2Sala & { assento: number; meuClube: string })[]> {
   const uid = await meuUid()

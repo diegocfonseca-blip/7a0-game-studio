@@ -10,6 +10,7 @@ import {
   useCo2, co2Abrir, co2Fechar, co2Criar, co2Entrar, co2MinhasSalas, co2Continuar, co2Mundo, co2Envia, co2PodeCriar,
   co2LeGavetas, co2Gaveta, co2Pronto, co2Comecar, co2Apito, co2Ritmo, co2EncerrarDia, co2SalvaPrivado, co2LePrivado, co2Agora,
   type Co2Sala, type Co2Mundo, TEMPOS_OPCOES, tempoPausa, tempoRodada,
+  co2Pedidos, co2PedidoDecide, co2PedidoEfetiva, co2MeusPedidos, co2LeVirada, type Co2Pedido,
 } from './co2'
 import { minhaGaveta, co2Fechamento, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
 import { useMotor2Carreira, copaBrasilLiberada, internacionalCarreiraLiberada } from './sport'
@@ -34,7 +35,9 @@ export function Co2Painel({ nomeClube }: { nomeClube: string }) {
   const [codigo, setCodigo] = useState('')
   const [erro, setErro] = useState('')
   const [aberta, setAberta] = useState<string | null>(null)
-  const recarrega = () => { void co2MinhasSalas().then(setSalas) }
+  const [pedidos, setPedidos] = useState<{ sala: string; nome: string; status: string; carreira: string }[]>([])
+  const [aviso, setAviso] = useState('')
+  const recarrega = () => { void co2MinhasSalas().then(setSalas); void co2MeusPedidos().then(setPedidos) }
   useEffect(() => { recarrega(); void co2PodeCriar().then(setPodeCriar) }, [])
   const criar = async () => {
     setErro('')
@@ -44,7 +47,11 @@ export function Co2Painel({ nomeClube }: { nomeClube: string }) {
   }
   const entrar = async () => {
     setErro('')
+    setAviso('')
     const r = await co2Entrar(codigo.trim(), clube.trim())
+    // 🙋 27/11: carreira já começada = pedido pro dono (só com plano); entra na virada da temporada
+    if (r.pedido) { setAviso(tr('✉️ Pedido enviado! A carreira já começou: quando o dono aceitar, você entra na virada da temporada, num clube que ele escolher.', '✉️ Request sent! The career has already started: once the owner accepts, you join at the season turnover, in a club they pick.')); recarrega(); return }
+    if (r.erro === 'plano') { setErro(tr('Essa carreira já começou: entrar agora é só pra quem tem plano (qualquer plano). Antes de começar, entra todo mundo de graça.', 'This career has already started: joining now is only for players with a plan (any plan). Before it starts, everyone joins for free.')); return }
     if (r.erro || !r.id) {
       setErro(r.erro === 'nao_achou' ? tr('Código não encontrado.', 'Code not found.') : r.erro === 'comecou' ? tr('Essa carreira já começou — só entra quem já é dela.', 'This career already started — only its members can enter.') : r.erro === 'cheia' ? tr('Sala cheia (20 clubes).', 'Room full (20 clubs).') : r.erro === 'nome' ? tr('Nome do clube com pelo menos 2 letras.', 'Club name needs at least 2 letters.') : tr('Não deu pra entrar agora.', 'Could not join right now.'))
       return
@@ -79,6 +86,56 @@ export function Co2Painel({ nomeClube }: { nomeClube: string }) {
         <button onClick={() => void entrar()} style={{ ...botao('#fff'), width: 'auto', fontSize: 13, padding: '8px 12px', boxShadow: `2px 2px 0 ${INK}` }}>{tr('Entrar', 'Join')}</button>
       </div>
       {erro && <p style={{ fontWeight: 800, fontSize: 11.5, color: '#B23B2E', margin: '6px 0 0' }}>{erro}</p>}
+      {aviso && <p style={{ fontWeight: 800, fontSize: 11.5, color: GREEN, margin: '6px 0 0' }}>{aviso}</p>}
+      {pedidos.map(p => (
+        <p key={p.sala} style={{ fontWeight: 700, fontSize: 11.5, margin: '6px 0 0', color: 'rgba(0,0,0,.65)' }}>
+          ✉️ {p.carreira} · {p.nome}: {p.status === 'aceito' ? tr('aceito! Você entra na virada da temporada.', 'accepted! You join at the season turnover.') : p.status === 'recusado' ? tr('o dono recusou.', 'the owner declined.') : tr('esperando o dono.', 'waiting for the owner.')}
+        </p>
+      ))}
+    </div>
+  )
+}
+
+// 🙋 27/11 (Diego 26/11: *"depois, só com plano + convite aceito… igual Liga Draft"*): o dono vê quem pediu pra entrar e escolhe o
+// clube da máquina que a pessoa assume. Ela entra na VIRADA da temporada (nunca no meio), com o elenco que o clube tinha.
+export function Co2PedidosDono() {
+  const { state } = useEsc()
+  const sn = useCo2()
+  const [lista, setLista] = useState<Co2Pedido[]>([])
+  const [escolha, setEscolha] = useState<Record<string, number>>({})
+  const [msg, setMsg] = useState('')
+  const recarrega = () => { void co2Pedidos().then(setLista) }
+  useEffect(() => { recarrega(); const t = setInterval(recarrega, 60000); return () => clearInterval(t) }, [sn.sala?.id])
+  if (!state.co2?.comanda || !lista.length) return null
+  const tomados = new Set(lista.filter(p => p.status === 'aceito' && p.mgr != null).map(p => p.mgr as number))
+  const livres = state.managers.filter(m => !m.isHuman && !m.rival && !m.auctionOnly)
+  const divDe = (id: number) => state.careerPlacements?.[`m${id}`] ?? 'V'
+  const decide = async (p: Co2Pedido, mgr: number | null) => {
+    setMsg('')
+    const r = await co2PedidoDecide(p.user_id, mgr)
+    setMsg(r === 'ok' ? '' : r === 'ocupado' ? tr('Esse clube já foi pra outra pessoa.', 'That club already went to someone else.') : tr('Não deu agora. Tenta de novo.', 'Didn\'t work. Try again.'))
+    recarrega()
+  }
+  return (
+    <div style={{ ...caixa('#EAF3FF'), padding: 12 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 4px', textTransform: 'uppercase' }}>🙋 {tr('Pedidos pra entrar', 'Requests to join')}</p>
+      <p style={{ fontWeight: 700, fontSize: 11, margin: '0 0 8px', color: 'rgba(0,0,0,.6)' }}>{tr('Você escolhe o clube da máquina que a pessoa assume (com o elenco dele). Ela entra na virada da temporada.', 'You pick the computer club the person takes over (with its squad). They join at the season turnover.')}</p>
+      {lista.map(p => (
+        <div key={p.user_id} style={{ display: 'grid', gap: 6, borderTop: '1px solid rgba(0,0,0,.12)', padding: '8px 0' }}>
+          <span style={{ fontWeight: 900, fontSize: 13.5 }}>{p.nome}{p.status === 'aceito' ? ` · ✅ ${tr('entra na virada', 'joins at the turnover')} (${state.managers.find(m => m.id === p.mgr)?.teamName ?? '?'})` : ''}</span>
+          {p.status === 'pedido' && <>
+            <select value={escolha[p.user_id] ?? ''} onChange={e => setEscolha(x => ({ ...x, [p.user_id]: Number(e.target.value) }))} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 8px', fontWeight: 800, fontSize: 13, background: '#fff', color: INK }}>
+              <option value="">{tr('Escolha o clube que ele assume…', 'Pick the club they take over…')}</option>
+              {livres.filter(m => !tomados.has(m.id)).map(m => <option key={m.id} value={m.id}>{divDe(m.id)} · {m.teamName}</option>)}
+            </select>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button disabled={escolha[p.user_id] == null} onClick={() => void decide(p, escolha[p.user_id] ?? null)} style={{ ...botao(escolha[p.user_id] == null ? '#eee' : GREEN, escolha[p.user_id] == null ? 'rgba(0,0,0,.4)' : '#fff'), fontSize: 13, padding: '7px 10px' }}>✅ {tr('Aceitar', 'Accept')}</button>
+              <button onClick={() => { if (window.confirm(tr(`Recusar o pedido de ${p.nome}?`, `Decline ${p.nome}'s request?`))) void decide(p, null) }} style={{ ...botao('#fff'), fontSize: 13, padding: '7px 10px' }}>{tr('Recusar', 'Decline')}</button>
+            </div>
+          </>}
+        </div>
+      ))}
+      {msg && <p style={{ fontWeight: 800, fontSize: 11.5, color: '#B23B2E', margin: '4px 0 0' }}>{msg}</p>}
     </div>
   )
 }
@@ -114,9 +171,16 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
     void (async () => {
       if (sala.fase === 'virada' && sala.temporada <= 1 && !local) { entrouRef.current = true; co2Envia('pedir_estado'); return }
       const sv = local ?? await lePrivado()
-      if (sv) { entrouRef.current = true; dispatch({ type: 'CO2_ABRE', save: sv }); if (sala.fase === 'virada') co2Envia('pedir_estado') }
+      if (sv) { entrouRef.current = true; dispatch({ type: 'CO2_ABRE', save: sv }); if (sala.fase === 'virada') co2Envia('pedir_estado'); return }
+      // 🙋 27/11: acabei de entrar (pedido aceito na virada) — ainda não tenho carreira: parto da foto do fim do leilão de todos
+      const meuId = sn.uid && sn.mundo ? sn.mundo.ordem.indexOf(sn.uid) : -1
+      if (meuId >= 0 && sala.temporada >= 1 && sala.fase !== 'virada') {
+        const z = await co2LeVirada(sala.temporada)
+        if (!z) return
+        try { entrouRef.current = true; dispatch({ type: 'CO2_NOVO', newState: unpack<EscState>(z), meuId }) } catch { entrouRef.current = false }
+      }
     })()
-  }, [sala, possoComandar, local, dispatch])
+  }, [sala, possoComandar, local, dispatch, sn.mundo, sn.uid])
   const comecar = async (modo: 'dinamica' | 'livre' = 'livre') => {
     if (!sala || indo) return
     setIndo(true); setErro('')
@@ -215,6 +279,23 @@ async function lePrivado(): Promise<EscState | null> {
 
 // ═══ DENTRO DA TEMPORADA: a barra do PRONTO + o motor que segue o relógio do dono ═══════════════════════════════════
 const PRAZO_DINAMICA_S = 15 // o banco aceita no mínimo 15 s; na Dinâmica o dono começa logo que a rodada anterior terminou de animar
+
+// ✍️ 27/11 (Diego, 26/11: *"pra quem não estava, um recado discreto ao voltar… nada de banner grande"*): linha miúda com quem renovou
+// sozinho enquanto a pessoa estava fora da virada; fecha no ✕ e não volta (regra do aviso fechado).
+function RecadoRenovados() {
+  const { state } = useEsc()
+  const r = state.co2?.renovadosFora
+  const chave = `co2-renov:${state.co2?.sala ?? ''}:${r?.season ?? 0}`
+  const [fechado, setFechado] = useState(() => avisoFechado(chave))
+  if (!r?.nomes.length || fechado) return null
+  const lista = r.nomes.length > 4 ? `${r.nomes.slice(0, 4).join(', ')} ${tr(`e mais ${r.nomes.length - 4}`, `and ${r.nomes.length - 4} more`)}` : r.nomes.join(', ')
+  return (
+    <p style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>
+      <span style={{ flex: 1 }}>✍️ {tr(`Enquanto você estava fora, renovamos ${lista}.`, `While you were away, we renewed ${lista}.`)}</span>
+      <button aria-label={tr('Fechar', 'Close')} onClick={() => { fechaAviso(chave); setFechado(true) }} style={{ background: 'none', border: 'none', fontWeight: 900, fontSize: 13, cursor: 'pointer', color: 'rgba(0,0,0,.5)' }}>✕</button>
+    </p>
+  )
+}
 
 export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, onEscalacao }: {
   entradasLocais: EntradasMundo; round: number; roundReady: boolean; seasonOver: boolean; onEscalacao: () => void; onTatica?: () => void
@@ -340,6 +421,8 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   const mm = restante != null ? `${Math.floor(restante / 60)}:${String(restante % 60).padStart(2, '0')}` : '–'
   return (
     <div style={{ display: 'grid', gap: 10, marginBottom: 10 }}>
+      <RecadoRenovados />
+      <Co2PedidosDono />
       {sala.fase === 'preparo' && dinamica && sala.rodada === 0 && (
         <Co2Anuncio restante={restante} comanda={comanda} onSeguir={() => { comecouRef.current = sala.rodada; void co2Comecar() }} />
       )}
@@ -477,7 +560,18 @@ export function Co2ViradaEspera() {
     const fora = clubes.filter(c => !f[c.id]).map(c => c.nome)
     if (restante != null && restante > 0 && fora.length && !window.confirm(tr(`Ainda faltam ${restante} s no relógio. Abrir o leilão agora?`, `There are still ${restante} s on the clock. Open the auction now?`))) return
     if (fora.length && !window.confirm(tr(`${fora.join(', ')} ainda não fechou. Vai ficar fora do leilão e os contratos vencidos renovam sozinhos. Abrir mesmo assim?`, `${fora.join(', ')} hasn't closed yet. They'll sit out the auction and expired contracts renew by themselves. Open anyway?`))) return
-    dispatch({ type: 'CO2_ABRE_VIRADA', fechamentos: f })
+    // 🙋 os pedidos aceitos entram AGORA: o clube da máquina vira deles, o lugar no mundo é anotado e o banco ganha o clube
+    const aceitos = (await co2Pedidos()).filter(p => p.status === 'aceito' && p.mgr != null && state.managers.some(m => m.id === p.mgr && !m.isHuman))
+    dispatch({ type: 'CO2_ABRE_VIRADA', fechamentos: f, novos: aceitos.map(p => ({ mgr: p.mgr as number, nome: p.nome })) })
+    if (aceitos.length) {
+      const mm = co2Agora().mundo ?? sn.mundo
+      if (mm) {
+        const ordem = [...mm.ordem]
+        for (const p of aceitos) ordem[p.mgr as number] = p.user_id
+        await co2Mundo('virada', null, null, { ...mm, ordem })
+      }
+      for (const p of aceitos) await co2PedidoEfetiva(p.user_id)
+    }
   }
   return (
     <div className="palco tela-cheia" style={{ background: CREAM, color: INK, padding: '20px 14px 48px' }}>
@@ -494,6 +588,7 @@ export function Co2ViradaEspera() {
           ))}
           {subiu === 'erro' && <button onClick={() => void sobe()} style={{ ...botao('#FFE1DB'), fontSize: 13, marginTop: 8 }}>⚠️ {tr('Não subiu o seu fechamento — tentar de novo', 'Your closing didn\'t upload — try again')}</button>}
         </div>
+        <Co2PedidosDono />
         {comanda ? (
           <div>
             <button disabled={subiu !== 'ok'} onClick={() => void abrir()} style={botao(subiu === 'ok' ? GOLD : '#eee')}>🔨 {tr('Abrir o leilão de todos', 'Open everyone\'s auction')}</button>
