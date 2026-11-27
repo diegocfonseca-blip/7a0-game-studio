@@ -6,6 +6,15 @@ Correção da disputa dos controles entre a liga e a copa aberta: táticas, nave
 
 Nome corrigido de Arena de Pernambuco para **Arruda**, a pedido de Diego, no catálogo compartilhado por agenda e estádio do Brasil Oficial. Consulta `estadioDoClube("Santa Cruz")` conferida; sem alteração de saves.
 
+## 27/11 — ⏪ LIGA DRAFT: CONVIDADO "PISCAVA" PRA TELA DO CAMPEÃO JÁ PASSADO (vídeo do Anesp, Duarte FC campeão T4)
+- Sintoma: escalando a temporada nova, a tela voltava sozinha pro fim da temporada anterior (campeão, artilheiros) e depois voltava.
+- Suspeita (não confirmada — sala não achada no banco): 2º aparelho/aba do DONO parado no fim da T4 seguia mandando estado velho; o
+  convidado aceitava qualquer estado do dono (`recebeEstado` → SYNC_STATE sem conferir se é mais velho).
+- Trava (Diego: *"se eles avançaram não deveria ter voltado"*): o convidado recusa estado que volta pra tela de FIM de temporada já
+  passada, ou do draft de volta pro fim. Começo de partida nova passa sempre. Cada recusa vai pra caixa-preta (`esc_travas`,
+  extra.quando = 'estado_velho_recusado') — conferir lá pra confirmar a suspeita e achar a sala.
+- 🎬 Junto: no futebol a faixa fixa "CAMPEÃO DEFINIDO" embaixo do vídeo do campeão saiu (Diego: *"pode tirar se já tiver o vídeo"*).
+
 ## 27/11 — 🔨 PREGÃO ABERTO: CARA NOVA PRA TODOS NA MESA DE UMA CARTA (Diego: *"já bote p todos qd for uma carta apenas.. pra dois ainda não"*)
 - Mesa de UMA carta (até 10 clubes, Vice City, ou sala grande com "uma carta") = `PregaoAbertoNovo` + layout compacto do PC pra TODOS.
 - Mesa de DUAS cartas (11+ clubes) segue no pregão de hoje pra todos; a cara nova das duas mesas continua só na conta do Diego
