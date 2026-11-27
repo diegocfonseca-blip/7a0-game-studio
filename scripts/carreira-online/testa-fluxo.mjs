@@ -4,7 +4,7 @@
 // 3) os 3 aparelhos, cada um mexendo só no seu time e trocando gavetas, jogam 10 rodadas e chegam no MESMO lugar.
 import { createServer } from 'vite'
 const vite = await createServer({ server: { middlewareMode: true, hmr: false }, appType: 'custom', logLevel: 'silent' })
-const { reducer, INITIAL, sanitizeParaSala, openSlots } = await vite.ssrLoadModule('/src/escalacao/store.tsx')
+const { reducer, INITIAL, sanitizeParaSala, openSlots, co2SaveVersion } = await vite.ssrLoadModule('/src/escalacao/store.tsx')
 const { pack, unpack } = await vite.ssrLoadModule('/src/escalacao/netpack.ts')
 const { buildPyramid, simulatePyramid, computePromotions } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
 const { minhaGaveta, mesclaEntradas, congelaMeu, co2Fechamento } = await vite.ssrLoadModule('/src/escalacao/carreira-online-v2.ts')
@@ -71,6 +71,11 @@ host = rodaLeilao(host, [], tamanhos)
 ok(host.screen === 'season', `o leilão de estreia chega na temporada (parou em ${host.screen}/${host.phase})`)
 const kbMax = Math.max(...tamanhos) / 1024
 ok(kbMax < 200, `o estado do leilão que vai pela sala cabe (maior pacote ${kbMax.toFixed(0)} KB comprimido)`)
+const versaoSave = co2SaveVersion(host)
+const recebeGavetas = reducer(host, { type: 'CO2_GAVETAS', gavetas: [] })
+ok(co2SaveVersion(recebeGavetas) === versaoSave, 'receber dados dos amigos não manda outro save privado inteiro')
+const mudaMeuClube = reducer(recebeGavetas, { type: 'SET_TACTIC', mgrId: host.managers[host.youIdx].id, tactic: 'ataque' })
+ok(co2SaveVersion(mudaMeuClube) > versaoSave, 'mudança do meu clube gera salvamento automático, mesmo na mesma rodada')
 const humanos = host.managers.filter(m => m.isHuman)
 ok(humanos.every(m => m.squad.length >= 11), `os 3 clubes de gente saem do leilão com time (${humanos.map(m => m.squad.length + (m.squad.some(c => c.fake) ? '*' : '')).join(', ')})`)
 

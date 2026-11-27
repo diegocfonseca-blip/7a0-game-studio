@@ -22,7 +22,7 @@ export type EntradasSim = {
 }
 
 /** A parte PÚBLICA da gaveta: o que os outros aparelhos precisam pra desenhar e simular o clube. */
-export type GavetaPublica = {
+export type GavetaPublica = { repertorio?: import('./types').FormationKey[];
   mgrId: number
   nome: string
   formation?: Manager['formation']

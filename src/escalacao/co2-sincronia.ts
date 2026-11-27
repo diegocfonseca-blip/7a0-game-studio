@@ -7,15 +7,22 @@ export class Co2Fila<T> {
   private enviando?: Promise<boolean>
   private fechada = false
   private falhas = 0
+  private pendenteDesde = 0
   private envia: (dados: T) => Promise<boolean>
   private erro: (falhou: boolean) => void
   private espera: number
   constructor(envia: (dados: T) => Promise<boolean>, erro: (falhou: boolean) => void = () => {}, espera = 800) { this.envia = envia; this.erro = erro; this.espera = espera }
   atualiza(chave: string, dados: T): void {
-    if (this.fechada || this.atual?.chave === chave) return
+    if (this.fechada) return
+    const igual = this.atual?.chave === chave
     this.atual = { chave, dados }
+    if (igual || this.falhas > 0 && this.timer) return
     if (this.timer) clearTimeout(this.timer)
-    if (chave !== this.salva) this.timer = setTimeout(() => { this.timer = undefined; void this.confirma() }, this.espera)
+    if (chave !== this.salva) {
+      if (!this.pendenteDesde) this.pendenteDesde = Date.now()
+      const atraso = Math.min(this.espera, Math.max(0, 10_000 - (Date.now() - this.pendenteDesde)))
+      this.timer = setTimeout(() => { this.timer = undefined; void this.confirma() }, atraso)
+    }
   }
   async confirma(): Promise<boolean> {
     if (this.fechada) return false
@@ -37,12 +44,13 @@ export class Co2Fila<T> {
         return false
       }
       this.salva = tentativa.chave
+      this.pendenteDesde = 0
       this.falhas = 0
       this.erro(false)
     }
     return !this.fechada
   }
-  limpa(): void { this.atual = undefined; this.falhas = 0; this.erro(false); if (this.timer) { clearTimeout(this.timer); this.timer = undefined } }
+  limpa(): void { this.atual = undefined; this.pendenteDesde = 0; this.falhas = 0; this.erro(false); if (this.timer) { clearTimeout(this.timer); this.timer = undefined } }
   fecha(): void { this.fechada = true; if (this.timer) clearTimeout(this.timer) }
 }
 

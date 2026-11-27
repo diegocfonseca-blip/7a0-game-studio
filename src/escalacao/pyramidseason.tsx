@@ -1,3 +1,5 @@
+import { entradasJogoCo2, type Co2Entrada } from './co2-jogo-model'
+import { usePartidaCo2 } from './co2-jogo'
 import {careerMoments,careerRivalStory,type CareerMoment} from './career-living-model'
 import {postMatchTable} from './career-post-match-table'
 import {COPA_CARREIRA_ANCORA,COPA_CARREIRA_CICLO} from './copa-mundo-calendario'
@@ -1172,7 +1174,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-export function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }, calendario?: [number, number][][]) {
+export function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean; online?: Record<string, Co2Entrada> }, calendario?: [number, number][][]) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   // 🇧🇷 BRASIL OFICIAL (15/11): `calendario` = rodadas PRÓPRIAS (pares [casa, fora] direto nos índices de `teams`) — o motor
   // dos campeonatos reais (campeonato-oficial.ts) monta fase de grupos, turno único e ida e volta com isso. Sem ele: o
@@ -1354,6 +1356,7 @@ export function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number
     // foi consumido do mesmo jeito → nenhum outro jogo muda); aqui o placar e os autores deste jogo passam a ser os do motor v2,
     // com os MESMOS 11 na MESMA ordem do campinho, a tática, o gás, a formação e a troca do intervalo. Só a partir de `m2Desde`.
     let m2e: EntradaM2 | undefined
+    const onlineMatch = regrasM2?.online?.[`liga:${seed}:${div}:${r}:${hi}:${ai}`]
     // 🔁 23/11: trocas com o jogo rolando (só o lado de gente): ids → cartas do elenco, com o gás da rodada
     const entraramAoVivo: PoolCard[] = []
     const aoVivoM2 = (() => {
@@ -1375,10 +1378,11 @@ export function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number
         tatica2:regrasM2?.criterios && hd ? [taticaM2(H.human ? hd.tactic ?? th : th),taticaM2(A.human ? hd.tactic ?? ta : ta)] : undefined, seed: sementeM2(seed, div, r, hi, ai), casa: hxi as never, fora: axi as never, fCasa: H.formation, fFora: A.formation,
         tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human], tecnico: [lvlH, lvlA], evento: [mh, ma],
         casa2: hxi2 as never, fora2: axi2 as never, fCasa2: hxi2 ? hd?.formation ?? H.formation : undefined, fFora2: axi2 ? hd?.formation ?? A.formation : undefined })
+      if (onlineMatch) m2e = entradaM2({ ...onlineMatch.initial, preservarGuardado: false })
       const res = resultadoM2(m2e)
       const tira = (teamName: string, e: { id: string }) => { const k = `${teamName}:${e.id}`; const row = scorers.get(k); if (row) { row.goals--; if (row.goals <= 0) scorers.delete(k) } }
       hFinal.forEach(e => tira(H.name, e)); aFinal.forEach(e => tira(A.name, e))
-      const doLado = (home: boolean) => { const t = home ? H : A; return { t, cartas: [...(home ? hxi : axi), ...((home ? hxi2 : axi2) ?? []), ...((home ? H.human : A.human) ? entraramAoVivo : [])] } }
+      const doLado = (home: boolean) => { const t = home ? H : A; return { t, cartas: [...(onlineMatch?.rosters[home ? 0 : 1] ?? []), ...(home ? hxi : axi), ...((home ? hxi2 : axi2) ?? []), ...((home ? H.human : A.human) ? entraramAoVivo : [])] } }
       const novos: { h: typeof hFinal; a: typeof aFinal } = { h: [], a: [] }
       for (const g of res.gols) {
         const { t, cartas } = doLado(g.home)
@@ -1411,7 +1415,7 @@ export function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number
     if (hgF > agF) { H.pts += 3; H.w++; A.l++ } else if (agF > hgF) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
     if (lastMatches && r === nr - 1) {
       const goals: Goal[] = [...hFinal.map(e => ({ ...e, home: true })), ...aFinal.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
-      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals, hxi, axi, hf: H.formation, af: A.formation, hxi2, axi2, hf2: hxi2 ? hd?.formation ?? H.formation : undefined, af2: axi2 ? hd?.formation ?? A.formation : undefined, m2: m2e }) // 📻 a escalação vai junto pra rádio citar o jogador
+      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals, hxi: onlineMatch ? m2e?.casa as never : hxi, axi: onlineMatch ? m2e?.fora as never : axi, hf: onlineMatch ? m2e?.fCasa : H.formation, af: onlineMatch ? m2e?.fFora : A.formation, hxi2, axi2, hf2: hxi2 ? hd?.formation ?? H.formation : undefined, af2: axi2 ? hd?.formation ?? A.formation : undefined, m2: m2e }) // 📻 a escalação vai junto pra rádio citar o jogador
     }
   }
 }
@@ -1422,7 +1426,7 @@ export function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean; online?: Record<string, Co2Entrada> }): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -1469,7 +1473,7 @@ const dataNaRodada = (k: number, total: number) => Math.ceil(k * 38 / total)
 const datasJogadas = (ini: number, len: number, total: number, round: number) => { let n = 0; for (let k = ini + 1; k <= ini + len; k++) if (dataNaRodada(k, total) <= round) n++; return n }
 const hashNome = (txt: string, seed: number) => { let h = seed >>> 0; for (let i = 0; i < txt.length; i++) h = Math.imul(h ^ txt.charCodeAt(i), 0x01000193) >>> 0; return h }
 
-export function simulaTemporadaOficial(world: Record<Div, SimTeam[]>, seed: number, round: number, ano: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }): ReturnType<typeof simulatePyramid> & { oficial: FasesOficiais } {
+export function simulaTemporadaOficial(world: Record<Div, SimTeam[]>, seed: number, round: number, ano: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean; online?: Record<string, Co2Entrada> }): ReturnType<typeof simulatePyramid> & { oficial: FasesOficiais } {
   const datasFisicas = new Map<string, Set<number>>()
   // A e B: o caminho de sempre (C, D e V vazias — o simDivTo pula vaga vazia sem consumir dado)
   const base = simulatePyramid({ ...world, C: [], D: [], V: [] }, seed, round, tactics, lineups, capElite, realGoals, fairBoost, mods, halftime, penalty, tecs, cardMods, botPlans, m2Desde, recepcaoDesde, regrasM2)
@@ -5124,7 +5128,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
 }
 
 // wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
-function MyMatchCard({ pausado, m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, stadiumMatch, semCarimbo }: { pausado?: boolean; m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean }) {
+function MyMatchCard({ displayMinute, pausado, m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, stadiumMatch, semCarimbo }: { displayMinute?:number; pausado?: boolean; m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean }) {
   const iAmHome = m.h === youName
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
@@ -5137,7 +5141,7 @@ function MyMatchCard({ pausado, m, youName, finished, col, colors, roundKey, rou
     const actual = result.gols.map(g => JSON.stringify([g.home, g.nome, g.min])).sort()
     return result.placar[0] === m.hg && result.placar[1] === m.ag && JSON.stringify(actual) === JSON.stringify(expected)
   }, [m.m2, m.hg, m.ag, m.goals])
-  return <><LiveScoreCard enhancedCareer stadiumMatch={officialSafe?stadiumMatch:undefined} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
+  return <><LiveScoreCard displayMinute={displayMinute} enhancedCareer stadiumMatch={officialSafe?stadiumMatch:undefined} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
     youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pausado={pausado} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi, fCasa: m.hf, fFora: m.af, casa2: m.hxi2, fora2: m.axi2, fCasa2: m.hf2, fFora2: m.af2, m2: m.m2 }} semCarimbo={semCarimbo} />{stadiumMatch&&!officialSafe&&<p role="status">A reprodução 3D desta partida está indisponível: os dados de movimento não incluem todos os eventos oficiais.</p>}</>
 }
 
@@ -5212,8 +5216,8 @@ export function FaixaPlacarEstadio({matchId,...props}:Parameters<typeof FaixaPla
  const presentation=match?{min:match.minute,fim:match.finished,hg:match.homeScore,ag:match.awayScore}:{}
  return <FaixaPlacarMini {...props} {...presentation}/>
 }
-function PlacarQueEncolhe({ pausado, m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, stadiumMatch, semCarimbo }: {
-  pausado?: boolean
+function PlacarQueEncolhe({ displayMinute, pausado, m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, stadiumMatch, semCarimbo }: {
+  displayMinute?: number; pausado?: boolean
   m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number
   pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute: number) => void
   topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void; stadiumMatch?:ContextoPartidaEstadio; semCarimbo?: boolean
@@ -5234,7 +5238,7 @@ function PlacarQueEncolhe({ pausado, m, youName, finished, col, colors, roundKey
   return (
     <>
       <div ref={caixa} className="ll-cx-placar">
-        <MyMatchCard stadiumMatch={stadiumMatch} m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
+        <MyMatchCard displayMinute={displayMinute} stadiumMatch={stadiumMatch} m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
           roundMs={roundMs} pausado={pausado} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} semCarimbo={semCarimbo} />
       </div>
       {fora && !escondido && (
@@ -10491,7 +10495,9 @@ export function PyramidSeasonScreen() {
   useEffect(()=>{if(recepcaoConta&&!state.motor2RecepcaoDesde)dispatch({type:'LIGA_RECEPCAO_M2'})},[recepcaoConta,state.motor2RecepcaoDesde,dispatch])
   const recepcaoDesde=recepcaoM2Desde(state,loggedEmail())
   // 🌐 carreira online v2: vale o carimbo da SALA (o mesmo em todo aparelho), da rodada 1 da temporada carimbada em diante
-  const co2M2 = useCo2().mundo?.m2
+  const co2SnPartida = useCo2()
+  const co2M2 = co2SnPartida.mundo?.m2
+  const co2Entradas = useMemo(() => state.co2 ? entradasJogoCo2(co2SnPartida.jogos) : undefined, [state.co2?.sala, co2SnPartida.jogos])
   const m2Desde = state.co2 ? (co2M2 != null && (state.seasonNo ?? 1) >= co2M2 ? 0 : undefined)
     : !m2Ok || !state.motor2Desde ? undefined
     : state.motor2Desde.season === (state.seasonNo ?? 1) ? state.motor2Desde.round : state.motor2Desde.season < (state.seasonNo ?? 1) ? 0 : undefined
@@ -10516,11 +10522,11 @@ export function PyramidSeasonScreen() {
   const recepcaoCopa = versaoComCriterios(versaoRecepcaoNaCopa(recepcaoDesde, copaMid ? 5 : 38), criteriosDaTemporada(state))
   // 🇧🇷 Brasil Oficial: a temporada no formato REAL de cada série (B com playoff, C em fases, D com 96) — ano = 2025 + temporada
   const simulaAte = useCallback((ate: number): ReturnType<typeof simulatePyramid> & { oficial?: FasesOficiais } => {
-    const regras = { criterios: criteriosDaTemporada(state), disputadas: round, intervaloAberto: state.booksSeason !== state.seasonNo }
+    const regras = { criterios: criteriosDaTemporada(state), disputadas: round, intervaloAberto: state.booksSeason !== state.seasonNo, online: co2Entradas }
     if (state.oficial) return simulaTemporadaOficial(world, seasonSeed, ate, 2025 + (state.seasonNo ?? 1), entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde, regras)
     return simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde, regras)
   },
-    [state.oficial, world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, recepcaoDesde, state.criteriosCarreiraDesde, state.criteriosCarreiraAte, state.onlineMode, state.co2, state.careerOnline, state.sport, state.seasonNo, state.booksSeason, round])
+    [state.oficial, world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, recepcaoDesde, co2Entradas, state.criteriosCarreiraDesde, state.criteriosCarreiraAte, state.onlineMode, state.co2, state.careerOnline, state.sport, state.seasonNo, state.booksSeason, round])
   // 💾 os resultados do motor novo que o SAVE já tem (antes de simular) — e, depois de cada tela, o que foi calculado agora vai pro save
   carregaGuardados(state.m2Res, state.seasonNo ?? 1, `${loggedEmail() ?? 'local'}:${state.seed}`)
   useEffect(() => { const n = tiraNovos(); if (n && state.careerOnline && state.onlineMode !== 'online') dispatch({ type: 'GUARDA_M2', novos: n }) })
@@ -10539,6 +10545,8 @@ export function PyramidSeasonScreen() {
   useEffect(() => {
     if (calendarioFisico && (state.oficialFisica?.season !== state.seasonNo || JSON.stringify(state.oficialFisica.cal) !== calendarioFisicoKey || JSON.stringify(state.oficialFisica.clubes) !== calendarioClubesKey)) dispatch({type:'OFICIAL_CALENDARIO_FISICO',season:state.seasonNo,cal:calendarioFisico,clubes:live.oficial?.datasClubes})
   }, [calendarioFisicoKey, calendarioClubesKey, state.seasonNo, state.oficialFisica])
+  const onlinePartida = usePartidaCo2(state, Object.values(live.matches).flat(), entradasSim.cardMods, Math.round(baseRoundMs / speedFactor * .82))
+
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
   // está animando na sua tela — os pontos só entram quando o relógio dela acaba.
@@ -12452,24 +12460,26 @@ export function PyramidSeasonScreen() {
   // do estádio (o placar e a tabela seguem o MINUTO do jogo — pausar o jogo pausa tudo, nada vaza antes da hora). Máx 3 trocas, mesma
   // posição, vale SÓ neste jogo (fica na ficha do jogo; o XI fixo da aba Elenco não muda). Regras de verdade: `SET_AO_VIVO` no store.
   useEffect(() => { setSubAberto(false) }, [round, tab])
-  const aoVivoMeu:CareerLiveDecision[] = copaPlaying?(cupLive?.commands??SEM_AO_VIVO):(state.careerHalftime?.[youId]?.[curMatchIdx]?.aoVivo??SEM_AO_VIVO)
-  const minutoJogo=copaPlaying?cupMatchMinute(copaPos,cupLegIndex):(scoreClock.round===state.round?scoreClock.minute:-1)
+  useEffect(()=>{if(onlinePartida.active&&onlinePartida.slot&&onlinePartida.commands.length&&mgrMe){const initial=live.matches[myDiv!]?.find(m=>m.you)?.m2;if(initial)dispatch({type:'SET_AO_VIVO',mgrId:mgrMe.id,round:round-1,initial,aoVivo:onlinePartida.commands})}},[onlinePartida.game?.revisao]) // eslint-disable-line react-hooks/exhaustive-deps
+  const aoVivoMeu:CareerLiveDecision[] = onlinePartida.active&&!copaPlaying?onlinePartida.commands:copaPlaying?(cupLive?.commands??SEM_AO_VIVO):(state.careerHalftime?.[youId]?.[curMatchIdx]?.aoVivo??SEM_AO_VIVO)
+  const minutoJogo=onlinePartida.active&&!copaPlaying?onlinePartida.minute:copaPlaying?cupMatchMinute(copaPos,cupLegIndex):(scoreClock.round===state.round?scoreClock.minute:-1)
   const liveInput=copaPlaying?cupLive?.initial:myMatch?.m2
-  const liveEligible=copaPlaying?!!cupLive&&!cupLive.finished&&!!cupInput:!!myMatch?.m2&&!!myMatch.you&&privateLeagueClock&&!!stadiumMatch&&!done
+  const liveEligible=copaPlaying?!!cupLive&&!cupLive.finished&&!!cupInput:!!myMatch?.m2&&!!myMatch.you&&(privateLeagueClock&&!!stadiumMatch||onlinePartida.active&&!!onlinePartida.game)&&!done
   const retomarDecisoesAte=Math.max(0,...aoVivoMeu.map(x=>x.t))*93/90
-  const retomandoDecisoes=liveEligible&&minutoJogo>=0&&minutoJogo+.05<retomarDecisoesAte
-  const liveCanOpen=!retomandoDecisoes&&liveEligible&&!!liveInput&&!state.co2&&state.onlineMode!=='online'&&minutoJogo>0&&minutoJogo<89&&!(halftimeOpen&&halfMode)&&!(penaltyOpen&&penMode)
+  const retomandoDecisoes=!onlinePartida.active&&liveEligible&&minutoJogo>=0&&minutoJogo+.05<retomarDecisoesAte
+  const liveCanOpen=!retomandoDecisoes&&liveEligible&&!!liveInput&&(!state.co2||onlinePartida.canChange&&!!onlinePartida.slot)&&state.onlineMode!=='online'&&minutoJogo>0&&minutoJogo<89&&!(halftimeOpen&&halfMode)&&!(penaltyOpen&&penMode)
   const dadosSub=useMemo(()=>{
     if(!liveInput||!mgrMe)return null
-    const base=liveInitialIds(liveInput,mgrMe),byId=new Map(mgrMe.squad.map(c=>[c.id,c])),ev=state.eventoTemporada
+    const manager=onlinePartida.active&&onlinePartida.slot?{...mgrMe,squad:onlinePartida.slot.squad,formation:onlinePartida.slot.formation}:mgrMe
+    const base=onlinePartida.active&&onlinePartida.slot?{ids:onlinePartida.slot.xi,formation:onlinePartida.slot.formation,own:onlinePartida.slot.lado,halftime:undefined}:liveInitialIds(liveInput,manager),byId=new Map(manager.squad.map(c=>[c.id,c])),ev=state.eventoTemporada
     const blocked=new Set(ev?.status==='banco'&&ev.season===state.seasonNo&&(ev.volta??0)>state.round&&ev.mgrId===youId?[ev.cardId]:[])
-    const formations=liveFormations(state,mgrMe,mgrMe.formation,formacoes15On()),throughTime=minutoJogo*(90/93)
-    const plan=validateLivePlan({squad:mgrMe.squad,initial:base.ids,formation:base.formation,halftime:base.halftime,throughTime,commands:aoVivoMeu,allowed:formations.map(f=>f.motor),blocked})
+    const formations=liveFormations(state,manager,manager.formation,formacoes15On()).filter(f=>!onlinePartida.active||onlinePartida.slot?.allowed.includes(f.motor)),throughTime=onlinePartida.active?Infinity:minutoJogo*(90/93)
+    const plan=validateLivePlan({squad:manager.squad,initial:base.ids,formation:base.formation,halftime:base.halftime,throughTime,commands:aoVivoMeu,allowed:formations.map(f=>f.motor),blocked})
     if(!plan)return null
     const ids=new Set(plan.ids),feitas=plan.changes.map(x=>({sai:byId.get(x.sai)!,entra:byId.get(x.entra)!}))
-    return {emCampo:plan.ids.map(id=>byId.get(id)!),reservas:mgrMe.squad.filter(c=>!ids.has(c.id)&&!plan.left.has(c.id)&&!c.fake&&!blocked.has(c.id)),feitas,formation:plan.formation,formations,
+    return {emCampo:plan.ids.map(id=>byId.get(id)!),reservas:manager.squad.filter(c=>!ids.has(c.id)&&!plan.left.has(c.id)&&!c.fake&&!blocked.has(c.id)),feitas,formation:plan.formation,formations,
       tatica:([...aoVivoMeu].reverse().find(x=>x.tactic)?.tactic??(copaPlaying?(liveInput.tatica[base.own]<0?'retranca':liveInput.tatica[base.own]>0?'ataque':'equilibrio'):tacAt(careerTactics,youId,curMatchIdx)))as Tac}
-  },[liveInput,mgrMe,aoVivoMeu,minutoJogo>=45,state.eventoTemporada,state.careerTecnicos,state.careerFormacaoExtra,state.seasonNo,state.round,youId,careerTactics,curMatchIdx,copaPlaying])
+  },[liveInput,mgrMe,aoVivoMeu,minutoJogo>=45,state.eventoTemporada,state.careerTecnicos,state.careerFormacaoExtra,state.seasonNo,state.round,youId,careerTactics,curMatchIdx,copaPlaying,onlinePartida.slot,onlinePartida.active])
   const lesaoCarta=lesaoAguarda?mgrMe?.squad.find(c=>c.id===lesaoJogo?.cardId):undefined
   const lesaoPlayers=useMemo(()=>{
     if(!lesaoAguarda||!liveInput||!mgrMe)return null
@@ -12482,6 +12492,7 @@ export function PyramidSeasonScreen() {
   useEffect(()=>{if(subAberto&&!subPossivel)setSubAberto(false)},[subAberto,subPossivel])
   const gravaAoVivo=(extra:{sai?:string;entra?:string;tactic?:Tac;formation?:FormationKey})=>{
     if(!liveInput||!subPossivel)return
+    if(onlinePartida.active){onlinePartida.send([extra]);return}
     const t=instanteDaTroca(copaPlaying?copaRound*10+cupLegIndex:round,minutoJogo)
     const aoVivo=[...aoVivoMeu,{t,...extra}]
     if(copaPlaying)dispatch({type:'SET_CUP_LIVE',mgrId:youId,partidaId:cupLiveKey,aoVivo})
@@ -12489,14 +12500,16 @@ export function PyramidSeasonScreen() {
   }
   const gravaPlanoAoVivo=(changes:{sai:string;entra:string}[],formation:FormationKey)=>{
     if(!liveInput||!subPossivel)return
+    if(onlinePartida.active){onlinePartida.send(changes.map(x=>({...x,formation})));return}
     const t=instanteDaTroca(copaPlaying?copaRound*10+cupLegIndex:round,minutoJogo)
     const aoVivo=[...aoVivoMeu,...changes.map(x=>({t,...x,formation}))]
     if(copaPlaying)dispatch({type:'SET_CUP_LIVE',mgrId:youId,partidaId:cupLiveKey,aoVivo})
     else dispatch({type:'SET_AO_VIVO',mgrId:youId,round:curMatchIdx,initial:liveInput,aoVivo})
   }
   const painelSub=(modo:'janela'|'embaixo')=>dadosSub&&<>
-    {visualV2&&modo==='embaixo'&&stadiumMatch&&myMatch&&<PlacarSubstituicoes matchId={stadiumMatch.id} home={copaPlaying?myCopaTie?.a.name??'':myMatch.h} away={copaPlaying?myCopaTie?.b.name??'':myMatch.a} minute={minutoJogo}/>}
-    <PainelSubstituir compact={visualV2} modo={modo} minuto={minutoJogo} emCampo={dadosSub.emCampo} reservas={dadosSub.reservas} feitas={dadosSub.feitas} tatica={dadosSub.tatica}
+    {onlinePartida.notice&&<p role="status">{onlinePartida.notice}</p>}
+    {visualV2&&modo==='embaixo'&&stadiumMatch&&myMatch&&<PlacarSubstituicoes pausado={!onlinePartida.active||onlinePartida.paused} matchId={stadiumMatch.id} home={copaPlaying?myCopaTie?.a.name??'':myMatch.h} away={copaPlaying?myCopaTie?.b.name??'':myMatch.a} minute={minutoJogo}/>}
+    <PainelSubstituir pausa={!onlinePartida.active||onlinePartida.paused} compact={visualV2} modo={modo} minuto={minutoJogo} emCampo={dadosSub.emCampo} reservas={dadosSub.reservas} feitas={dadosSub.feitas} tatica={dadosSub.tatica}
       formation={dadosSub.formation} formations={dadosSub.formations} onPlan={gravaPlanoAoVivo} onFormation={formation=>gravaAoVivo({formation})}
       gas={condGas?(id=>(condGas as Record<string,number>)[id]):undefined}
       onTroca={(sai,entra,formation)=>gravaAoVivo({sai,entra,formation})} onTatica={t=>{if(t!==dadosSub.tatica)gravaAoVivo({tactic:t})}} onVoltar={()=>setSubAberto(false)}/>
@@ -12516,13 +12529,14 @@ export function PyramidSeasonScreen() {
     if (state.oficial && !myMatch) { setRevealed(round); return }
     setRevealed(round - 1) // segura a rodada atual enquanto a partida anima
     if ((halfMode && !halftimeDone) || (penMode && !penaltyDone)) return // pausado esperando o técnico — não arma
+    if(onlinePartida.active){if(onlinePartida.ready)setRevealed(round);return}
     if(privateLeagueClock&&stadiumMatch){
       if(privateLeagueFinished)setRevealed(round)
       return
     }
     const t = setTimeout(() => setRevealed(round), Math.round((baseRoundMs / speedFactor) * 0.86))
     return () => clearTimeout(t)
-  }, [round, done, speedFactor, baseRoundMs, halfMode, halftimeDone, penMode, penaltyDone,privateLeagueClock,stadiumMatch?.id,privateLeagueFinished, state.oficial, !!myMatch])
+  }, [round, done, speedFactor, baseRoundMs, halfMode, halftimeDone, penMode, penaltyDone,privateLeagueClock,stadiumMatch?.id,privateLeagueFinished, state.oficial, !!myMatch,onlinePartida.active,onlinePartida.ready])
   // 🐊 mascote do usuário pra comemorar o gol de pênalti (SÓ quem tem mascote)
   const penMascArt = meuSocFesta?.ativo && meuSocFesta.mascoteKey && MASCOTES[meuSocFesta.mascoteKey] ? MASCOTES[meuSocFesta.mascoteKey] : null
 
@@ -12551,7 +12565,7 @@ export function PyramidSeasonScreen() {
   }
   // ⏩ velocidade da simulação (marcha do jogador): divide o tempo da rodada. 1 = normal.
   // O Normal do manual é ROUND_MS; o auto ganhou +1s em 13/09 (ver baseRoundMs, lá em cima).
-  const roundMs = Math.round(baseRoundMs / speedFactor)
+  const roundMs = onlinePartida.active && onlinePartida.game ? Math.round((onlinePartida.game.duration_ms ?? 90000) / onlinePartida.game.velocidade / .82) : Math.round(baseRoundMs / speedFactor)
   // 🤝 no AUTO (offline, sem manual), a rodada 0 NÃO pode andar sozinha antes do
   // técnico escolher a meta do patrocínio — senão os 9s do ROUND_MS viravam um
   // cronômetro escondido pra escolher (Diego pediu SEM tempo nenhum nessa área).
@@ -12602,7 +12616,7 @@ export function PyramidSeasonScreen() {
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [timedRoundReady, setRoundReady] = useState(false)
-  const roundReady=calOn&&state.oficial&&!myMatch?true:privateLeagueClock&&stadiumMatch?privateLeagueFinished:timedRoundReady
+  const roundReady=onlinePartida.active ? onlinePartida.ready : calOn&&state.oficial&&!myMatch?true:privateLeagueClock&&stadiumMatch?privateLeagueFinished:timedRoundReady
   // Record only completed and revealed matches. This log has no economic or simulation effects.
   useEffect(()=>{
     if(!mgrMe||!myDiv||!state.careerOnline||state.onlineMode==='online'||state.co2||state.sport==='basquete')return
@@ -14689,7 +14703,7 @@ export function PyramidSeasonScreen() {
           </div>
         ))}
         {tab==='jogos'&&retomandoDecisoes&&<p data-live-replay-status role="status" style={{fontSize:13,padding:'8px 10px',borderRadius:10,background:'#F4ECD6',color:INK}}>{tr(`Retomando a partida salva. Você poderá mudar o time de novo aos ${Math.ceil(retomarDecisoesAte)}′.`,`Resuming your saved match. You can change the team again at ${Math.ceil(retomarDecisoesAte)}′.`)}</p>}
-        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? (subAberto && subPossivel ? painelSub('embaixo') : <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{subPossivel ? <div className={visualV2?'cv2-match-actions':undefined}><BotaoSubstituir usadas={dadosSub?.feitas.length ?? 0} onClick={() => setSubAberto(true)} />{visualV2&&<button type="button" onClick={()=>setSubAberto(true)}>⚔️ {tr('Táticas','Tactics')}</button>}{!visualV2&&taticaBotoes}</div> : taticaBotoes}</div></>) : null}><PlacarQueEncolhe pausado={pausaCentral || subAberto} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
+        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={(jogoTabela||onlinePartida.active) && tab === 'jogos' ? (subAberto && subPossivel ? painelSub('embaixo') : <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{subPossivel ? <div className={visualV2?'cv2-match-actions':undefined}><BotaoSubstituir pausa={!onlinePartida.active||onlinePartida.paused} usadas={dadosSub?.feitas.length ?? 0} onClick={() => setSubAberto(true)} />{visualV2&&<button type="button" onClick={()=>setSubAberto(true)}>⚔️ {tr('Táticas','Tactics')}</button>}{!visualV2&&taticaBotoes}</div> : taticaBotoes}</div></>) : null}><PlacarQueEncolhe displayMinute={onlinePartida.active ? Math.floor(onlinePartida.minute) : undefined} pausado={onlinePartida.active ? onlinePartida.paused : pausaCentral || subAberto} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
@@ -15011,7 +15025,7 @@ export function PyramidSeasonScreen() {
         {/* 🏆 08/11 (Diego: *"a final deveria sempre aparecer no placar cinema ou no campo 2D… quando o usuário não tá participando"*):
             FINAL e SUPERCOPA de quem não está nelas — o mesmo placar grande/2D, neutro (sem "você"), no mesmo relógio da fase.
             Sem estádio/mapa e sem segurar o avanço (isso é só do SEU jogo). */}
-        {copaPlaying&&myCopaTie&&subPossivel&&tab==='jogos'&&<div className="cv2-match-actions">{subAberto?painelSub('embaixo'):<><BotaoSubstituir usadas={dadosSub?.feitas.length??0} onClick={()=>setSubAberto(true)}/><button type="button" onClick={()=>setSubAberto(true)}>⚔️ {tr('Táticas','Tactics')}</button></>}</div>}
+        {copaPlaying&&myCopaTie&&subPossivel&&tab==='jogos'&&<div className="cv2-match-actions">{subAberto?painelSub('embaixo'):<><BotaoSubstituir pausa={!onlinePartida.active||onlinePartida.paused} usadas={dadosSub?.feitas.length??0} onClick={()=>setSubAberto(true)}/><button type="button" onClick={()=>setSubAberto(true)}>⚔️ {tr('Táticas','Tactics')}</button></>}</div>}
         {copaPlaying && !myCopaTie && copaFase && (copaFase.name === 'Final' || copaFase.name === 'Supercopa') && copaFase.ties.length === 1 && <MyCopaMatch neutro pausado={pausaCentral||pausaFesta||subAberto} final={privateCareer} tie={copaFase.ties[0]} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
           footTint={copaFase.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:

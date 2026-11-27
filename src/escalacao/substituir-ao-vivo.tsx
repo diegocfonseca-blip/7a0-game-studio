@@ -15,8 +15,9 @@ const INK = '#0C0C0C'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
 const COR_POS: Record<string, string> = { GOL: '#E8A400', LAT: '#2563EB', ZAG: '#1B7A3D', MEI: '#7C3AED', ATA: '#C2452F' }
 
-export function PainelSubstituir({ modo, minuto, emCampo, reservas, feitas, tatica, gas, onTroca, onTatica, onVoltar, compact=false,formation,formations,onFormation,onPlan }: {
+export function PainelSubstituir({ modo, minuto, emCampo, reservas, feitas, tatica, gas, onTroca, onTatica, onVoltar, compact=false,formation,formations,onFormation,onPlan,pausa=true }: {
   compact?: boolean
+  pausa?: boolean
   formation?:FormationKey
   formations?:{motor:FormationKey;label:string;available:boolean}[]
   onFormation?:(formation:FormationKey)=>void
@@ -112,24 +113,24 @@ export function PainelSubstituir({ modo, minuto, emCampo, reservas, feitas, tati
   )
   return (
     <div role="dialog" aria-label={tr('Substituir', 'Substitutions')} style={{ position: 'fixed', inset: 0, zIndex: 80, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(0,0,0,.35)' }}>
-      <div style={{ textAlign: 'center', color: '#fff', ...OSW, fontWeight: 900, fontSize: 24, textShadow: '2px 2px 0 #000', margin: 'auto 0 12px' }}>⏸ {tr('JOGO PAUSADO', 'MATCH PAUSED')}</div>
+      <div style={{ textAlign: 'center', color: '#fff', ...OSW, fontWeight: 900, fontSize: 24, textShadow: '2px 2px 0 #000', margin: 'auto 0 12px' }}>{pausa ? `⏸ ${tr('JOGO PAUSADO', 'MATCH PAUSED')}` : tr('AJUSTES DA PARTIDA', 'MATCH ADJUSTMENTS')}</div>
       <div style={{ background: '#F4ECD6', borderTop: `4px solid ${INK}`, borderRadius: '22px 22px 0 0', padding: '12px 12px 16px', maxHeight: '72vh', overflowY: 'auto', boxShadow: '0 -6px 0 #000', width: '100%', maxWidth: 560, margin: '0 auto', boxSizing: 'border-box' }}>{corpo}</div>
     </div>
   )
 }
 
 /** Lê somente o placar já apresentado: abrir as trocas não revela o resultado final. */
-export function PlacarSubstituicoes({matchId,home,away,minute}:{matchId:string;home:string;away:string;minute:number}){
+export function PlacarSubstituicoes({matchId,home,away,minute,pausado=true}:{matchId:string;home:string;away:string;minute:number;pausado?:boolean}){
   const match=usePartidaNoMapa(matchId)
-  return <div className="cv2-sub-score" aria-label={tr('Partida pausada para ajustes','Match paused for adjustments')}><span>{home}</span><b>{match?.homeScore??'—'} × {match?.awayScore??'—'} · {minute}′</b><span>{away}</span></div>
+  return <div className="cv2-sub-score" aria-label={pausado?tr('Partida pausada para ajustes','Match paused for adjustments'):tr('Placar da partida','Match score')}><span>{home}</span><b>{match?.homeScore??'—'} × {match?.awayScore??'—'} · {minute}′</b><span>{away}</span></div>
 }
 
 /** o botão que pausa e abre o painel (embaixo do campinho 2D) */
-export function BotaoSubstituir({ onClick, usadas }: { onClick: () => void; usadas: number }) {
+export function BotaoSubstituir({ onClick, usadas, pausa=true }: { onClick: () => void; usadas: number; pausa?:boolean }) {
   return (
     <button type="button" onClick={onClick}
       style={{ ...OSW, width: '100%', marginTop: 8, background: '#fff', color: INK, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 0', fontWeight: 900, fontSize: 13, boxShadow: '2px 2px 0 #000', cursor: 'pointer', textTransform: 'uppercase' }}>
-      ⏸ 🔁 {tr('Substituir', 'Substitutions')} <span style={{ color: '#666' }}>· {usadas}/{MAX_TROCAS_AO_VIVO}</span>
+      {pausa?'⏸ ':''}🔁 {tr('Substituir', 'Substitutions')} <span style={{ color: '#666' }}>· {usadas}/{MAX_TROCAS_AO_VIVO}</span>
     </button>
   )
 }

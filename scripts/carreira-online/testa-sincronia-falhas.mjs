@@ -42,6 +42,11 @@ try {
   const pa = t2.faz('a', async () => { parallel++; return d.promise })
   const pb = t2.faz('a', async () => { parallel++; return true })
   d.resolve(true); assert.equal(await pa, true); assert.equal(await pb, true); assert.equal(parallel, 1)
+  const received=[],same=new Co2Fila(async x=>{received.push(x);return true})
+  same.atualiza('a',1);same.atualiza('a',2);await same.confirma();assert.deepEqual(received,[2],'mesma revisão mantém o payload mais recente sem adiar o envio');same.fecha()
+  const maximum=[],busy=new Co2Fila(async x=>{maximum.push(x);return true},()=>{},5000)
+  for(let i=0;i<5;i++){busy.atualiza(String(i),i);mock.timers.tick(2000)}
+  await busy.confirma();assert.deepEqual(maximum,[4],'atividade contínua tem envio em até dez segundos');busy.fecha()
   mock.timers.reset()
   const pc = { state: { seasonNo: 2, round: 9 }, at: 1000 }, phone = { state: { seasonNo: 2, round: 23 }, at: 900 }
   assert.equal(co2CopiaRecente(pc, phone), phone.state, 'PC antigo não ganha de celular adiantado por relógio errado')

@@ -18,7 +18,7 @@ import {retornoDeSalaLocal,acaoDaSalaLocal,acaoRemotaDaSalaPermitida} from './on
 import {investirMuseu} from './museu-clube'
 import {organizarMoveisNaCasa} from './presidencia-carreira'
 import { iniciarCriteriosDaTemporada } from './criterios-carreira'
-import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, useMemo, lazy, Suspense } from 'react'
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, lazy, Suspense } from 'react'
 import { VEL2D_SALA_VALORES, VEL2D_SOLO_VALORES } from './vel2d-regra'
 import { travaCarreiraGratis, marcaGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
 import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings, simulaGolsKings } from './kings-liga'
@@ -9311,6 +9311,9 @@ export function formacaoLiberadaNoEstado(s: Pick<EscState, 'careerTecnicos' | 'c
   return formacaoNoCardapio({ quinze, temTecnico: !!tec, doTecnico: tec ? fichaDoTecnico(tec).formacoes : [], daCasa: tec ? (s.careerFormacaoExtra?.[m.teamName] ?? null) : null,
     atualRotulo: quinze ? atual.rotulo : m.formation, atualMonta: monta(m.formation), rotulo: quinze ? alvo.rotulo : f, monta: monta(f) })
 }
+// Revisão só em memória: receber gavetas/resultados dos outros não manda novamente o save privado inteiro.
+const co2Revisoes = new WeakMap<EscState, number>()
+export const co2SaveVersion = (s: EscState): number => co2Revisoes.get(s) ?? 0
 export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   if (s !== state && s.oficial && ['START_CAREER_SOLO', 'RESUME_CAREER_SOLO', 'RESTORE_CAREER', 'LOAD_STATE', 'FINISH_CEREMONY', 'SEED_CPU_SQUADS', 'MONTE_PICK', 'ADVANCE_REVEAL', 'CONFIRM_MESMO_TIME', 'RESERVE_AUCTION_ONLINE'].includes(action.type)) garanteEconomiaOficial(s)
@@ -9319,6 +9322,10 @@ export function reducer(state: EscState, action: Action): EscState {
   if (s !== state && s.copaMode === 'champions') abreChampionsDiretoSePrecisa(s)
   if (s !== state && s.copaMode === 'relampago') abreRelampagoSePrecisa(s)
   if (s !== state && s.copaMode === 'supermundial') abreSuperMundialSePrecisa(s)
+  if (s !== state && s.co2) {
+    const anterior = Math.max(co2SaveVersion(state), co2SaveVersion(s))
+    co2Revisoes.set(s, anterior + (action.type === 'CO2_GAVETAS' || action.type === 'GUARDA_M2' ? 0 : 1))
+  }
   return s
 }
 function reducerBase(state: EscState, action: Action): EscState {
@@ -16590,8 +16597,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Cada dono de clube guarda automaticamente seu estado privado, também após gestão na mesma rodada.
   // Comprimir só ao enviar (folga de 1,5 s); falha mantém a pendência e tenta de novo.
   const co2Privado = state.co2 && state.co2.sala === co2Sn.sala?.id && co2Sn.mundo?.ordem[state.managers[state.youIdx]?.id] === co2Sn.uid && !state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby' ? state : null
-  const co2SaveSeq = useRef(0)
-  const co2SaveKey = useMemo(() => String(++co2SaveSeq.current), [co2Privado])
+  const co2SaveKey = String(co2SaveVersion(state))
   const co2Save = useCo2Envio(co2Contexto(), co2SaveKey, co2Privado, async st => st.co2?.sala === co2Agora().sala?.id && co2SalvaPrivado({ z: pack(sanitize(st)), at: Date.now(), t: st.seasonNo, r: st.round }), 1500)
   useEffect(() => { co2AvisoSave(co2Save.falhou) }, [co2Save.falhou])
 

@@ -8,11 +8,12 @@ import { unpack } from './netpack'
 import type { EscState } from './types'
 import {
   useCo2, co2Abrir, co2Fechar, co2Criar, co2Entrar, co2MinhasSalas, co2Continuar, co2Mundo, co2Envia, co2PodeCriar,
-  co2LeGavetasConferidas, co2Contexto, co2Gaveta, co2Pronto, co2Comecar, co2Apito, co2Ritmo, co2EncerrarDia, co2LePrivado, co2Agora,
+  co2LeGavetasConferidas, co2Contexto, co2ProtocoloJogo, co2JogoAtivo, co2Gaveta, co2Pronto, co2Comecar, co2Apito, co2Ritmo, co2EncerrarDia, co2LePrivado, co2Agora,
   type Co2Sala, type Co2Mundo, TEMPOS_OPCOES, tempoPausa, tempoRodada,
   co2Pedidos, co2PedidoDecide, co2PedidoEntra, co2MeusPedidos, co2LeVirada, type Co2Pedido,
   co2Sair, co2Saidas, co2SaidaAplicada, type Co2Saida,
 } from './co2'
+import { liveFormations } from './career-live-plan'
 import { useCo2Envio } from './co2-envio'
 import { Co2Tentativas, co2CopiaRecente } from './co2-sincronia'
 import { minhaGaveta, co2Fechamento, vagasDeNovos, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
@@ -533,7 +534,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   const minhaCopa = state.co2?.minhaCopa
   const minhaIntl = state.co2?.minhaIntl
   const meuCaixa = me ? Math.round(state.careerCoins?.[me.id] ?? 0) : 0
-  const gaveta = useMemo<GavetaPublica | null>(() => (me ? { ...minhaGaveta(me, entradasLocais), ...(minhaCopa ? { copaMundo: minhaCopa } : {}), ...(minhaIntl ? { intl: minhaIntl } : {}), caixa: meuCaixa } : null), [me, entradasLocais, minhaCopa, minhaIntl, meuCaixa])
+  const gaveta = useMemo<GavetaPublica | null>(() => (me ? { ...minhaGaveta(me, entradasLocais), repertorio: liveFormations(state,me,me.formation,true).filter(f=>f.available).map(f=>f.motor), ...(minhaCopa ? { copaMundo: minhaCopa } : {}), ...(minhaIntl ? { intl: minhaIntl } : {}), caixa: meuCaixa } : null), [me, entradasLocais, minhaCopa, minhaIntl, meuCaixa, state.careerTecnicos, state.careerFormacaoExtra])
   const gavetaJson = useMemo(() => (gaveta ? JSON.stringify(gaveta) : ''), [gaveta])
   const contexto = co2Contexto()
   const [erroSync, setErroSync] = useState(false)
@@ -581,7 +582,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
 
   // Rodada local só começa com o envio E a leitura confirmados. Erro libera nova tentativa.
   useEffect(() => {
-    if (!sala || sala.fase !== 'jogando' || round !== sala.rodada) return
+    if (!sala || sn.conexaoPendente || sala.fase !== 'jogando' || round !== sala.rodada) return
     const e = etapa
     void tentativas.faz(`joga:${e}`, async () => {
       if (!await sobeGaveta() || !etapaAtual(e) || !await puxaGavetas(sala.rodada) || !etapaAtual(e)) return false
@@ -602,7 +603,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   const prontos = sala ? sn.clubes.filter(c => c.pronto_rodada === sala.rodada + 1).length : 0
   const restante = sala?.prazo ? Math.max(0, Math.round((new Date(sala.prazo).getTime() - agora) / 1000)) : null
   const comeca = async () => {
-    if (!sala || !comanda || sala.fase !== 'preparo') return false
+    if (!sala || sn.conexaoPendente || !comanda || sala.fase !== 'preparo') return false
     const e = etapa
     const ok = await tentativas.faz(`comeca:${e}`, async () => {
       if (!await sobeGaveta() || !etapaAtual(e)) return false
@@ -652,7 +653,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   const mm = restante != null ? `${Math.floor(restante / 60)}:${String(restante % 60).padStart(2, '0')}` : '–'
   return (
     <div style={{ display: 'grid', gap: 10, marginBottom: 10 }}>
-      {(erroSync || falhaGaveta || sn.savePendente) && <p role="status" style={{ margin: 0, fontWeight: 800, fontSize: 12 }}>{tr('⚠️ A conexão falhou. Suas alterações continuam pendentes; aguarde a conexão ou tente novamente.', '⚠️ Connection failed. Your changes are still pending; wait for the connection or try again.')}</p>}
+      {(erroSync || falhaGaveta || sn.savePendente || sn.conexaoPendente) && <p role="status" style={{ margin: 0, fontWeight: 800, fontSize: 12 }}>{tr('⚠️ A conexão falhou. Suas alterações continuam pendentes; aguarde a conexão ou tente novamente.', '⚠️ Connection failed. Your changes are still pending; wait for the connection or try again.')}</p>}
       <RecadoRenovados />
       <Co2PedidosDono />
       {sala.fase === 'preparo' && dinamica && sala.rodada === 0 && (
@@ -694,11 +695,11 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
             <button onClick={() => void co2Ritmo(sala.auto, sala.velocidade, !sala.pausado)} style={{ ...botao('#fff'), fontSize: 14, flex: 1 }}>{sala.pausado ? `▶️ ${tr('Seguir', 'Resume')}` : `⏸️ ${tr('Pausar', 'Pause')}`}</button>
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            {!dinamica && <button onClick={() => void co2Ritmo(!sala.auto, sala.velocidade, sala.pausado)} style={{ ...botao('#fff'), fontSize: 12, padding: '8px' }}>{sala.auto ? tr('Automático ligado', 'Auto on') : tr('Automático desligado', 'Auto off')}</button>}
+            {!dinamica && <button onClick={() => void co2Ritmo(!sala.auto, sala.velocidade, sala.pausado)} style={{ ...botao('#fff'), fontSize: 12, padding: '8px' }}>{sala.auto ? tr('Início automático: ligado', 'Automatic start: on') : tr('Início automático: desligado', 'Automatic start: off')}</button>}
             <button onClick={() => void co2EncerrarDia()} disabled={sala.fase !== 'preparo'} style={{ ...botao('#fff'), fontSize: 12, padding: '8px' }}>🌙 {tr('Encerrar o dia', 'End the day')}</button>
           </div>
           <Co2TemposDono />
-          <p style={{ fontWeight: 800, fontSize: 11, margin: '6px 0 0', color: 'rgba(0,0,0,.55)' }}>{dinamica ? tr('⚡ Dinâmica · as rodadas seguem direto. Pausar segura a carreira pra todo mundo.', '⚡ Dynamic · rounds run back to back. Pause holds the career for everyone.') : sala.auto ? tr('Automático ligado · quem não apertar joga com a escalação que já está.', 'Auto on · whoever doesn\'t press plays with the current lineup.') : tr('Automático desligado · a rodada só começa quando você apertar.', 'Auto off · the round only starts when you press.')}</p>
+          <p style={{ fontWeight: 800, fontSize: 11, margin: '6px 0 0', color: 'rgba(0,0,0,.55)' }}>{dinamica ? tr('⚡ Dinâmica · as rodadas seguem direto. Pausar segura a carreira pra todo mundo.', '⚡ Dynamic · rounds run back to back. Pause holds the career for everyone.') : sala.auto ? tr('Início automático das rodadas ligado · quem não apertar PRONTO joga com a escalação que já está.', 'Automatic round start on · whoever does not press READY plays with the current lineup.') : tr('Início automático das rodadas desligado · use Começar agora para iniciar. O salvamento continua automático.', 'Automatic round start off · use Start now to begin. Saving remains automatic.')}</p>
         </div>
       )}
     </div>
@@ -721,7 +722,13 @@ export function useCo2FimDaVirada() {
     const poeM2 = m2Liberado && !!mm && mm.m2 == null
     const poeFim = !!mm && !mm.fim // 🏆 26/11: a regra da copa do fim de temporada sai do DONO, igual pra todo aparelho
     const carimbo = mm && (poeM2 || poeFim) ? { ...mm, ...(poeM2 ? { m2: state.seasonNo ?? 1 } : {}), ...(poeFim ? { fim: { copaBR: copaBrasilLiberada() } } : {}) } : null
-    void co2Mundo('preparo', state.seasonNo ?? 1, 0, carimbo, mm?.modo === 'dinamica' ? tempoPausa(mm) : Math.max(90, tempoRodada(mm))) // ⚡ Dinâmica: o tempo de pausa que o dono escolheu (aviso; o dono segue)
+    const contexto = co2Contexto()
+    void co2ProtocoloJogo().then(proto => {
+      if (contexto !== co2Contexto()) return
+      const mundo = carimbo ?? mm
+      const novo = proto && mundo && (mundo.m2 != null || poeM2) && mundo.aoVivoDesde == null ? { ...mundo, aoVivoDesde: state.seasonNo ?? 1 } : carimbo
+      return co2Mundo('preparo', state.seasonNo ?? 1, 0, novo, mm?.modo === 'dinamica' ? tempoPausa(mm) : Math.max(90, tempoRodada(mm)))
+    }) // ⚡ Dinâmica: o tempo de pausa que o dono escolheu (aviso; o dono segue)
   }, [state.co2?.comanda, state.screen, sn.sala?.fase, state.seasonNo, m2Liberado, state.round])
 }
 
@@ -952,7 +959,9 @@ function Co2TemposDono() {
   return (
     <div style={{ marginTop: 8 }}>
       <button onClick={() => setAberto(a => !a)} style={{ ...botao('#fff'), fontSize: 12, padding: '8px' }}>⚙️ {tr('Tempos', 'Timers')} · {atual.pausa}s / {atual.rodada}s</button>
-      {aberto && <div style={{ marginTop: 8 }}><Co2Tempos valor={atual} onMuda={v => void muda(v)} />{msg && <p style={{ fontWeight: 800, fontSize: 11, margin: '4px 0 0' }}>{msg}</p>}</div>}
+      {aberto && <div style={{ marginTop: 8 }}><Co2Tempos valor={atual} onMuda={v => void muda(v)} />
+        {co2JogoAtivo()&&<div><p style={{...OSWALD,fontWeight:900,fontSize:12,margin:'8px 0 5px'}}>{tr('Velocidade da partida','Match speed')}</p><div style={{display:'flex',gap:6}}>{[1,2,3,4].map(v=><button key={v} data-co2-speed={v} onClick={()=>void co2Ritmo(sala.auto,v,sala.pausado).then(r=>setMsg(r==='ok'?tr('✅ Velocidade alterada para todos.','✅ Speed changed for everyone.'):tr('Não deu agora. Tenta de novo.','Could not change it. Try again.')))} style={{...botao(sala.velocidade===v?GOLD:'#fff'),fontSize:12,padding:'8px 2px'}}>{v}×</button>)}</div></div>}
+        {msg && <p style={{ fontWeight: 800, fontSize: 11, margin: '4px 0 0' }}>{msg}</p>}</div>}
     </div>
   )
 }

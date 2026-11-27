@@ -5,9 +5,9 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
-## Carreira online: sincronização — 27/11/2026
+## Carreira online: sincronização e trocas — 27/11/2026
 
-Diego autorizou corrigir o envio/PRONTO, retomada e salvamento automático da carreira online. Dinâmica/Livre permanece. Fila Co2 serializa mudanças e repete falhas; consulta falha não equivale a lista vazia; respostas da conexão anterior não entram na carreira nova. Save privado acompanha gestão na mesma rodada; retomada consulta nuvem e compara progresso/data, validando clube/conta. **Não afirmar que trocas/lesões ao vivo ou o escritor único em dois aparelhos já foram portados**: continuam pendentes do protocolo compartilhado. Sem SQL nem publicação automática. Escopo, provas e pendências: `docs/auditorias/carreira-online-sincronia-20261127.md`.
+Diego autorizou corrigir envio/PRONTO, retomada e salvamento automático do Co2, preservando Dinâmica/Livre. Fila confirma e repete falhas; leituras antigas não misturam carreiras. Save privado acompanha gestão na mesma rodada e evita reenviar tudo por atualização de amigos; retomada consulta nuvem e valida clube/conta. Protocolo da liga registra fotografia imutável, até três trocas por lado humano, tática/formação, pedidos idempotentes e relógio compartilhado; duração do dono preservada e velocidade dentro de Tempos. Ativa na próxima largada de temporada com `mundo.aoVivoDesde`, sem reescrever a temporada em andamento. Banco de suporte aditivo instalado; código em revisão, sem publicação implícita. **Lesões durante jogo/copa, escritor único simultâneo e autenticação do broadcast de leilão continuam pendentes**. Não remover as guardas ou afirmar garantia completa igual à Liga Draft para dois aparelhos. Emergência: `CO2_TROCAS_HABILITADAS=false` desliga novas decisões, mantendo as aceitas. Escopo/provas/migrações em `docs/auditorias/carreira-online-sincronia-20261127.md`.
 
 ## Pós-jogo da liga na Central — 26/11/2026
 
