@@ -12,7 +12,7 @@ import './football-cup-view.css'
 
 export type CupGame={h:number;a:number;ev:{name:string;min:number;home:boolean;assist?:string}[];step:number;pen?:[number,number]|null;leg?:string}
 export type CupStage={id:string;label:string;known:boolean;games:CupGame[]}
-export type CupTable={title:string;rows:{t:number;pts:number;w:number;sg:number;gp?:number;group?:string}[];qualify:number;thirds?:boolean}
+export type CupTable={title:string;rows:{t:number;pts:number;w:number;sg:number;gp?:number;group?:string}[];qualify:number;thirds?:boolean;zones?:{end:number;kind:'qualified'|'playoff'|'out';label:string}[]}
 export type CupStat={name:string;team:number;total:number}
 const noop=()=>{}
 
@@ -46,7 +46,12 @@ export function FootballCupView({title,phase,detail,entrants,uids,crest,stages,c
   const played=g.step<step||(g.step===step&&finished),visible=g.step<step?g.ev:g.step===step?g.ev.filter(e=>e.min<=minute):[]
   return <CompetitionMatch key={`${g.step}:${g.h}:${g.a}`} home={entrants[g.h].pais} away={entrants[g.a].pais} homeOwner={entrants[g.h].club} awayOwner={entrants[g.a].club} showOwners homeCrest={crest(g.h,25)} awayCrest={crest(g.a,25)} mine={g.h===my||g.a===my} homeScore={visible.filter(e=>e.home).length} awayScore={visible.filter(e=>!e.home).length} goals={visible} status={`${g.leg?g.leg+' · ':''}${played?tr('ENCERRADO','FULL TIME'):g.step===step?`${Math.min(93,minute)}′ · ${tr('AO VIVO','LIVE')}`:tr('A JOGAR','UPCOMING')}`} detail={played&&g.pen?<small>{tr('Pênaltis','Penalties')} {g.pen[0]} × {g.pen[1]}</small>:undefined}/>
  }
- const tableNodes=tables.map(table=><section className={`fp-cup-card fp-cup-table ${table.thirds?'fp-cup-thirds':''}`} key={table.title}><h3>{table.title}</h3><table><thead><tr><th>#</th><th>{tr('Time','Team')}</th><th>P</th><th>V</th><th>SG</th></tr></thead><tbody>{table.rows.map((row,i)=><tr key={row.t} className={`${row.t===my?'mine':''} ${i<table.qualify?'qualified':''}`}><td>{i+1}</td><td>{crest(row.t,23)}<span>{entrants[row.t].pais}<small>{row.group??entrants[row.t].club}</small></span></td><td>{row.pts}</td><td>{row.w}</td><td>{row.sg>0?'+':''}{row.sg}</td></tr>)}</tbody></table></section>)
+ const tableNodes=tables.map(table=><section className={`fp-cup-card fp-cup-table ${table.thirds?'fp-cup-thirds':''}`} key={table.title}><h3>{table.title}</h3>
+  {table.zones&&<ul className="fp-cup-zones" aria-label={tr('Faixas de classificação','Qualification zones')}>{table.zones.map((zone,i)=><li key={zone.kind} className={zone.kind}><b>{i?table.zones![i-1].end+1:1}–{zone.end}</b> {zone.label}</li>)}</ul>}
+  <table><thead><tr><th>#</th><th>{tr('Time','Team')}</th><th>P</th><th>V</th><th>SG</th></tr></thead><tbody>{table.rows.map((row,i)=>{
+   const zone=table.zones?.find(z=>i<z.end),cut=table.zones?.some(z=>i===z.end)
+   return <tr key={row.t} data-zone={zone?.kind} className={`${row.t===my?'mine':''} ${zone?.kind??(i<table.qualify?'qualified':'')} ${cut?'zone-cut':''}`}><td>{i+1}</td><td>{crest(row.t,23)}<span>{entrants[row.t].pais}<small>{row.group??entrants[row.t].club}</small></span></td><td>{row.pts}</td><td>{row.w}</td><td>{row.sg>0?'+':''}{row.sg}</td></tr>
+  })}</tbody></table></section>)
  const statNodes=(limit?:number)=>(['goals','assists'] as const).map(kind=><section className="fp-cup-card" key={kind}><h3>{kind==='goals'?tr('⚽ ARTILHARIA','⚽ TOP SCORERS'):tr('🅰️ ASSISTÊNCIAS','🅰️ ASSISTS')}</h3>{stats[kind].length?stats[kind].slice(0,limit).map((row,i)=><div className="fp-cup-stat" key={`${row.team}:${row.name}`}><span>{i+1}.</span>{crest(row.team,23)}<span>{row.name}<small>{entrants[row.team].pais}</small></span><b>{row.total}</b></div>):<p>{tr('Nenhum registro nos jogos encerrados.','No records in finished matches.')}</p>}</section>)
  const hasPlayed=stages.some(s=>s.games.some(g=>(g.h===my||g.a===my)&&g.step<step))
  return <div className="fp-cup-layout" data-cup={tournamentKey}>

@@ -14,7 +14,7 @@ import './owner-online-visual.css'
 import './owner-waiting.css'
 import './owner-contrast.css'
 import { useFootballMatchPilot, useFootballMatchAdAccess, FootballMatchPilotView } from './football-match-pilot'
-import {useFootballMatchNavigation,setFootballChatDock} from './football-match-navigation'
+import {useFootballMatchNavigation,registerFootballChatDock} from './football-match-navigation'
 import {FootballTacticsPanel} from './football-tactics-panel'
 import {useEscTalvez} from './store'
 import {footballPlanRoom,footballPlanQuick} from './football-live-tactics'
@@ -31,13 +31,22 @@ type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>&{roo
 type Layout={accountName?:string;state?:OwnerState;enabled:boolean;pilot:boolean;pilotAvailable:boolean;matchAd:ReactNode;togglePilot:()=>void;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
 const noop=()=>{}
 const Context=createContext<Layout>({enabled:false,pilot:false,pilotAvailable:false,matchAd:null,togglePilot:noop,primary:null,claim:noop,release:noop,target:noop,targets:{}})
-export function OwnerOnlineProvider({enabled,state,accountName,children,matchAd}:{enabled:boolean;state:OwnerState;accountName?:string;children:ReactNode;matchAd?:ReactNode}){
- const pilot=useFootballMatchPilot(enabled?state:{})
- const adAccess=useFootballMatchAdAccess(enabled?state:{})
+/** A cup overlay owns its presentation slots; the league beneath retains its own targets. */
+function useMatchTargets(){
  const [primary,setPrimary]=useState<string|null>(null),[targets,setTargets]=useState<Targets>({})
  const claim=useCallback((id:string)=>setPrimary(old=>old??id),[])
  const release=useCallback((id:string)=>setPrimary(old=>old===id?null:old),[])
  const target=useCallback((slot:Slot,node:HTMLDivElement|null)=>setTargets(old=>old[slot]===node?old:{...old,[slot]:node}),[])
+ return {primary,claim,release,target,targets}
+}
+export function OwnerMatchScope({children}:{children:ReactNode}){
+ const parent=useContext(Context),targets=useMatchTargets()
+ return <Context.Provider value={{...parent,...targets}}>{children}</Context.Provider>
+}
+export function OwnerOnlineProvider({enabled,state,accountName,children,matchAd}:{enabled:boolean;state:OwnerState;accountName?:string;children:ReactNode;matchAd?:ReactNode}){
+ const pilot=useFootballMatchPilot(enabled?state:{})
+ const adAccess=useFootballMatchAdAccess(enabled?state:{})
+ const {primary,claim,release,target,targets}=useMatchTargets()
  const value=useMemo(()=>({accountName,state,enabled,pilot:pilot.enabled,pilotAvailable:pilot.available,matchAd:adAccess?matchAd:null,togglePilot:pilot.toggle,primary,claim,release,target,targets}),[accountName,state,enabled,pilot.enabled,pilot.available,adAccess,matchAd,pilot.toggle,primary,claim,release,target,targets])
  return <Context.Provider value={value}>{children}</Context.Provider>
 }
@@ -48,8 +57,8 @@ export function useOwnerState(){return useContext(Context).state}
 export function useOwnerMatchAd(){return !!useContext(Context).matchAd}
 export function FootballChatTarget(){
  const {pilot,state}=useContext(Context),room=state?.roomId??''
- const visible=pilot
- const ref=useCallback((node:HTMLDivElement|null)=>setFootballChatDock(room,visible?node:null),[room,visible])
+ const cleanup=useRef<(()=>void)|undefined>(undefined)
+ const ref=useCallback((node:HTMLDivElement|null)=>{cleanup.current?.();cleanup.current=pilot&&node?registerFootballChatDock(room,node):undefined},[room,pilot])
  return pilot?<div className="fp-chat-target" ref={ref}/>:null
 }
 export function FootballSidebarTarget({name}:{name:'leaders'|'rival-preview'}){
@@ -169,15 +178,18 @@ export function OwnerPlayback({manual,onToggle,speed,onSpeed,opts,canNext,onNext
 }
 
 /** 🏆 24/11: o campeão "cinema" pra QUALQUER conta (a faixa de baixo é da apresentação nova; isto toca pra todo mundo) */
-export function CampeaoCinemaDe({title,name,crest,mascot,legends=[],tema}:{title:string;name:string;crest?:ReactNode;mascot?:ReactNode;legends?:{nome:string;club:string;year:number}[];tema?:TemaCampeao}){
+export function CampeaoCinemaDe({title,name,crest,mascot,legends=[],tema,onDone}:{title:string;name:string;crest?:ReactNode;mascot?:ReactNode;legends?:{nome:string;club:string;year:number}[];tema?:TemaCampeao;onDone?:()=>void}){
  if(ehBasquete())return null
  const retratos=legends.filter((l,i,a)=>a.findIndex(x=>x.nome===l.nome&&x.club===l.club&&x.year===l.year)===i).map(l=>legendAvatar(l.nome,l.club,l.year)).filter((a):a is NonNullable<typeof a>=>!!a).slice(0,3).map(a=>a.src.startsWith('/')?import.meta.env.BASE_URL+a.src.slice(1):a.src)
- return <CampeaoCinema chave={`${tema??temaDoTitulo(title)}|${name}`} tema={tema??temaDoTitulo(title)} nome={name} crest={crest} mascote={mascot} retratos={retratos}/>
+ return <CampeaoCinema chave={`${tema??temaDoTitulo(title)}|${name}`} tema={tema??temaDoTitulo(title)} nome={name} crest={crest} mascote={mascot} retratos={retratos} onDone={onDone}/>
 }
 export function OwnerChampionBanner({title,name,crest,trophy,mascot,legends=[],line,extra,own=false,head,faixa,tema}:{tema?:TemaCampeao;head?:string;faixa?:string;title:string;name:string;crest?:ReactNode;trophy:ReactNode;mascot?:ReactNode;legends?:{nome:string;club:string;year:number}[];line?:ReactNode;extra?:ReactNode;own?:boolean}){
  const portraits=legends.filter((l,i,a)=>a.findIndex(x=>x.nome===l.nome&&x.club===l.club&&x.year===l.year)===i).map(l=>({l,art:legendAvatar(l.nome,l.club,l.year)})).filter(x=>x.art).slice(0,3)
  // 🏆 24/11: o campeão "cinema" (tela cheia ~9 s, cada competição com a sua arte) antes da faixa de sempre — só futebol
  const cinema=<CampeaoCinemaDe title={title} name={name} crest={crest} mascot={mascot} legends={legends} tema={tema}/>
+ // 🎬 27/11 (Diego: *"pode tirar se já tiver o vídeo de animação que dá pro título"*): no futebol o vídeo do campeão já conta o título —
+ // a faixa fixa "CAMPEÃO DEFINIDO" embaixo dele saiu (o mesmo teatro não aparece duas vezes). O basquete não tem o vídeo: segue com a faixa.
+ if(!ehBasquete())return cinema
  return <>{cinema}<section className="ov3-champion" aria-label={tr('Campeão da competição','Competition champion')} style={{backgroundImage:`linear-gradient(180deg,#09160ad0,#081009e8),url(${ehBasquete()?quadra:stadium})`,backgroundSize:'cover',backgroundPosition:'center'}}><div className="ov3-champion-confetti" aria-hidden="true">{Array.from({length:38},(_,i)=><i key={i} style={{left:(i*37)%100+'%',top:(i*23)%86+'%',transform:`rotate(${i*49}deg)`,background:['#ffc400','#f4ecd6','#1b7a3d'][i%3]}}/>)}</div><small>{title}</small><h2>{head??(own?tr('É CAMPEÃO!','CHAMPIONS!'):tr('CAMPEÃO DEFINIDO','CHAMPION CROWNED'))}</h2><div className="ov3-champion-club">{crest}<h3>{name}</h3></div><div className="ov3-champion-scene"><div className="ov3-champion-legends">{portraits.map(({l,art})=><figure key={`${l.nome}-${l.club}-${l.year}`}><img src={art!.src.startsWith('/')?import.meta.env.BASE_URL+art!.src.slice(1):art!.src} alt={l.nome}/><figcaption>{l.nome}</figcaption></figure>)}</div><div className="ov3-champion-trophy"><div>{trophy}</div><span>{faixa??(ehBasquete()?(own?tr('O ANEL É SEU','THE RING IS YOURS'):tr('O ANEL TEM DONO','THE RING HAS A WINNER')):own?tr('A TAÇA É SUA','THE TROPHY IS YOURS'):tr('A TAÇA TEM DONO','THE TROPHY HAS A WINNER'))}</span></div><div className="ov3-champion-mascot">{mascot}</div></div>{line&&<p>{line}</p>}{extra&&<div className="ov3-champion-extra">{extra}</div>}</section></>
 }
 

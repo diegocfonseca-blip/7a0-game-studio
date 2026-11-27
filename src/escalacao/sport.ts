@@ -593,6 +593,9 @@ export function usePregaoNovo(): boolean {
 // Liga + Champions (convoca clube da última Champions). Só eles VEEM e CRIAM; quem entrar na sala joga normal.
 // Liberar geral = SUPER_MUNDIAL_GERAL = true.
 const SUPER_MUNDIAL_GERAL = false
+// ⭐ 26/11 (Diego: *"pode publicar já a Champions com a Liga… convocando… selo de novo"*): a LIGA + CHAMPIONS convocando sai da
+// trava e vale pra TODOS. O Super Mundial (os dois modos) segue só Diego + Futpoint. Desligar = false.
+export const CHAMPIONS_SALA_GERAL = true
 const SUPER_MUNDIAL_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com']) // Diego + Futpoint FC
 let superMundialOk = SUPER_MUNDIAL_GERAL
 function applySuperMundial(email?: string | null): void {

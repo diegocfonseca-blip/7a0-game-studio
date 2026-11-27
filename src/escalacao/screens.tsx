@@ -1,3 +1,4 @@
+import { corDoClubeReal } from './cores-clubes-reais'
 import {QuickMatchLayout,AuctionIdentity,AuctionPositions} from './shared-game-ui'
 import * as careerSaves from './salvamento/service'
 import { SaveHistory, SaveCopies } from './salvamento/dialogs'
@@ -109,6 +110,7 @@ const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m =>
 const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
 const LibertaSalaLazy = lazy(pedaco(() => import('./liberta-sala-online').then(m => ({ default: m.LibertaSalaGate })))) // 🏆 Liga + Libertadores com clubes reais (19/11)
 const MundialSalaLazy = lazy(pedaco(() => import('./mundial-sala-online').then(m => ({ default: m.MundialSalaGate })))) // 🌍 Liga + Super Mundial com os clubes de 2025 (26/11)
+const ChampionsSalaLazy = lazy(pedaco(() => import('./champions-sala-online').then(m => ({ default: m.ChampionsSalaGate })))) // ⭐ Liga + Champions com os clubes de 2025–26 (26/11)
 import { CampinhoKings } from './kings-campinho'
 import { pokeModo, pokeDe, nomeDoLote } from './pokemon-modo' // ⚡ modo Pokémon (25/10, só a conta do Diego)
 import { ChipsTipo, ArtePoke, TimePokemon } from './pokemon-arte'
@@ -215,6 +217,8 @@ const GOLD = '#FFC400'
 // 🛡️ Diego (11/08): cor tem que bater com a do ESCUDO do time, não sortear separado
 // — puxa o fundo (c1) do mesmo gerador de escudo, qualquer nome (real ou fictício).
 const copaSideColor = (name: string): string => escudoDe(name).c1
+// 🎽 26/11: no Só Super Mundial o rival pode ser um CLUBE DE VERDADE (`clubeReal`) — veste a cor dele; bot comum segue no azul de sempre
+const corDoRealOuBot = (st: EscState, id: number): string => { const r = st.liberta?.times.find(t => t.id === id)?.clubeReal; return r ? corDoClubeReal(r) : '#3A7CA5' }
 type CopaFill = { bg: string; ink: string; holo: number }
 const _lum = (r: number, g: number, b: number) => 0.3 * r + 0.59 * g + 0.11 * b
 const _inkFor = (hex: string) => { const n = parseInt(hex.slice(1), 16); return _lum((n >> 16) & 255, (n >> 8) & 255, n & 255) > 150 ? '#0c0c0c' : '#ffffff' }
@@ -1073,12 +1077,13 @@ export function HoldButton({ onStep, disabled = false, className = '', style, ch
 const MobileAuctionHeaderContext = createContext(false)
 
 export function Shell({ children, bar, presentationHeader, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget, presentationClock }: { presentationHeader?:React.ReactNode; presentationClock?:MatchPresentationClock|null; children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
-  const pregaoNovo = usePregaoNovo() // 🔨 26/11: o pregão de cara nova (layout compacto no PC) só na conta do Diego
+  const pregaoNovoConta = usePregaoNovo() // 🔨 26/11: o pregão de cara nova (layout compacto no PC) — na conta do Diego, as duas mesas também
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
   const { state, dispatch, kickPlayer, leaveRoom: leaveRoomHard } = useEsc()
+  const pregaoNovo = pregaoNovoConta || (!!state.pa && !state.pa.duplo) // 🔨 27/11: mesa de UMA carta = cara nova pra todos
   const ownerVisual = useOwnerOnlineVisual(state)
   // 🌴 19/11: a sala do Vice City leva o pôr do sol neon do pregão pra revelação, temporada, copas e fim (só o fundo)
   const viceSala = !!state.viceCity && (VICE_TELAS as readonly string[]).includes(state.screen)
@@ -3090,7 +3095,7 @@ export function EscSetup() {
   // martelo em 6s. Só pra conta de teste (`PREGAO_ABERTO_TESTERS`); pra todo o resto o jogo segue idêntico.
   const [pregaoAb, setPregaoAb] = useState(false)
   const [paUma, setPaUma] = useState(false) // 🃏 26/11: uma carta na mesa mesmo com 11+ clubes (padrão: duas)
-  const pregaoNovoOk = usePregaoNovo() // 🔨 26/11: só na conta do Diego por enquanto
+  const pregaoNovoOk = usePregaoNovo() || true // 🔨 27/11 (Diego: *"sim"*): a escolha de uma/duas cartas (11+ clubes) vale pra TODOS
   const viceVe = useViceCity() // 🌴 19/11: Vice City (pregão aberto com cartas de golpe) — só pra quem o teste libera
   const [vice, setVice] = useState(false)
   const envUnicoOk = useEnvelopeUnicoLiberado() // ⚡ envelope único (28/10): só a conta do Diego por enquanto
@@ -8809,7 +8814,7 @@ export function EscSeason() {
                 const oppId = homeIsYou ? legAwayId : legHomeId
                 const oppIsHuman = state.managers.some(m => m.id === oppId && m.isHuman)
                 // 🎨 mesmo padrão da liga: amigo = cor do tier DELE (gratuito = bege)
-                const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+                const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : corDoRealOuBot(state, oppId) // 🎽 26/11: clube de verdade do Super Mundial veste a camisa dele
                 const hl = myTie.lastHighlights ?? []
                 const goals = hl.filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
                 return (
@@ -8904,7 +8909,7 @@ export function EscSeason() {
         // 🎨 amigo online joga com a cor do TIER dele (gratuito = bege) — nunca uma
         // cor emprestada. CPU segue o azul neutro.
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
-        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : corDoRealOuBot(state, oppId) // 🎽 26/11: clube de verdade do Super Mundial veste a camisa dele
         const nameOf = (id: number) => (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id) ?? state.champions?.times.find(t => t.id === id))?.name ?? '?'
         const scorer = (text: string) => { const k = nomeGolKings(text); if (k) return k; const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
         const goals = myLast.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
@@ -10417,7 +10422,7 @@ export function EscLiberta() {
         const homeIsYou = meuJogo.homeId === you.id
         const oppId = homeIsYou ? meuJogo.awayId : meuJogo.homeId
         const oppIsHuman = humano(oppId)
-        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : corDoRealOuBot(state, oppId) // 🎽 26/11: clube de verdade do Super Mundial veste a camisa dele
         const goals = meuJogo.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === meuJogo.homeId }))
         return <LiveScoreCard enhancedOnline={privateVisual} key={`lb-${lb.rodada}`}
           homeName={nomeDe(meuJogo.homeId)} awayName={nomeDe(meuJogo.awayId)}
@@ -10819,7 +10824,7 @@ export function EscChampions() {
         const homeIsYou = meuJogo.homeId === you.id
         const oppId = homeIsYou ? meuJogo.awayId : meuJogo.homeId
         const oppIsHuman = humanoId(oppId)
-        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+        const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : corDoRealOuBot(state, oppId) // 🎽 26/11: clube de verdade do Super Mundial veste a camisa dele
         const goals = meuJogo.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === meuJogo.homeId }))
         return <PlacarOnlineQueEncolhe key={`ch-${passo}`}
           homeName={nomeDe(meuJogo.homeId)} awayName={nomeDe(meuJogo.awayId)}
@@ -13993,6 +13998,8 @@ export function EscEnd() {
   const [libertaNaLiga, setLibertaNaLiga] = useState(false)
   // 🌍 LIGA + SUPER MUNDIAL (26/11): a mesma porta da Libertadores da sala, com a marca `regionalNaLiga: 'mundial'`
   const [mundialNaLiga, setMundialNaLiga] = useState(false)
+  // ⭐ LIGA + CHAMPIONS CONVOCANDO (26/11): a mesma porta, com a marca `regionalNaLiga: 'champions'`
+  const [champSalaNaLiga, setChampSalaNaLiga] = useState(false)
   const [mundoChecado, setMundoChecado] = useState(false)
   // 🌍 a noite só acaba DEPOIS da Copa (Diego 01/09: *"a votação é somente quando
   // acabar tudo, a liga e a Copa do Mundo — mesma coisa o jornal"*). Enquanto
@@ -14002,12 +14009,12 @@ export function EscEnd() {
   // piscar o jornal na cara e sumir.
   const [mundoPendente, setMundoPendente] = useState(false)
   // 🚪 a liga recolhe embaixo do portão enquanto a Copa do Mundo não acaba (19/09)
-  const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga || libertaNaLiga || mundialNaLiga) && !copaPending && !libPending && mundoPendente
+  const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga || libertaNaLiga || mundialNaLiga || champSalaNaLiga) && !copaPending && !libPending && mundoPendente
   // 🔜 o cartão da colocação dizia "Ano que vem tem pregão de novo" com a Copa do Mundo/regional ainda por
   // vir — parecia que o jogo tinha ACABADO e o pessoal saía antes da convocação (Diego 13/10).
-  const proxNomeFim = mundoEsperando ? (mundialNaLiga ? LE('Super Mundial', 'Super Club World Cup') : libertaNaLiga ? 'Libertadores' : regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga === 16 ? LE('Copa América', 'Copa América') : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
+  const proxNomeFim = mundoEsperando ? (champSalaNaLiga ? 'Champions' : mundialNaLiga ? LE('Super Mundial', 'Super Club World Cup') : libertaNaLiga ? 'Libertadores' : regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga === 16 ? LE('Copa América', 'Copa América') : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string; chave?: string } | null>(null)
-  useEffect(() => { if (mundoNaLiga || regionalNaLiga || libertaNaLiga || mundialNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga, libertaNaLiga, mundialNaLiga])
+  useEffect(() => { if (mundoNaLiga || regionalNaLiga || libertaNaLiga || mundialNaLiga || champSalaNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga, libertaNaLiga, mundialNaLiga, champSalaNaLiga])
   useEffect(() => {
     if (!online || !state.roomId || bbEnd) return // 🏀 basquete nunca abre Copa do Mundo/regional depois da liga
     let vivo = true
@@ -14025,11 +14032,13 @@ export function EscEnd() {
         const reg = !draftSala && ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null
         const lib = !draftSala && d?.reg === 'liberta' // 🏆 19/11
         const mun = !draftSala && d?.reg === 'mundial' // 🌍 26/11
+        const chs = !draftSala && d?.reg === 'champions' // ⭐ 26/11
         if (draftSala) setEuroNaLiga(undefined)
-        setMundoNaLiga(!draftSala && String(d?.flag) === 'true' && !reg && !lib && !mun)
+        setMundoNaLiga(!draftSala && String(d?.flag) === 'true' && !reg && !lib && !mun && !chs)
         setRegionalNaLiga(reg)
         setLibertaNaLiga(lib)
         setMundialNaLiga(mun)
+        setChampSalaNaLiga(chs)
         setMundoChecado(true)
       }, () => {})
     return () => { vivo = false }
@@ -14501,6 +14510,22 @@ export function EscEnd() {
             })} />
         </Suspense></CercaDaCopa>
       )}
+      {/* ⭐ LIGA + CHAMPIONS CONVOCANDO (26/11): a mesma porta da Libertadores da sala */}
+      {online && state.roomId && champSalaNaLiga && !copaPending && !libPending && (
+        <CercaDaCopa><Suspense fallback={null}>
+          <ChampionsSalaLazy roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
+            matchSeed={state.seed}
+            seasonNo={state.seasonNo ?? 1}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao ? { ...st.campeao, chave: st.chave } : null) }}
+            aoRemover={(id, nome) => {
+              if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
+            }}
+            classificacao={table.map(t => {
+              const m = state.managers.find(mm => mm.id === t.id)
+              return { id: t.id, nome: t.name, humano: !!m?.isHuman }
+            })} />
+        </Suspense></CercaDaCopa>
+      )}
       {online && state.roomId && regionalNaLiga && !copaPending && !libPending && (
         <CercaDaCopa><Suspense fallback={null}>
           <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
@@ -14550,7 +14575,7 @@ export function EscEnd() {
           nova nem passa por aqui (`careerOnline` vai pro PyramidSeasonScreen). */}
       {/* ⭐ Só Champions: o jornal tem EDIÇÃO CHAMPIONS (`montaEdicaoChampions`) — pedido do Diego 25/09 */}
       {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
-        <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && mundialNaLiga ? { ...campeaoDoMundo, copa: 'Super Mundial' } : campeaoDoMundo && libertaNaLiga ? { ...campeaoDoMundo, copa: 'Libertadores' } : campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
+        <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && champSalaNaLiga ? { ...campeaoDoMundo, copa: 'Champions' } : campeaoDoMundo && mundialNaLiga ? { ...campeaoDoMundo, copa: 'Super Mundial' } : campeaoDoMundo && libertaNaLiga ? { ...campeaoDoMundo, copa: 'Libertadores' } : campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
       )}
       {online && state.roomId && !state.careerOnline && !state.bafo2 && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
@@ -14568,7 +14593,7 @@ export function EscEnd() {
           const pos = posDe(m.id)
           const cupTitles: TituloSalaRapida[] = []
           if (!chTab && !relPos && copaDone && state.quickCopa?.champion?.id === m.id) cupTitles.push(libEnd ? 'libertadores' : 'copa')
-          if (campeaoDoMundo?.nome === m.teamName) cupTitles.push(mundialNaLiga ? 'supermundial' : libertaNaLiga ? 'libertadores' : regionalNaLiga ? 'regional' : 'mundial')
+          if (campeaoDoMundo?.nome === m.teamName) cupTitles.push(champSalaNaLiga ? 'champions' : mundialNaLiga ? 'supermundial' : libertaNaLiga ? 'libertadores' : regionalNaLiga ? 'regional' : 'mundial')
           return {
             managerId: m.id,
             teamName: m.teamName,

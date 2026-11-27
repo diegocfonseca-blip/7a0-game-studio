@@ -43,6 +43,7 @@ import type { ConfigPenaltisCampo } from './campo2d-penaltis'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { ChatWidget, GiroDaRodada, TrocaCampo2DSala, CardCollectPrompt } from './screens'
 import { startCrowd, stopCrowd } from './sound'
+import { corDoClubeReal } from './cores-clubes-reais' // 🎽 26/11: camisa do clube no Campo 2D
 import { SeloClube } from './selo-clube' // 🛡️ 13/10: escudo OFICIAL do clube quando o jogo tem (os mesmos do Leilão de Clubes)
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
 import { RelogioConvocacao, SEG_CONVOCA_SALA } from './relogio-convocacao'
@@ -657,7 +658,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   } : undefined
   const live = (h: number, a: number, ev: GolRegional[], pen?: CupPenaltyPresentation) => (
     <PlacarQueGruda min={Math.min(93, liveMin)} fim={liveDone} home={entrants[h].pais} away={entrants[a].pais} goals={golsAte(ev)} youIsHome={isYou(h)}>
-      <LiveScoreCard broadcastTransition={cupPilot?abertura:undefined} penaltyPanel={pen?.panel} neutro={!isYou(h)&&!isYou(a)} disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={GREEN} awayColor="#C2452F"
+      <LiveScoreCard broadcastTransition={cupPilot?abertura:undefined} penaltyPanel={pen?.panel} neutro={!isYou(h)&&!isYou(a)} disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={c2d ? corDoClubeReal(entrants[h].pais) : GREEN} awayColor={c2d ? corDoClubeReal(entrants[a].pais) : "#C2452F"}
         homeOwner={dono(h)} awayOwner={dono(a)} homeEmblem={<SeloClube clube={entrants[h].pais} size={58} />} awayEmblem={<SeloClube clube={entrants[a].pais} size={58} />}
         youIsHome={isYou(h)} goals={ev} roundKey={step} roundMs={roundMs} finished={liveDone} footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} elencos={{ casa: entrants[h].xi, fora: entrants[a].xi }} />
     </PlacarQueGruda>

@@ -25,8 +25,11 @@ const bbPA = () => getSport() === 'basquete'
 const tagPos = (p: string) => bbPA() && p in POS_LABELS.basquete ? POS_LABELS.basquete[p as Sector].tag : p
 
 // 🔨 26/11 (Diego: *"Faz só na minha conta, pra eu ver"*): o pregão de cara nova só na conta dele; o resto segue no de hoje.
+// 🔨 27/11 (Diego: *"já bote p todos qd for uma carta apenas.. pra dois ainda não"*): mesa de UMA carta = cara nova pra todo mundo;
+// mesa de DUAS cartas segue no pregão de hoje (a cara nova das duas mesas continua só na conta dele).
 export function PregaoAberto() {
-  const novo = usePregaoNovo()
+  const { state } = useEsc()
+  const novo = usePregaoNovo() || (!!state.pa && !state.pa.duplo)
   return novo ? <PregaoAbertoNovo /> : <PregaoAbertoAntigo />
 }
 

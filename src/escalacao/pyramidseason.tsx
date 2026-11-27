@@ -1,3 +1,4 @@
+import {postMatchTable} from './career-post-match-table'
 import {COPA_CARREIRA_ANCORA,COPA_CARREIRA_CICLO} from './copa-mundo-calendario'
 import {gestaoAtiva,carreiraSoloFutebol} from './carreira-regras'
 import {fatosDoBairro} from './cenas-bairro-fatos'
@@ -12665,9 +12666,14 @@ export function PyramidSeasonScreen() {
   // mesmo com o jogo já acabado (foi o "embaralha tudo" que o Diego sentiu). Com o calendário, todo mundo lê ESTA marca.
   const [calApitado, setCalApitado] = useState<{ r: number; s: number }>({ r: -1, s: -1 })
   useEffect(() => { if (round > 0 && revealed >= round && roundReady) setCalApitado(a => (a.r === round && a.s === calSn ? a : { r: round, s: calSn })) }, [round, revealed, roundReady, calSn])
+  // Post-match review is local presentation state; advancing it never plays a round.
+  const [posJogoVisto,setPosJogoVisto]=useState('')
+  const posJogoChave=`${state.seed}:${calSn}:${round}`
+  const posJogoPendente=visualV2&&!!state.careerOnline&&fluxoCentral&&calOn&&!state.co2&&state.onlineMode!=='online'&&state.sport!=='basquete'&&!seasonOver&&!copaPlaying&&!!myMatch&&round>0
+    &&((calApitado.r===round&&calApitado.s===calSn)||(roundReady&&revealed>=round))&&(!halfMode||halftimeDone)&&(!penMode||penaltyDone)&&posJogoVisto!==posJogoChave
   const calJogoRolando = round > 0 && !(calApitado.r === round && calApitado.s === calSn) && (revealed < round || !roundReady)
   const calFase: FaseCal = copaPlaying ? 'copa' : seasonOver ? 'fim' : round === 0 ? 'pre' : calJogoRolando ? 'jogo' : 'dias'
-  const calLivre = calFase === 'dias' && !coletivaOpen && !eventoPendente && decisoesOk && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
+  const calLivre = calFase === 'dias' && !posJogoPendente && !coletivaOpen && !eventoPendente && decisoesOk && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
   // 🏟️ 25/10 (Diego: "não consigo ver o jogo pelo mapa… deveria ter forma de passar o dia lá"): com o mapa 3D na aba Clube, a semana
   // anda ali também — senão o "o próximo jogo começa sozinho" do mapa nunca chegava (botão mudo)
   const mapaNoClube = tab === 'estadio' && stadiumMapAvailable
@@ -12922,18 +12928,18 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (state.co2 || pausaCentral || subAberto || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !(roundReady || (calOn && calApitado.r === round && calApitado.s === calSn)) || coletivaOpen || !calDiasOk || chegando || (calOn && round < 38 && jogoOk !== `${calSn}:${round}:l`)) return
+    if (state.co2 || posJogoPendente || pausaCentral || subAberto || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !(roundReady || (calOn && calApitado.r === round && calApitado.s === calSn)) || coletivaOpen || !calDiasOk || chegando || (calOn && round < 38 && jogoOk !== `${calSn}:${round}:l`)) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, subAberto, calDiasOk, chegando, calOn, jogoOk, calSn])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, subAberto, calDiasOk, chegando, calOn, jogoOk, calSn,posJogoPendente])
   // C/D têm semanas sem confronto. Processa a semana vazia, respeitando Copa e decisões,
   // em vez de oferecer um estádio sem partida; funciona também no ritmo manual.
   useEffect(() => {
-    if (!fluxoCentral || !calOn || !agendaOficial || !state.isHost || !calNaTela || calFase !== 'dias' || round < 1 || round >= 38 || calI < calFim || copaPendente || copaMidOn || coletivaOpen || eventoPendente || !decisoesOk || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || parDaRodada(round + 1)) return
+    if (posJogoPendente || !fluxoCentral || !calOn || !agendaOficial || !state.isHost || !calNaTela || calFase !== 'dias' || round < 1 || round >= 38 || calI < calFim || copaPendente || copaMidOn || coletivaOpen || eventoPendente || !decisoesOk || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || parDaRodada(round + 1)) return
     const timer = setTimeout(() => { if (!maybeEvento()) dispatch({type:'PLAY_ROUND'}) }, 250)
     return () => clearTimeout(timer)
-  }, [fluxoCentral, calOn, agendaOficial, state.isHost, calNaTela, calFase, round, calI, calFim, copaPendente, copaMidOn, coletivaOpen, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, dispatch]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fluxoCentral, calOn, agendaOficial, state.isHost, calNaTela, calFase, round, calI, calFim, copaPendente, copaMidOn, coletivaOpen, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, dispatch,posJogoPendente]) // eslint-disable-line react-hooks/exhaustive-deps
   // ⚽ o banner do pênalti abre SOZINHO quando o jogo termina de animar (tempo morto —
   // "90+2', última chance"). Enquanto não bate, a rodada não anda (gate acima).
   useEffect(() => { if (penMode && !penaltyDone && roundReady) setPenaltyOpen(true) }, [penMode, penaltyDone, roundReady])
@@ -13099,7 +13105,7 @@ export function PyramidSeasonScreen() {
     // 🧭 22/11 (Diego: "acabou o jogo no mapa 3D, dei a coletiva e voltou pro mapa do jogo, erradamente"): quem viu o jogo no 3D sai da
     // coletiva na CENTRAL — é lá que aparece o resultado da entrevista e que os dias seguem. O jogo já acabou; o mapa não tem mais o que mostrar.
     // (só quem ASSISTIU no 3D: quem está na aba Clube cuidando de estádio/patrocínio não é tirado de lá por uma coletiva que fechou)
-    if (fluxoCentral && tab === 'estadio' && viu3d.current) escolheAba('central')
+    if (fluxoCentral && tab === 'estadio' && clubeSub === 'estadio' && viu3d.current) escolheAba('central')
   }
   // no AUTOMÁTICO a sala abre sozinha assim que o jogo acaba (e fecha sozinha em 12 s): é o passo antes do próximo jogo
   // 📅 26/10: com o calendário, no MANUAL também (senão a coletiva esperando o toque segurava a semana parada no domingo)
@@ -13234,6 +13240,12 @@ export function PyramidSeasonScreen() {
   const voltaPro3d = useRef(false) // 🏟️ o intervalo tirou a pessoa do 3D: ao confirmar, volta pro mapa pra ver o 2º tempo onde escolheu
   useEffect(() => { voltaPro3d.current = false }, [round, state.seasonNo]) // 22/11: a marca vale só pro jogo em que nasceu — rodada nova nunca herda uma volta pro mapa
   const escolheAba = (t: AbaCarr) => { tabTocada.current = true; if (t !== 'estadio') viu3d.current = false; setTab(jogoTabela && t === 'tabelas' ? 'jogos' : t) }
+  const posJogoEntregue=useRef('')
+  useEffect(()=>{
+    if(!posJogoPendente||coletivaOpen||coletivaSala||(halfMode&&!halftimeDone)||(penMode&&!penaltyDone)||posJogoEntregue.current===posJogoChave)return
+    posJogoEntregue.current=posJogoChave
+    if(tab==='jogos'||(tab==='estadio'&&clubeSub==='estadio'&&viu3d.current))escolheAba('central')
+  },[posJogoPendente,posJogoChave,coletivaOpen,coletivaSala,halfMode,halftimeDone,penMode,penaltyDone,tab,clubeSub]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🗺️ 03/11 (Diego): saiu da aba Clube com um lugar do mapa aberto → o painel fecha (antes reabria sozinho ao voltar)
   useEffect(() => { if (tab !== 'estadio' && mapaComoClube) setClubeSub('estadio') }, [tab, mapaComoClube])
   // 📊 com Jogos + Tabela juntos, qualquer caminho antigo que abria "Tabelas" (link, aba lembrada) cai na aba Jogos
@@ -13414,7 +13426,7 @@ export function PyramidSeasonScreen() {
   // 🧭 21/11 (Diego: "joguei UM jogo e o seguinte começou sozinho, sem a Central perguntar"): no fluxo da Central NENHUM jogo da liga
   // começa sem a escolha DAQUELE jogo (`escolha2d` = 2D/placar rápido · `liberado` = o ▶ do 3D no mapa). Sem ela, todo botão de
   // avançar (Próxima rodada do Manual, camarote) leva pra Central, onde os dias passam e a pergunta aparece. Copa da semana idem.
-  const avancarRodada = (liberado?: unknown) => { if (criseTrava || state.co2) return; if (calOn && copaPendente && meNaFaseCopa && !copaMidOn && calFase === 'dias') { setCalPasso({ r: round, s: calSn, i: Math.max(calI, CAL_QUARTA) }); if (fluxoCentral) { escolheAba('central'); return } setJogoOk(`${calSn}:${round}:c`); escolheAba('jogos'); return } if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return }
+  const avancarRodada = (liberado?: unknown) => { if(posJogoPendente){escolheAba('central');return} if (criseTrava || state.co2) return; if (calOn && copaPendente && meNaFaseCopa && !copaMidOn && calFase === 'dias') { setCalPasso({ r: round, s: calSn, i: Math.max(calI, CAL_QUARTA) }); if (fluxoCentral) { escolheAba('central'); return } setJogoOk(`${calSn}:${round}:c`); escolheAba('jogos'); return } if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return }
     const semEscolha = fluxoCentral && calOn && round >= 1 && round < 38 && liberado !== true && escolha2d !== `${calSn}:${round}:l`
     if (coletivaOpen) { abreColetiva(() => { if (semEscolha) escolheAba('central'); else if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }); return } /* 🎙️ coletiva pendente: o toque abre a SALA (tela cheia); a rodada só anda quando ela fecha */
     if (semEscolha) { escolheAba('central'); return }
@@ -13638,6 +13650,7 @@ export function PyramidSeasonScreen() {
   // 📺 22/11: os avisos de uma vez só (TV, recibos) que a fila da aba Jogos manda pra Central — preenchido no render, ANTES da Central
   const avisosCentral: React.ReactNode[] = []
   const renderCentral = () => {
+    const postTable=postMatchTable(myDiv??'',myDiv?tables[myDiv]??[]:[],agendaOficial?.find(m=>m.r===round)?.fase,oficialEfetivo)
     if (!myDiv) return null
     const DIV_EN: Record<Div, string> = { A: 'Serie A', B: 'Serie B', C: 'Serie C', D: 'Serie D', V: 'Várzea' }
     const sn = state.seasonNo ?? 1
@@ -13988,6 +14001,7 @@ export function PyramidSeasonScreen() {
         master: masterOk ? (masterBrandAtual?.name ?? tr('assinado', 'signed')) : null,
         travado: !decisoesOk,
       } : null}
+      posJogo={posJogoPendente?{round,tabela:postTable.table.map(t=>({name:t.name,pts:t.pts,you:t.you})),fase:postTable.phase,onContinue:()=>{if(coletivaOpen){abreColetiva(()=>setPosJogoVisto(posJogoChave));return}setPosJogoVisto(posJogoChave)}}:undefined}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} onDeal={name=>{setDealFocus(name);escolheAba('mercado')}} mercado={{ negocios, maisCaro }} onMercado={mercadoOn ? () => {setDealFocus(undefined);escolheAba('mercado')} : undefined} agenda={agenda} agendaVelha={novaCentral ? null : agendaVelha} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       rankGlobal={null /* 26/10 (Diego: *"tire o rank global da central, deixe na aba do rank"*) */}
       copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}
@@ -15431,7 +15445,7 @@ export function PyramidSeasonScreen() {
           ))}
         </div>
 
-        {tab === 'central' && centralOn ? <>{fluxoCentral && chegadaGrande && <>
+        {tab === 'central' && centralOn ? <>{fluxoCentral && chegadaGrande && !posJogoPendente && <>
           {/* 🧭 19/11: o acontecimento (ônibus chegando…) aparece SÓ na Central — dá pra ver ao vivo no mapa ou pular */}
           <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>
           <button onClick={() => { setDaCentral(true); setClubeSub('estadio'); escolheAba('estadio'); setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) }}

@@ -18,6 +18,8 @@
     "liberta-sala": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-liberta-sala.mts",
     "super-mundial": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-super-mundial.mts",
     "mundial-sala": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-mundial-sala.mts",
+    "cores-clubes": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-cores-clubes-reais.mts",
+    "champions-sala": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-champions-sala.mts",
     "escudos-selecao": "node scripts/testa-escudos-selecao.mjs",
     "vigias": "node scripts/checa-vigias-online.mjs",
     "rank": "node scripts/checa-rank-liga.mjs",

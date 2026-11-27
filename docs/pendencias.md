@@ -1,3 +1,38 @@
+## 26/11 — Champions convocando: apresentação e encerramento
+
+Correção da disputa dos controles entre a liga e a copa aberta: táticas, navegação e transmissão ficam dentro do modal. Chat da Champions único, com restauração da lateral ao fechar. Tabela completa marca 1–8 oitavas, 9–24 playoff, 25–36 eliminação e legenda. Cinema do campeão deixa de ser cortado pelo timer da festa antiga; preserva a competição/tabela após terminar ou pular. Sem alteração do motor ou banco. Provas e regressões: `docs/auditorias/champions-layout-20261126.md`.
+
+## 26/11 — Estádio do Santa Cruz
+
+Nome corrigido de Arena de Pernambuco para **Arruda**, a pedido de Diego, no catálogo compartilhado por agenda e estádio do Brasil Oficial. Consulta `estadioDoClube("Santa Cruz")` conferida; sem alteração de saves.
+
+## 27/11 — ⏪ LIGA DRAFT: CONVIDADO "PISCAVA" PRA TELA DO CAMPEÃO JÁ PASSADO (vídeo do Anesp, Duarte FC campeão T4)
+- Sintoma: escalando a temporada nova, a tela voltava sozinha pro fim da temporada anterior (campeão, artilheiros) e depois voltava.
+- Suspeita (não confirmada — sala não achada no banco): 2º aparelho/aba do DONO parado no fim da T4 seguia mandando estado velho; o
+  convidado aceitava qualquer estado do dono (`recebeEstado` → SYNC_STATE sem conferir se é mais velho).
+- Trava (Diego: *"se eles avançaram não deveria ter voltado"*): o convidado recusa estado que volta pra tela de FIM de temporada já
+  passada, ou do draft de volta pro fim. Começo de partida nova passa sempre. Cada recusa vai pra caixa-preta (`esc_travas`,
+  extra.quando = 'estado_velho_recusado') — conferir lá pra confirmar a suspeita e achar a sala.
+- 🎬 Junto: no futebol a faixa fixa "CAMPEÃO DEFINIDO" embaixo do vídeo do campeão saiu (Diego: *"pode tirar se já tiver o vídeo"*).
+
+## 27/11 — 🔨 PREGÃO ABERTO: CARA NOVA PRA TODOS NA MESA DE UMA CARTA (Diego: *"já bote p todos qd for uma carta apenas.. pra dois ainda não"*)
+- Mesa de UMA carta (até 10 clubes, Vice City, ou sala grande com "uma carta") = `PregaoAbertoNovo` + layout compacto do PC pra TODOS.
+- Mesa de DUAS cartas (11+ clubes) segue no pregão de hoje pra todos; a cara nova das duas mesas continua só na conta do Diego
+  (`usePregaoNovo`). 🟢 E a escolha "uma ou duas cartas" ao criar sala grande (11+) foi liberada pra TODOS no mesmo dia (*"Sim"*) — salas online e Partida Rápida.
+
+## 27/11 — 📋 LIGA DRAFT: BARALHO TODOS POR PADRÃO + AVISO DO BARALHO NO DRAFT (Diego: *"deixe sempre marcado padrão c todos"*)
+- Conferido: o draft já obedecia o baralho escolhido (Brasil = 773 cartas só do Brasil · Europa = 1.353 só da Europa · Todos = 2.631).
+- Agora a Liga Draft nasce com 🌎 Todos marcado; na criação, o aviso diz o que vale ("🇧🇷 Brasil: no leilão E no draft só cartas do Brasil"
+  e o mesmo pra Europa/Todos; com 🧱 Clubes o baralho é sempre Todos). Na tela "Como é o draft" a liga de Brasil/Europa mostra o aviso em verde.
+- Diego confirmou ficar só com Brasil · Europa · Todos (sem "só Mundo": 505 cartas não fecham uma liga de 20 com jogador único).
+
+## 26/11 — 🎽 CORES ERRADAS DOS CLUBES DE VERDADE NO CAMPO 2D (print do Diego, Libertadores da sala: Flamengo verde × Palmeiras vermelho)
+- Causa: as copas convocadas (Libertadores, Super Mundial, Champions e regionais da sala) mandavam o verde/vermelho FIXO de casa × fora pro
+  `LiveScoreCard`. Conserto (no branch, esperando o OK pra publicar): `cores-clubes-reais.ts` → `corDoClubeReal` (selos do Leilão de Clubes →
+  tabela nova dos 61 que faltavam, pela camisa titular → escudo genérico). Vale no Campo 2D das 4 copas convocadas, no rival-clube-de-verdade do
+  Só Super Mundial (antes azul de bot) e na carreira internacional (antes cor chutada pelo nome). Placar normal das copas convocadas continua
+  verde × vermelho (igual à Copa do Mundo). Camisa parecida: o 2D já troca o visitante. Trava `npm run cores-clubes`.
+
 ## 26/11 — 🌍 SUPER MUNDIAL + LIGA + CHAMPIONS nas salas — 🔒 SÓ DIEGO E FUTPOINT (`SUPER_MUNDIAL_GERAL`, sport.ts)
 Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions… 2 de cada… publicar é só na minha e no do Footpoint"*.
 - ✅ **🌍 Liga + Super Mundial (convocando)** — FEITO no branch (falta OK visual + publicar): acabou a liga, cada um escolhe um dos 32
@@ -23,12 +58,15 @@ Decisão dele: *"Eu quero os dois… as duas formas… e tb liga mais Champions�
   (Liga +) — migration `20261126160000_tacas_online_super_mundial.sql`, APLICADA. Prints em `scripts/mockups/super-mundial/`.
   ⚠️ Achado à parte: `npm run relampago` (manchete em inglês no teste) e `testa-libertadores.mts` (classificação do Brasil Oficial)
   já falhavam ANTES, também na main — não é deste trabalho.
-- ⏳ **⭐ Liga + Champions (convocando)** — A FAZER (próximo). Faltam cartas pra 13 dos 36 (todos do baralho Europa): Atalanta,
-  Olympiacos, Brugge, Qarabağ, Bodø/Glimt, Pafos, Union SG, Athletic Bilbao, København, Eintracht Frankfurt, Slavia Praha,
-  Villarreal e Kairat. Os outros 23 já fecham time. Antes: os 36 da Champions 2025–26 (campeão PSG nos pênaltis contra o Arsenal, 30/05/26),
-  fase de liga de 8 jogos, 9º–24º no playoff, mata-mata ida e volta, final única. Vai precisar de cartas pra clubes pequenos
-  (Kairat, Pafos, Bodø/Glimt, Qarabağ, Union SG, Slavia, København…). Lista dos 36 e tabela final: pt.wikipedia "Liga dos Campeões
-  da UEFA de 2025–26".
+- ✅ **⭐ Liga + Champions (convocando)** — 🟢 LIBERADO PRA TODOS em 26/11 com selo NOVO (`CHAMPIONS_SALA_GERAL = true`, sport.ts; `false` volta a ser só Diego/Futpoint). Usa as opções de sempre da liga: 10 ou 20 times, e com 20, 38 ou 19 rodadas: acabou a liga, cada um escolhe um dos 36
+  clubes da Champions 2025–26 na ordem da tabela e convoca 11 das cartas dele. Fase de liga numa tabela só (8 jogos, 4 em casa e 4 fora,
+  calendário da Só Champions), 1º–8º direto, 9º–24º playoff (9×24…16×17, sem sorteio), ida e volta até a semi com a volta na casa do
+  melhor, final única. Motor `champions-sala.ts`, tela `champions-sala-online.tsx` (adaptada da Liberta da sala), palco
+  `football-cup-champions.tsx`, marca `regionalNaLiga: 'champions'`, opção `liga_champsala` (lobby, prateleira Convocando, selo teste),
+  relógio `esc_regional_clock` com 16+1 passos (o teto do banco, sem SQL). Título = `cup_titles 'champions'` (taça da Champions);
+  `esc_tacas_online` soma as duas formas — migration `20261126180000_tacas_online_champions_convocando.sql` (APLICADA 26/11).
+  Cartas só do modo: `cartas-champions-clubes.ts` (182, baralho Europa, sem pessoa repetida; xarás Éderson/Pêpê/Jorginho).
+  ⚠️ Não entra a regra "mesmo país não se enfrenta na fase de liga". Trava `npm run champions-sala`. Prints `scripts/mockups/champions-sala/`.
 - Trocar o modo de uma liga que está com o Super Mundial: bloqueado com aviso (igual à Liberta da sala; o servidor não conhece).
 ## 25/11 — melhorias nas duas carreiras
 

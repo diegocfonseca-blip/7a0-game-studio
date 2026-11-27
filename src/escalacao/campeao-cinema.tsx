@@ -8,7 +8,7 @@
 // Custo: zero no servidor (nenhuma mensagem nova; cada aparelho toca sozinho quando a tela de campeão aparece). As artes são
 // arquivos separados (~30 KB) que só descem pra quem chega no fim DAQUELA competição. Euro, Copa América, regionais, Relâmpago e
 // Kings ainda não têm arte própria: usam uma arte do jogo com cor e efeito próprios (raio, neon, fumaça) até a arte nova chegar. Só apresentação: não mexe em jogo/placar/save.
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { tr } from './lang'
 import { playHammer } from './sound'
@@ -59,21 +59,25 @@ export function temaDoTitulo(t: string): TemaCampeao {
 }
 
 const vistos = new Set<string>() // uma vez por título por página (voltar pra tela não repete; recarregar, sim)
-const DURACAO = 9600
+export const CAMPEAO_CINEMA_MS = 9600
+const DURACAO = CAMPEAO_CINEMA_MS
 // 🎞️ fila: a tela final pode mostrar o campeão da LIGA e o da COPA juntos — um toca depois do outro, nunca os dois por cima
 const fila: string[] = []
 const ouvintes = new Set<() => void>()
 const avisa = () => ouvintes.forEach(f => f())
 
-export function CampeaoCinema({ chave, tema, nome, crest, retratos, mascote }: {
-  chave: string; tema: TemaCampeao; nome: string; crest?: ReactNode; retratos: string[]; mascote?: ReactNode
+export function CampeaoCinema({ chave, tema, nome, crest, retratos, mascote, onDone }: {
+  chave: string; tema: TemaCampeao; nome: string; crest?: ReactNode; retratos: string[]; mascote?: ReactNode; onDone?:()=>void
 }) {
   const [meu] = useState(() => { if (vistos.has(chave)) return false; vistos.add(chave); fila.push(chave); return true }) // marca já no 1º desenho: duas telas montando juntas não tocam duas vezes
   const [vez, setVez] = useState(() => fila[0] === chave)
   const [acabou, setAcabou] = useState(false)
   useEffect(() => { if (!meu) return; const f = () => setVez(fila[0] === chave); ouvintes.add(f); f(); return () => { ouvintes.delete(f); const i = fila.indexOf(chave); if (i >= 0) { fila.splice(i, 1); avisa() } } }, [meu, chave])
   const ativo = meu && vez && !acabou
-  const setAtivo = (v: boolean) => { if (v) return; setAcabou(true); const i = fila.indexOf(chave); if (i >= 0) { fila.splice(i, 1); avisa() } }
+  const doneRef=useRef(onDone);doneRef.current=onDone
+  const completed=useRef(false)
+  const setAtivo=useCallback((v:boolean)=>{if(v||completed.current)return;completed.current=true;setAcabou(true);const i=fila.indexOf(chave);if(i>=0){fila.splice(i,1);avisa()}doneRef.current?.()},[chave])
+  useEffect(()=>{if(!meu&&!completed.current){completed.current=true;doneRef.current?.()}},[meu])
   const cv = useRef<HTMLCanvasElement>(null)
   const T = TEMAS[tema]
   const [c1, c2] = mantoDoClube(nome) ?? T.c

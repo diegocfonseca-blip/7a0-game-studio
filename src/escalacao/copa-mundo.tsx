@@ -1,7 +1,7 @@
 import {agendaCopaCarreira,convitesSelecoes} from './copa-mundo-calendario'
 import {applyCupPlans,cupPlanModifiers} from './copa-planos'
 import {FootballWorldCupView,type CupPenaltyPresentation} from './football-cup-world'
-import {useOwnerLayout,useOwnerFootballPilot,OwnerPlayback,OwnerChampionBanner,OwnerModalBrand,CampeaoCinemaDe} from './owner-online-visual'
+import {useOwnerLayout,useOwnerFootballPilot,OwnerPlayback,OwnerChampionBanner,OwnerModalBrand,OwnerMatchScope,CampeaoCinemaDe} from './owner-online-visual'
 import { rotuloFormacao } from './types'
 import { ListaRolavel } from './lista-rolavel' // 📜 23/11: barra + dica de rolagem na convocação
 import {MASCOTES,mascoteKeyDoTime} from './mascotes'
@@ -605,8 +605,7 @@ export const CMModal = ({ children, wide = false, cinematic = false, onlineBroad
   <div className={owner?'ov3-modal-overlay':undefined} style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, overflowY: 'auto' }}>
     <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
     <div className={`${owner?'ov3 ':''}${cinematic ? 'll26-world-modal' : ''}${onlineBroadcast ? ' ll31-cinema ll31-world-online' : ''}`.trim() || undefined} style={{ ...box('#F4ECD6'), color: INK, width: '100%', maxWidth: cinematic ? 1000 : wide ? 430 : 400, maxHeight: '95vh', overflowY: 'auto', padding: 14, margin: 'auto', borderRadius: 18 }}>
-      {owner&&<OwnerModalBrand/>}
-      {children}
+      <OwnerMatchScope>{owner&&<OwnerModalBrand/>}{children}</OwnerMatchScope>
     </div>
   </div>, document.body)}
 

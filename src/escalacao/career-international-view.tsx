@@ -48,7 +48,8 @@ import { useCo2 } from './co2'
 import { forcaIntl, type Co2IntlEscolha, type Co2IntlAmigo } from './co2-internacional'
 import { DUR_2D_MS } from './campo2d-motor'
 import { useVel2DAqui } from './ritmo2d'
-import { LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
+import { LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
+import { corDoClubeReal } from './cores-clubes-reais' // 🎽 26/11: a camisa de verdade do clube (antes, cor chutada pelo nome)
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
 import { useEsc, motivoRecusaInternacional } from './store'
 import { loggedEmail, useHasManual } from './apoio'
@@ -613,7 +614,7 @@ export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase
   if (stadiumMatch && pensVistos && fase === 'final' && penalties?.penalties && match.hg === match.ag) stadiumMatch.penaltis = { vencedor: penalties.winner === match.home ? 'home' : 'away' }
   const tecnico = `${tr('TÉCNICO', 'COACH')}: ${campaign.userTeam.toUpperCase()}`
   return <><LiveScoreCard estadoPenaltis={disputa.estado} disputaPenaltis={disputa.sessao} enhancedCareer stadiumMatch={stadiumMatch} homeName={home.institution} awayName={away.institution}
-    homeColor={copaSideColor(home.institution)} awayColor={copaSideColor(away.institution)}
+    homeColor={corDoClubeReal(home.institution)} awayColor={corDoClubeReal(away.institution)}
     homeEmblem={<SeloClube clube={home.institution} size={58} />} awayEmblem={<SeloClube clube={away.institution} size={58} />}
     homeOwner={home.you ? tecnico : undefined} awayOwner={away.you ? tecnico : undefined}
     mascotHome={home.you ? campaign.userTeam : undefined} mascotAway={away.you ? campaign.userTeam : undefined}

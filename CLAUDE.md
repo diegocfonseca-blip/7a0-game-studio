@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## Pós-jogo da liga na Central — 26/11/2026
+
+Diego pediu retorno direto à Central depois da liga: resumo de classificação no padrão da agenda, agenda abaixo e avanço explícito antes da escolha placar/2D/3D. **Jogos + Tabela permanece no mesmo lugar**, com detalhes e acesso manual. Reutilizar visual aprovado da agenda. Revisão não joga rodada, pausa calendário e respeita intervalo/pênalti/coletiva; C/D usam grupo/fase corretos. Só futebol solo no fluxo novo, ambas as carreiras. Preservar copas e encerramento de temporada. Regras/testes/limites: `docs/auditorias/central-pos-jogo-20261126.md`.
+
 ## Saves entre aparelhos — 26/11/2026
 
 Diego relatou PC com cópia antiga e celular avançado. Teste acompanhado confirmou upload manual e leitura no PC; não atribuir perda ao servidor sem prova. Recuperação local continua automática e nuvem continua manual. Mostrar origem/rodada/data das cópias na lista, explicar limite local preservado versus vagas da nuvem e conflito de mesma rodada; resumo local prioriza careerPlacements após promoção. Faixa aprovada de Salvar/estado da nuvem volta **no rodapé**, junto de Sair e salvar; não recolocar no topo (pedido de23/11). Consulta fresca do manifesto ao abrir lista, sem baixar todos os payloads. Nenhuma alteração de SQL, direitos, protocolo ou saves reais. Escopo e provas: `docs/auditorias/saves-entre-aparelhos-20261126.md`.

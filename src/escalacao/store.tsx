@@ -17079,6 +17079,21 @@ export function EscProvider({ children }: { children: ReactNode }) {
         let next: EscState | null
         try { next = lePacote(payload) } catch { pedeCheio(); return }
         if (!next || typeof next !== 'object') return
+        // ⏪ 27/11 (sala da Liga Draft do Anesp, vídeo do Diego: *"se eles avançaram não deveria ter voltado"*): o convidado escalando a
+        // temporada nova "piscava" pra tela do campeão/artilheiros da temporada que JÁ PASSOU. Suspeita: um 2º aparelho/aba do dono
+        // parado lá atrás seguia mandando o estado velho. Trava ESTREITA: só recusa voltar pro FIM de temporada já passada, ou do
+        // draft de volta pro fim. Começo de partida nova (leilão) passa sempre — "novo leilão" nunca fica preso. Anota na caixa-preta.
+        {
+          const cur = stateRef.current
+          const tNext = next.seasonNo ?? 1, tCur = cur.seasonNo ?? 1
+          const volta = !!cur.roomId && next.screen === 'end' && cur.screen !== 'end' && cur.screen !== 'intro' && cur.screen !== 'lobby'
+            && (tNext < tCur || (tNext === tCur && cur.screen === 'draft'))
+          if (volta) {
+            anotaTrava({ room_id: cur.roomId, sala: cur.roomCode || null, papel: 'convidado', momento: 'envelope', setor: null, segundos: 0, reenvios: 0,
+              extra: { quando: 'estado_velho_recusado', tela: cur.screen, temporada: tCur, tela_recebida: next.screen, temporada_recebida: tNext } })
+            return
+          }
+        }
         // ⏱️ acerta o relógio pelo do DONO: todo prazo da sala (leilão, Monte,
         // cerimônia, Copa) nasce no aparelho dele. Sem isso, celular atrasado
         // mostra "154s" onde são 75s — o bug que o Diego pegou em 20/09.
