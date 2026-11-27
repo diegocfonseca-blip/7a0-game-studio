@@ -77,7 +77,8 @@ const AVISO_TROCA_LIGA = false
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useTurnoUnicoLiberado, useEuroLiberada, useAmericaLiberada, useLibertaSalaLiberada, useSuperMundialLiberado, CHAMPIONS_SALA_GERAL, useCarreiraOnline2, useCampo2DLiberado, useTroca2DSala, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
-import { Co2Painel } from './co2-telas'
+import { Co2Painel, Co2Criar, Co2Espera } from './co2-telas'
+import { co2Fechar } from './co2'
 import { montaCarry, type EntradaLiga } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
 import { TemaFundo, MiniTemaSala, temaValido, useTemasDaConta, releMeusTemas, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
@@ -956,7 +957,8 @@ export function EscLobby() {
   const [roomChat, setRoomChat] = useState(true)  // 💬 chat da sala: o host decide na criação (padrão = ligado)
   const [auctionSecs, setAuctionSecs] = useState(45) // ⏱️ tempo do leilão: 45 (padrão), outro nº, ou 0 = host avança no botão
   const [pwModal, setPwModal] = useState<RoomInfo | null>(null) // pedindo senha pra entrar
-  const [co2Aberta, setCo2Aberta] = useState(false) // 🌐 27/11: o cartão CARREIRA ONLINE em "O jogo" abre o painel da carreira online
+  const [co2Aberta, setCo2Aberta] = useState(false) // 🌐 27/11: o cartão CARREIRA ONLINE em "O jogo" está escolhido (os blocos dela aparecem embaixo)
+  const [co2Espera, setCo2Espera] = useState<string | null>(null) // 🌐 27/11: a sala de espera da carreira online, como página
   const [pwEntry, setPwEntry] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
   const [players, setPlayers] = useState<RoomPlayer[]>([])
@@ -3717,14 +3719,10 @@ export function EscLobby() {
 
       {/* 📋 05/11: grátis já está numa Liga Draft e tentou entrar em outra → sai da 1ª (sim) ou fica (não) */}
       {/* 🌐 27/11: o painel da CARREIRA ONLINE aberto pelo cartão de "O jogo" (o mesmo painel de antes, que ficava escondido em Testes e ferramentas) */}
-      {co2Aberta && co2On && (
-        <div className="fixed inset-0 z-[9998] overflow-y-auto p-4" style={{ background: 'rgba(0,0,0,.7)' }} onClick={() => setCo2Aberta(false)}>
-          <div className="max-w-xl mx-auto rounded-2xl p-3" style={{ background: CREAM, border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}`, color: INK }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="uppercase" style={{ ...OSWALD, fontSize: 18 }}>🌐 {tr('Carreira online', 'Online career')}</span>
-              <button type="button" onClick={() => setCo2Aberta(false)} className="border-[2.5px] border-black rounded-lg px-2.5 py-1 font-black text-[12px]" style={{ background: '#fff', ...OSWALD }}>✕ {tr('Fechar', 'Close')}</button>
-            </div>
-            <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} />
+      {co2Espera && co2On && (
+        <div className="fixed inset-0 z-[9998] overflow-y-auto" style={{ background: CREAM }}>
+          <div className="max-w-xl mx-auto p-4">
+            <Co2Espera salaId={co2Espera} onSair={() => { co2Fechar(); setCo2Espera(null) }} />
           </div>
         </div>
       )}
@@ -4285,7 +4283,7 @@ export function EscLobby() {
               {/* 🖥️ no computador os modos ficam TODOS à vista, lado a lado (Diego: "ficam tudo abertas, sem recolher") */}
               <div className="ll-mode-grid" style={{ display: 'grid', gridTemplateColumns: desk ? (nbaSala?'repeat(auto-fill, minmax(200px, 1fr))':'repeat(2, minmax(0, 1fr))') : '1fr 1fr', gap: 8 }}>
               {MODOS.map(m => {
-                const sel = chaveModo(m) === chaveSel // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
+                const sel = chaveModo(m) === chaveSel && !co2Aberta // 📋 a Liga Draft e o Minhas Ligas são as duas 'liga'
                 // 🔜 EM BREVE: modo que o PÚBLICO ainda não tem. O Diego tem acesso de
                 // teste, então pra ele o cartão continua clicável — mas leva o selo,
                 // porque ele pediu pra ver a tela como quem não pode jogar
@@ -4299,7 +4297,7 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button aria-pressed={sel} key={chaveModo(m)} disabled={viceTravado} onClick={() => { if (viceTravado) return; setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); if (m.minha && !minhaSel) setRapidoDeck('both') /* 📋 27/11 (Diego: *"deixe sempre marcado padrão c todos"*): a Liga Draft nasce no baralho Todos; dá pra trocar pra Brasil/Europa e o draft segue o escolhido */; setKingsSala(!!m.kings); setViceSala(!!(m as { vice?: boolean }).vice); if ((m as { vice?: boolean }).vice && !viceSala) { setLigaTamanho(10); setTurnoUnicoSel(true); setViceCartasSel(3) } if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } if ((m as { vice?: boolean }).vice) { setRapidoClubes(false); setPacSelecao(false); setPacDecada(false); setRoomDuplas(false); setRapidoPregao(true); setRapidoHolandes(false); setRapidoEnvUnico(false); if (rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago') setRapidoCopaMode('liga') } }}
+                  <button aria-pressed={sel} key={chaveModo(m)} disabled={viceTravado} onClick={() => { if (viceTravado) return; setCo2Aberta(false); setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); if (m.minha && !minhaSel) setRapidoDeck('both') /* 📋 27/11 (Diego: *"deixe sempre marcado padrão c todos"*): a Liga Draft nasce no baralho Todos; dá pra trocar pra Brasil/Europa e o draft segue o escolhido */; setKingsSala(!!m.kings); setViceSala(!!(m as { vice?: boolean }).vice); if ((m as { vice?: boolean }).vice && !viceSala) { setLigaTamanho(10); setTurnoUnicoSel(true); setViceCartasSel(3) } if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } if ((m as { vice?: boolean }).vice) { setRapidoClubes(false); setPacSelecao(false); setPacDecada(false); setRoomDuplas(false); setRapidoPregao(true); setRapidoHolandes(false); setRapidoEnvUnico(false); if (rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago') setRapidoCopaMode('liga') } }}
                     data-mode={m.v} data-draft={!!m.draft} className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
                     style={{ background: viceCard ? (sel ? 'linear-gradient(135deg,#FF2E93,#FFC400)' : 'linear-gradient(135deg,#FF2E93,#FF7CC8)') : sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta || viceCard ? 1 : 0.55, cursor: viceTravado ? 'not-allowed' : undefined, paddingTop: meta || m.topo ? 26 : undefined, minHeight: 64 }}>
                     {m.topo && !meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1" style={{ background: INK, color: GOLD, borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', ...OSWALD }}>{m.topo}</span>}
@@ -4318,9 +4316,9 @@ export function EscLobby() {
               {/* 🌐 27/11 (Diego: *"já faz logo… pra mim e Futpoint aparecer"*): a CARREIRA ONLINE vira um cartão em "O jogo", ao lado dos
                   outros modos. Ela tem caminho próprio (regra de 19/10: não mexe nas salas daqui) — o cartão só abre o painel dela. */}
               {co2On && !nbaSala && (
-                <button type="button" onClick={() => setCo2Aberta(true)} data-mode="carreira-online"
+                <button type="button" aria-pressed={co2Aberta} onClick={() => setCo2Aberta(true)} data-mode="carreira-online"
                   className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
-                  style={{ background: CREAM, border: `2.5px solid ${INK}`, cursor: 'pointer' }}>
+                  style={{ background: co2Aberta ? GOLD : CREAM, border: `2.5px solid ${INK}`, cursor: 'pointer', boxShadow: co2Aberta ? `3px 3px 0 ${INK}` : undefined }}>
                   <span className="min-w-0">
                     <span className="flex items-center justify-center gap-1.5 flex-wrap">
                       <span className="text-black text-[14px] uppercase" style={OSWALD}>🌐 {tr('Carreira online', 'Online career')}</span>
@@ -4402,6 +4400,17 @@ export function EscLobby() {
         )
         let secN = criar2 ? 1 : 0
         const proxSec = () => ++secN // 🔢 os blocos numeram na ordem em que aparecem (cada modo mostra os seus)
+        // 🌐 27/11 (Diego: *"padrão de criação de sala igual as outras… igual liga draft"*): a carreira online escolhida em "O jogo"
+        // mostra os blocos DELA (mesmo Section das salas) e o botão no pé — nada das salas daqui muda.
+        if (co2Aberta && co2On && !nbaSala) return (
+          <ClaroCtx.Provider value>
+          <style>{CRIAR_CLARO_CSS}</style>
+          <div className="cs-claro space-y-3" style={{ maxWidth: desk ? 760 : undefined, margin: desk ? '0 auto' : undefined }}>
+            {modeChooser}
+            <Co2Criar nomeClube={stripEmoji(nameOf()).trim()} Secao={Section} primeiro={criar2 ? 2 : 1} onAbre={id => setCo2Espera(id)} />
+          </div>
+          </ClaroCtx.Provider>
+        )
         return (
         <ClaroCtx.Provider value>
         <style>{CRIAR_CLARO_CSS}</style>
