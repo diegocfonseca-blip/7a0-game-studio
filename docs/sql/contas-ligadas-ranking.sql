@@ -65,3 +65,7 @@ insert into esc_contas_ligadas (conta, grupo, motivo, criado_em, desde, solo_nao
  ('56ed8d29-974a-4f47-b457-411249927ad2','oliveira30','Oliveira FC 30', now(), '2026-09-24', true),
  ('665e49ba-70f1-474b-ac1a-3bc1838fd97c','oliveira30','Prime FC (apoio)', now(), '2026-09-24', true)
 on conflict do nothing;
+
+-- ✅ 27/11 (Diego: "Sim pode fazer… 2") — vigia de conta dupla: felipefazzio × felipesatzingersantos (criada 20/11): 29 temporadas
+-- só os dois em 7 dias, 29 ligas a 0; a 2ª conta tem 50 salas, todas só com ele. Grupo 'felipefazzio', desde 27/11 22:05 UTC (não retroativo).
+-- insert into esc_contas_ligadas (conta, grupo, motivo) values ('01b01b57-2016-4e1c-8e66-a1af624243c7','felipefazzio',…), ('eff9a1dc-94b3-4034-8cc4-5e1a5d3674a6','felipefazzio',…);
