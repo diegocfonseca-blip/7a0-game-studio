@@ -4,7 +4,11 @@
 // Mensagens no canal só quando ALGO ACONTECE (fase mudou, alguém apertou PRONTO, gaveta mudou, lance do leilão) —
 // nunca periódicas (regra das mensagens do Supabase, `npm run canal`).
 import { useEffect, useState } from 'react'
+import {Co2Fila} from './co2-sincronia'
+import {tokenDoAparelhoCo2,soltaAparelhoCo2} from './co2-aparelho'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { Co2Jogo, Co2JogoMeta } from './co2-jogo-model'
+import type { CareerLiveDecision } from './career-live-plan'
 import { supabase } from '../lib/supabase'
 
 export type Co2Fase = 'espera' | 'preparo' | 'jogando' | 'virada' | 'fim'
@@ -15,10 +19,10 @@ export type Co2Sala = {
 }
 export type Co2Clube = { sala: string; assento: number; user_id: string; nome: string; pronto_rodada: number | null; na_sala_em: string | null; publico?: Record<string, unknown> }
 /** O que é de todos e não muda a cada rodada: a ordem dos clubes de gente (uid por posição = id do técnico no jogo). */
-export type Co2Mundo = { ordem: string[]; v?: number; /** 🔀 26/11 (Diego): ⚡ Dinâmica = rodadas seguem direto · 🧭 Livre = PRONTO a cada rodada (o padrão de antes) */ modo?: 'dinamica' | 'livre'; /** 🤖 26/11: quantos bots disputam o leilão (0–5, o dono escolhe na largada) */ bots?: number; /** 🌍 27/11 Copa do Mundo única: quem o dono pulou na fila dos convites (sumiu) e os campeões já decididos (pro ranking igual em todo aparelho) */ copaPula?: { season: number; ids: number[] }; copaHist?: { season: number; campeao: string; pais: string }[]; /** 🌎 27/11 Libertadores/Champions únicas: quem o dono pulou na fila dos convites e os títulos carimbados (ranking igual em todo aparelho) */ intlPula?: { season: number; ids: number[] }; intlHist?: import('./co2-internacional').Co2IntlHist[]; /** ⏱️ 27/11: o relógio da vez (o dono carimba quando a vez/fase muda) e as escolhas automáticas (o pior clube; os piores 11 saem do clube, iguais em todo aparelho) */ intlVez?: { season: number; mgrId: number; fase: 'escolha' | 'convoca'; desde: string }; intlAuto?: { season: number; por: Record<number, string | null> }; /** ⏱️ 27/11: o mesmo relógio/automático na Copa do Mundo (seleção carimbada; os piores 11 saem dela) */ copaVez?: { season: number; mgrId: number; fase: 'escolha' | 'convoca'; desde: string }; copaAuto?: { season: number; por: Record<number, string | null> }; /** ⏱️ 27/11 (Diego: *"nas configurações do host p ele escolher os tempos"*): pausa = anúncio/virada · rodada = PRONTO da 🧭 Livre (segundos) */ tempos?: { pausa: number; rodada: number }; /** 🏆 26/11: regras do fim da temporada carimbadas pelo dono (as mesmas em todo aparelho, nunca da conta de cada um) */ fim?: { copaBR: boolean }; /** 🏆 26/11: a escalação da copa do fim, congelada pelo DONO (todo aparelho usa a mesma) */ copaXi?: { season: number; xi: Record<number, string[]> }; /** ⚽🧠 temporada a partir da qual o motor novo decide os jogos de gente (a mesma pra todo aparelho; o dono grava no preparo) */ m2?: number }
+export type Co2Mundo = { ordem: string[]; v?: number; /** 🔀 26/11 (Diego): ⚡ Dinâmica = rodadas seguem direto · 🧭 Livre = PRONTO a cada rodada (o padrão de antes) */ modo?: 'dinamica' | 'livre'; aoVivoDesde?: number; /** 🤖 26/11: quantos bots disputam o leilão (0–5, o dono escolhe na largada) */ bots?: number; /** 🌍 27/11 Copa do Mundo única: quem o dono pulou na fila dos convites (sumiu) e os campeões já decididos (pro ranking igual em todo aparelho) */ copaPula?: { season: number; ids: number[] }; copaHist?: { season: number; campeao: string; pais: string }[]; /** 🌎 27/11 Libertadores/Champions únicas: quem o dono pulou na fila dos convites e os títulos carimbados (ranking igual em todo aparelho) */ intlPula?: { season: number; ids: number[] }; intlHist?: import('./co2-internacional').Co2IntlHist[]; /** ⏱️ 27/11: o relógio da vez (o dono carimba quando a vez/fase muda) e as escolhas automáticas (o pior clube; os piores 11 saem do clube, iguais em todo aparelho) */ intlVez?: { season: number; mgrId: number; fase: 'escolha' | 'convoca'; desde: string }; intlAuto?: { season: number; por: Record<number, string | null> }; /** ⏱️ 27/11: o mesmo relógio/automático na Copa do Mundo (seleção carimbada; os piores 11 saem dela) */ copaVez?: { season: number; mgrId: number; fase: 'escolha' | 'convoca'; desde: string }; copaAuto?: { season: number; por: Record<number, string | null> }; /** ⏱️ 27/11 (Diego: *"nas configurações do host p ele escolher os tempos"*): pausa = anúncio/virada · rodada = PRONTO da 🧭 Livre (segundos) */ tempos?: { pausa: number; rodada: number }; /** 🏆 26/11: regras do fim da temporada carimbadas pelo dono (as mesmas em todo aparelho, nunca da conta de cada um) */ fim?: { copaBR: boolean }; /** 🏆 26/11: a escalação da copa do fim, congelada pelo DONO (todo aparelho usa a mesma) */ copaXi?: { season: number; xi: Record<number, string[]> }; /** ⚽🧠 temporada a partir da qual o motor novo decide os jogos de gente (a mesma pra todo aparelho; o dono grava no preparo) */ m2?: number }
 
-type Snap = { sala: Co2Sala | null; clubes: Co2Clube[]; uid: string | null; aqui: string[]; mundo: Co2Mundo | null }
-let snap: Snap = { sala: null, clubes: [], uid: null, aqui: [], mundo: null }
+type Snap = { aparelho?: string; leilao?: {z:string;em?:string;secreto?:Record<string,unknown>}; conexaoPendente?: boolean; jogos: Co2Jogo[]; desvioJogo?: number; savePendente?: boolean; sala: Co2Sala | null; clubes: Co2Clube[]; uid: string | null; aqui: string[]; mundo: Co2Mundo | null }
+let snap: Snap = { jogos: [], sala: null, clubes: [], uid: null, aqui: [], mundo: null }
 const ouvintes = new Set<() => void>()
 const avisa = () => ouvintes.forEach(f => { try { f() } catch { /* ignora */ } })
 const muda = (p: Partial<Snap>) => { snap = { ...snap, ...p }; avisa() }
@@ -29,99 +33,235 @@ export function useCo2(): Snap {
   return snap
 }
 export const co2Agora = (): Snap => snap
+export function co2AvisoSave(falhou: boolean): void { if (!!snap.savePendente !== falhou) muda({ savePendente: falhou }) }
 
 const COLS_SALA = 'id, codigo, nome, dono, vice, versao, temporada, rodada, fase, prazo, inicio_rodada, auto, velocidade, pausado, comandante'
 const COLS_CLUBE = 'sala, assento, user_id, nome, pronto_rodada, na_sala_em'
 
 // ── ganchos que o EscProvider registra (o leilão compartilhado passa por eles) ──────────────────────────────────────
-type Ganchos = { aoAcao?: (a: unknown) => void; aoEstado?: (z: string) => void; aoPedirEstado?: () => void }
+type Ganchos = { aoAcao?: (a: unknown, autor: string) => boolean; aoEstado?: (z: string) => void; aoPedirEstado?: () => void }
 let ganchos: Ganchos = {}
 export function co2Ganchos(g: Ganchos): () => void { ganchos = { ...ganchos, ...g }; return () => { for (const k of Object.keys(g) as (keyof Ganchos)[]) delete ganchos[k] } }
 
 let canal: RealtimeChannel | null = null
 let canalSala: string | null = null
 let batida: ReturnType<typeof setInterval> | null = null
+let geracao = 0
+let leituraSala = 0, leituraClubes = 0, leituraMundo = 0, leituraJogo = 0
+let limpaRetorno: (() => void) | undefined
+const leiturasPendentes = new Map<string, ReturnType<typeof setTimeout>>()
+const falhasLeitura = new Map<string, number>()
+function avisoLeitura() { const pendente = falhasLeitura.size > 0; if (!!snap.conexaoPendente !== pendente) muda({ conexaoPendente: pendente }) }
+function leituraOk(tipo: string) {
+  const t = leiturasPendentes.get(tipo); if (t) clearTimeout(t)
+  leiturasPendentes.delete(tipo); falhasLeitura.delete(tipo); avisoLeitura()
+}
+function retentaLeitura(tipo: string, tarefa: () => Promise<unknown>) {
+  if (!canalSala || leiturasPendentes.has(tipo)) return
+  const ctx = co2Contexto(), n = falhasLeitura.get(tipo) ?? 0
+  falhasLeitura.set(tipo,n+1); avisoLeitura()
+  leiturasPendentes.set(tipo,setTimeout(()=>{
+    leiturasPendentes.delete(tipo)
+    if(ctx===co2Contexto())void tarefa()
+  },Math.min(30_000,2000*2**Math.min(n,4))))
+}
+/** A mesma carreira reaberta também tem outro contexto: respostas da conexão antiga não entram na nova. */
+export const co2Contexto = (): string => `${geracao}:${canalSala ?? ''}`
+const contextoAtual = (ctx: string): boolean => ctx === co2Contexto() && !!canalSala
 
 async function meuUid(): Promise<string | null> {
   if (snap.uid) return snap.uid
+  const ctx = co2Contexto()
   const { data } = await supabase.auth.getUser()
   const uid = data?.user?.id ?? null
-  muda({ uid })
+  if (ctx === co2Contexto()) muda({ uid })
   return uid
 }
 
-export async function co2RecarregaSala(): Promise<void> {
-  if (!canalSala) return
-  const { data } = await supabase.from('esc_carr_sala').select(COLS_SALA).eq('id', canalSala).maybeSingle()
-  if (data) muda({ sala: data as Co2Sala })
+export async function co2RecarregaSala(): Promise<boolean> {
+  const sala = canalSala, ctx = co2Contexto(), leitura = ++leituraSala
+  if (!sala) return false
+  try {
+    const { data, error } = await supabase.from('esc_carr_sala').select(COLS_SALA).eq('id', sala).maybeSingle()
+    if (!contextoAtual(ctx) || leitura !== leituraSala) return false
+    if (!error && data && contextoAtual(ctx) && leitura === leituraSala) { leituraOk('sala'); muda({ sala: data as Co2Sala }); return true }
+  } catch { /* conserva a última leitura válida */ }
+  if(contextoAtual(ctx) && leitura === leituraSala)retentaLeitura('sala',co2RecarregaSala)
+  return false
 }
 export async function co2RecarregaClubes(): Promise<void> {
-  if (!canalSala) return
-  const { data } = await supabase.from('esc_carr_clube').select(COLS_CLUBE).eq('sala', canalSala).order('assento')
-  if (data) muda({ clubes: data as Co2Clube[] })
+  const sala = canalSala, ctx = co2Contexto(), leitura = ++leituraClubes
+  if (!sala) return
+  try {
+    const { data, error } = await supabase.from('esc_carr_clube').select(COLS_CLUBE).eq('sala', sala).order('assento')
+    if (!contextoAtual(ctx) || leitura !== leituraClubes) return
+    if (!error && data && contextoAtual(ctx) && leitura === leituraClubes) { leituraOk('clubes'); muda({ clubes: data as Co2Clube[] }); return }
+  } catch { /* mantém os clubes já conhecidos */ }
+  if(contextoAtual(ctx) && leitura === leituraClubes)retentaLeitura('clubes',co2RecarregaClubes)
 }
 export async function co2LeMundo(): Promise<Co2Mundo | null> {
-  if (!canalSala) return null
-  // 🐛 26/11: antes lia só ordem/v/m2 — o modo (Dinâmica/Livre), a regra da copa (`fim`) e a escalação congelada da copa
-  // (`copaXi`) nunca chegavam nos aparelhos dos amigos. O mundo é pequeno (uids + 20×11 ids): lê inteiro.
-  const { data } = await supabase.from('esc_carr_sala').select('mundo').eq('id', canalSala).maybeSingle()
-  const d = (data as { mundo?: Co2Mundo | null } | null)?.mundo
-  const mundo = d && Array.isArray(d.ordem) ? d : null
-  muda({ mundo })
-  return mundo
+  const sala = canalSala, ctx = co2Contexto(), leitura = ++leituraMundo
+  if (!sala) return null
+  try {
+    const { data, error } = await supabase.from('esc_carr_sala').select('mundo').eq('id', sala).maybeSingle()
+    if (!contextoAtual(ctx) || leitura !== leituraMundo) return null
+    if (error || !data) { retentaLeitura('mundo',co2LeMundo); return null }
+    leituraOk('mundo')
+    const d = (data as { mundo?: Co2Mundo | null }).mundo
+    const mundo = d && Array.isArray(d.ordem) ? d : null
+    if (mundo) muda({ mundo })
+    return mundo
+  } catch { if(contextoAtual(ctx) && leitura === leituraMundo)retentaLeitura('mundo',co2LeMundo); return null }
 }
-/** As gavetas públicas de todos (só quando precisa: ao entrar e quando alguém avisa que mexeu). */
-export async function co2LeGavetas(): Promise<Co2Clube[]> {
-  if (!canalSala) return []
-  const { data } = await supabase.from('esc_carr_clube').select(COLS_CLUBE + ', publico').eq('sala', canalSala).order('assento')
-  return (data ?? []) as unknown as Co2Clube[]
+/** null = consulta falhou; [] = consulta bem-sucedida sem clubes. Nunca simular uma falha como uma lista vazia. */
+export async function co2LeGavetasConferidas(): Promise<Co2Clube[] | null> {
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return null
+  try {
+    const { data, error } = await supabase.from('esc_carr_clube').select(COLS_CLUBE + ', publico').eq('sala', sala).order('assento')
+    return error || !data || !contextoAtual(ctx) ? null : data as unknown as Co2Clube[]
+  } catch { return null }
 }
+export async function co2LeGavetas(): Promise<Co2Clube[]> { return await co2LeGavetasConferidas() ?? [] }
 
 export async function co2Abrir(salaId: string): Promise<void> {
   if (canalSala === salaId && canal) return
   co2Fechar()
   canalSala = salaId
+  muda({aparelho:"verificando"})
+  const ctx = co2Contexto()
   const uid = await meuUid()
+  if (!contextoAtual(ctx)) return
   await Promise.all([co2RecarregaSala(), co2RecarregaClubes(), co2LeMundo()])
+  if (!contextoAtual(ctx)) return
+  await co2RecarregaJogos(true)
+  if (!contextoAtual(ctx)) return
+  const token=await tokenDoAparelhoCo2(uid??'anon',salaId)
+  if(!contextoAtual(ctx))return
+  tokenAparelho=token
+  await co2VerificaAparelho(true)
+  if (!contextoAtual(ctx)) return
   const ch = supabase.channel(`co2:${salaId}`, { config: { presence: { key: uid ?? 'anon' }, broadcast: { self: false } } })
-  ch.on('broadcast', { event: 'sala' }, () => { void co2RecarregaSala(); void co2LeMundo() })
-  ch.on('broadcast', { event: 'clubes' }, () => { void co2RecarregaClubes() })
-  ch.on('broadcast', { event: 'acao' }, ({ payload }: { payload: unknown }) => ganchos.aoAcao?.(payload))
-  ch.on('broadcast', { event: 'estado' }, ({ payload }: { payload: { z?: string } }) => { if (typeof payload?.z === 'string') ganchos.aoEstado?.(payload.z) })
-  ch.on('broadcast', { event: 'pedir_estado' }, () => ganchos.aoPedirEstado?.())
+  ch.on('broadcast', { event: 'sala' }, () => { if (contextoAtual(ctx)) { void co2RecarregaSala().then(() => co2RecarregaJogos()); void co2LeMundo() } })
+  ch.on('broadcast', { event: 'clubes' }, () => { if (contextoAtual(ctx)) void co2RecarregaClubes() })
+  ch.on('broadcast', { event: 'leilao' }, () => { if (contextoAtual(ctx)) void co2PuxaSinais() })
+
+  ch.on('broadcast', { event: 'pedir_estado' }, () => { if (contextoAtual(ctx)) ganchos.aoPedirEstado?.() })
+  ch.on('broadcast', { event: 'jogo' }, () => { if (contextoAtual(ctx)) void co2RecarregaJogos() })
   ch.on('presence', { event: 'sync' }, () => {
     const st = ch.presenceState() as Record<string, unknown[]>
-    muda({ aqui: Object.keys(st) })
+    if (contextoAtual(ctx)) muda({ aqui: Object.keys(st) })
   })
-  ch.subscribe(st => { if (st === 'SUBSCRIBED') void ch.track({ uid }) })
+  const retorna = () => {
+    if (!contextoAtual(ctx)) return
+    void co2RecarregaSala(); void co2RecarregaClubes(); void co2LeMundo(); void co2RecarregaJogos(true)
+    void co2PuxaSinais(); void co2VerificaAparelho()
+    co2Envia('pedir_estado')
+  }
   canal = ch
-  // 🕰️ "na sala" no banco (o vice só assume se o dono não deu sinal há 2 min) — 1 gravação por minuto, só banco
-  void supabase.rpc('esc_carr_presenca', { p_sala: salaId, p_aqui: true }).then(() => {}, () => {})
-  batida = setInterval(() => { void supabase.rpc('esc_carr_presenca', { p_sala: salaId, p_aqui: true }).then(() => {}, () => {}) }, 60_000)
+  ch.subscribe(st => { if (st === 'SUBSCRIBED' && contextoAtual(ctx)) { void ch.track({ uid }); retorna() } })
+  if (typeof window !== 'undefined') {
+    const visivel = () => { if (document.visibilityState === 'visible') retorna() }
+    window.addEventListener('online', retorna)
+    document.addEventListener('visibilitychange', visivel)
+    limpaRetorno = () => { window.removeEventListener('online', retorna); document.removeEventListener('visibilitychange', visivel) }
+  }
+  // 🕰️ Presença no banco (sem vice e sem troca automática de dono) — 1 gravação por minuto, só banco
+  void co2Rpc('esc_carr_presenca', { p_sala: salaId, p_aqui: true }).then(() => {}, () => {})
+  batida = setInterval(() => { void co2VerificaAparelho(); void co2Rpc('esc_carr_presenca', { p_sala: salaId, p_aqui: true }).then(() => {}, () => {}) }, 60_000)
 }
 export function co2Fechar(): void {
+  if(canalSala&&tokenAparelho)void co2Rpc('esc_carr_aparelho',{p_sala:canalSala,p_token:tokenAparelho,p_sair:true})
+  for(const q of sinaisEnvio.values())q.fecha()
+  sinaisEnvio.clear();ultimaAcao=0;ultimoEstado=0;sinaisNovos=false;tokenAparelho='';lendoSinais=false
+  soltaAparelhoCo2()
+  ++geracao
+  for(const t of leiturasPendentes.values())clearTimeout(t)
+  leiturasPendentes.clear();falhasLeitura.clear()
+  limpaRetorno?.(); limpaRetorno = undefined
   if (batida) { clearInterval(batida); batida = null }
-  if (canalSala) void supabase.rpc('esc_carr_presenca', { p_sala: canalSala, p_aqui: false }).then(() => {}, () => {})
+  if (canalSala) void co2Rpc('esc_carr_presenca', { p_sala: canalSala, p_aqui: false }).then(() => {}, () => {})
   try { canal?.unsubscribe() } catch { /* ignora */ }
   canal = null; canalSala = null
-  muda({ sala: null, clubes: [], aqui: [], mundo: null })
+  muda({ sala: null, clubes: [], uid: null, aqui: [], mundo: null, aparelho: undefined,leilao:undefined,savePendente: false, conexaoPendente: false, jogos: [], desvioJogo: 0 })
 }
-export function co2Envia(event: 'sala' | 'clubes' | 'acao' | 'estado' | 'pedir_estado', payload: unknown = {}): void {
+export function co2Envia(event: 'sala' | 'clubes' | 'acao' | 'estado' | 'pedir_estado' | 'jogo' | 'leilao', payload: unknown = {}): void {
+  if(event==='acao'||event==='estado'){if(co2PodeEscrever())enfileiraSinal(event,payload);return}
   void canal?.send({ type: 'broadcast', event, payload })
+}
+
+
+const MUTACOES=new Set(['esc_carr_continuar','esc_carr_encerrar_dia','esc_carr_gaveta','esc_carr_mundo','esc_carr_pronto','esc_carr_comecar','esc_carr_apito','esc_carr_ritmo','esc_carr_virada_salva','esc_carr_jogo_foto','esc_carr_jogo_troca','esc_carr_jogo_comecar','esc_carr_jogo_apito','esc_carr_jogo_ritmo','esc_carr_jogo_lesao'])
+let tokenAparelho='',ultimaAcao=0,ultimoEstado=0,lendoSinais=false,sinaisNovos=false
+const sinaisEnvio=new Map<string,Co2Fila<any>>()
+export const co2PodeEscrever=()=>snap.aparelho==='ok'
+async function co2Rpc(nome:string,args?:Record<string,unknown>):Promise<any>{
+ if(!MUTACOES.has(nome))return supabase.rpc(nome,args)
+ if(!co2PodeEscrever()||!canalSala)return {data:'outro_aparelho',error:null}
+ const r=await supabase.rpc('esc_carr_comando',{p_sala:canalSala,p_token:tokenAparelho,p_funcao:nome,p_args:args})
+ if(r.data==='outro_aparelho')muda({aparelho:'ocupado'})
+ return r
+}
+export async function co2VerificaAparelho(entrar=false):Promise<boolean>{
+ const ctx=co2Contexto(),sala=canalSala
+ if(!sala)return false
+ if(!tokenAparelho)tokenAparelho=crypto.randomUUID()
+ try{
+  const {data,error}=await supabase.rpc('esc_carr_aparelho',{p_sala:sala,p_token:tokenAparelho,p_entrar:entrar})
+  if(!contextoAtual(ctx))return false
+  muda({aparelho:!error&&data==='ok'?'ok':data==='ocupado'||data==='reabrir'?'ocupado':'erro'})
+ }catch{if(contextoAtual(ctx))muda({aparelho:'erro'})}
+ return contextoAtual(ctx)&&co2PodeEscrever()
+}
+function enfileiraSinal(tipo:'acao'|'estado',dados:unknown){
+ const ctx=co2Contexto(),sala=canalSala,token=tokenAparelho,key=tipo==='estado'?'estado':crypto.randomUUID()
+ let q=sinaisEnvio.get(key)
+ if(!q){q=new Co2Fila(async p=>{
+  if(!contextoAtual(ctx)||!co2PodeEscrever())return false
+  const {data,error}=await supabase.rpc('esc_carr_sinal_envia',{p_sala:sala,p_token:token,p_pedido:p.id,p_tipo:tipo,p_dados:p.dados})
+  if(error||!contextoAtual(ctx))return false
+  if(data==='invalido'||data==='sem_permissao'){muda({savePendente:true});return true}
+  if(data!=='ok')return false
+  co2Envia('leilao');if(tipo==='acao'){sinaisEnvio.delete(key)}
+  return true
+ },falhou=>{if(contextoAtual(ctx))co2AvisoSave(falhou)},0);sinaisEnvio.set(key,q)}
+ q.atualiza(crypto.randomUUID(),{id:crypto.randomUUID(),dados:tipo==='estado'?{...(dados as object),_acoes:ultimaAcao}:dados})
+}
+export async function co2PuxaSinais():Promise<void>{
+ const sala=canalSala,ctx=co2Contexto()
+ if(!sala)return
+ if(lendoSinais){sinaisNovos=true;return}
+ lendoSinais=true;sinaisNovos=false
+ try{
+  for(let lote=0;lote<20;lote++){
+   const {data,error}=await supabase.rpc('esc_carr_sinais_le',{p_sala:sala,p_depois:ultimaAcao})
+   if(error||!data||!contextoAtual(ctx)){if(contextoAtual(ctx))retentaLeitura('sinais',co2PuxaSinais);return}
+   leituraOk('sinais')
+   const d=data as any,est=d.estado
+   if(est?.seq>ultimoEstado&&typeof est.dados?.z==='string'){
+    ultimoEstado=est.seq;muda({leilao:{...est.dados,em:est.em}});
+    if(snap.sala?.comandante===snap.uid)ultimaAcao=Math.max(ultimaAcao,Number(est.dados._acoes)||0)
+    ganchos.aoEstado?.(est.dados.z)
+   }
+   const acoes=Array.isArray(d.acoes)?d.acoes:[]
+   for(const a of acoes)if(a.seq>ultimaAcao){if(ganchos.aoAcao?.(a.dados,a.autor)!==true)return;ultimaAcao=a.seq}
+   if(acoes.length<100)break
+  }
+ }catch{if(contextoAtual(ctx))retentaLeitura('sinais',co2PuxaSinais)}finally{if(contextoAtual(ctx)){lendoSinais=false;if(sinaisNovos)void co2PuxaSinais()}}
 }
 
 // ── funções do banco ────────────────────────────────────────────────────────────────────────────────────────────────
 export async function co2PodeCriar(): Promise<boolean> {
-  const { data } = await supabase.rpc('esc_carr_pode_criar')
+  const { data } = await co2Rpc('esc_carr_pode_criar')
   return data === true
 }
 export async function co2Criar(nome: string, clube: string, baralho: 'br' | 'todos' = 'todos'): Promise<{ id?: string; codigo?: string; erro?: string }> {
-  const { data, error } = await supabase.rpc('esc_carr_criar', { p_nome: nome, p_clube: clube, p_baralho: baralho, p_versao: '' })
+  const { data, error } = await co2Rpc('esc_carr_criar', { p_nome: nome, p_clube: clube, p_baralho: baralho, p_versao: '' })
   if (error) return { erro: error.message }
   return data as { id?: string; codigo?: string; erro?: string }
 }
 export async function co2Entrar(codigo: string, clube: string): Promise<{ id?: string; erro?: string; pedido?: boolean; status?: string; outra_sala?: string; outra_nome?: string }> {
-  const { data, error } = await supabase.rpc('esc_carr_entrar', { p_codigo: codigo, p_clube: clube })
+  const { data, error } = await co2Rpc('esc_carr_entrar', { p_codigo: codigo, p_clube: clube })
   if (error) return { erro: error.message }
   return data as { id?: string; erro?: string; pedido?: boolean; status?: string; outra_sala?: string; outra_nome?: string }
 }
@@ -130,26 +270,26 @@ export async function co2Entrar(codigo: string, clube: string): Promise<{ id?: s
 export type Co2Pedido = { user_id: string; nome: string; mgr: number | null; status: 'pedido' | 'aceito' }
 export async function co2Pedidos(): Promise<Co2Pedido[]> {
   if (!canalSala) return []
-  const { data, error } = await supabase.rpc('esc_carr_pedidos', { p_sala: canalSala })
+  const { data, error } = await co2Rpc('esc_carr_pedidos', { p_sala: canalSala })
   return error || !Array.isArray(data) ? [] : (data as Co2Pedido[])
 }
 export async function co2MeusPedidos(): Promise<{ sala: string; nome: string; status: string; carreira: string }[]> {
-  const { data, error } = await supabase.rpc('esc_carr_meu_pedido')
+  const { data, error } = await co2Rpc('esc_carr_meu_pedido')
   return error || !Array.isArray(data) ? [] : (data as { sala: string; nome: string; status: string; carreira: string }[])
 }
 export async function co2PedidoDecide(user: string, mgr: number | null): Promise<string> {
   if (!canalSala) return 'erro'
-  const { data, error } = await supabase.rpc('esc_carr_pedido_decide', { p_sala: canalSala, p_user: user, p_mgr: mgr })
+  const { data, error } = await co2Rpc('esc_carr_pedido_decide', { p_sala: canalSala, p_user: user, p_mgr: mgr })
   return error ? 'erro' : String(data ?? 'erro')
 }
 export async function co2PedidoEntra(user: string, mgr: number): Promise<string> {
   if (!canalSala) return 'erro'
-  const { data, error } = await supabase.rpc('esc_carr_pedido_entra', { p_sala: canalSala, p_user: user, p_mgr: mgr })
+  const { data, error } = await co2Rpc('esc_carr_pedido_entra', { p_sala: canalSala, p_user: user, p_mgr: mgr })
   return error ? 'erro' : String(data ?? 'erro')
 }
 // 🚪 27/11 (Diego): sem plano, UMA carreira só; quem sai deixa o clube pra máquina (elenco e tudo), e os outros são avisados
 export async function co2Sair(sala: string): Promise<string> {
-  const { data, error } = await supabase.rpc('esc_carr_sair', { p_sala: sala })
+  const { data, error } = await co2Rpc('esc_carr_sair', { p_sala: sala })
   if (error) return 'erro'
   try { const r = localStorage.getItem('esc-co2-atual'); if (r && (JSON.parse(r) as { sala?: string }).sala === sala) localStorage.removeItem('esc-co2-atual') } catch { /* ignora */ }
   return String(data ?? 'erro')
@@ -157,28 +297,28 @@ export async function co2Sair(sala: string): Promise<string> {
 export type Co2Saida = { user_id: string; nome: string; mgr: number | null; em: string; aplicada: boolean }
 export async function co2Saidas(): Promise<Co2Saida[]> {
   if (!canalSala) return []
-  const { data, error } = await supabase.rpc('esc_carr_saidas', { p_sala: canalSala })
+  const { data, error } = await co2Rpc('esc_carr_saidas', { p_sala: canalSala })
   return error || !Array.isArray(data) ? [] : (data as Co2Saida[])
 }
 export async function co2SaidaAplicada(mgr: number): Promise<void> {
   if (!canalSala) return
-  await supabase.rpc('esc_carr_saida_aplicada', { p_sala: canalSala, p_mgr: mgr }).then(() => {}, () => {})
+  await co2Rpc('esc_carr_saida_aplicada', { p_sala: canalSala, p_mgr: mgr }).then(() => {}, () => {})
 }
 // 🐤 27/11 (Diego): TUITER — a rede da turma. Posts de gente ficam no banco (80 letras, sem link nem palavrão); os automáticos
 // (O Martelo, copas, bots) cada aparelho monta pelo mundo da carreira. Leitura só com o TUITER aberto (a cada 60 s).
 export type Co2Tuite = { id: number; user_id: string; nome: string; texto: string; resp: number | null; em: string; reacoes: Record<string, number>; minhas: string[]; respostas: number }
 export async function co2Tuites(): Promise<Co2Tuite[] | null> {
   if (!canalSala) return null
-  const { data, error } = await supabase.rpc('esc_carr_tuites', { p_sala: canalSala })
+  const { data, error } = await co2Rpc('esc_carr_tuites', { p_sala: canalSala })
   return error || !Array.isArray(data) ? null : (data as Co2Tuite[])
 }
 export async function co2Tuitar(texto: string, resp: number | null): Promise<{ id?: number; erro?: string }> {
   if (!canalSala) return { erro: 'sala' }
-  const { data, error } = await supabase.rpc('esc_carr_tuitar', { p_sala: canalSala, p_texto: texto, p_resp: resp })
+  const { data, error } = await co2Rpc('esc_carr_tuitar', { p_sala: canalSala, p_texto: texto, p_resp: resp })
   return error ? { erro: 'rede' } : (data as { id?: number; erro?: string })
 }
 export async function co2TuiteReagir(id: number, emoji: string): Promise<string> {
-  const { data, error } = await supabase.rpc('esc_carr_tuite_reagir', { p_tuite: id, p_emoji: emoji })
+  const { data, error } = await co2Rpc('esc_carr_tuite_reagir', { p_tuite: id, p_emoji: emoji })
   return error ? 'erro' : String(data ?? 'erro')
 }
 export async function co2MinhasSalas(): Promise<(Co2Sala & { assento: number; meuClube: string })[]> {
@@ -191,87 +331,198 @@ export async function co2MinhasSalas(): Promise<(Co2Sala & { assento: number; me
   return ((salas ?? []) as Co2Sala[]).map(s => { const m = lista.find(l => l.sala === s.id)!; return { ...s, assento: m.assento, meuClube: m.nome } })
 }
 export async function co2Continuar(prazoS = 60): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data } = await supabase.rpc('esc_carr_continuar', { p_sala: canalSala, p_prazo_s: prazoS })
+  const sala=canalSala,ctx=co2Contexto()
+  if (!sala) return 'erro'
+  const { data } = await co2Rpc('esc_carr_continuar', { p_sala: sala, p_prazo_s: prazoS })
+  if(!contextoAtual(ctx))return 'erro'
+  if(data==='ok'){await co2RecarregaSala();await co2LeMundo();await co2PuxaSinais();if(contextoAtual(ctx))co2Envia('sala')}
   return String(data ?? 'erro')
 }
 export async function co2Mundo(fase: Exclude<Co2Fase, 'espera'>, temporada: number | null, rodada: number | null, mundo: Co2Mundo | null, prazoS: number | null = null): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data } = await supabase.rpc('esc_carr_mundo', { p_sala: canalSala, p_fase: fase, p_temporada: temporada, p_rodada: rodada, p_mundo: mundo, p_prazo_s: prazoS })
-  if (data === 'ok') { co2Envia('sala'); await co2RecarregaSala(); if (mundo) muda({ mundo }) }
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return 'erro'
+  const { data } = await co2Rpc('esc_carr_mundo', { p_sala: sala, p_fase: fase, p_temporada: temporada, p_rodada: rodada, p_mundo: mundo, p_prazo_s: prazoS })
+  if (!contextoAtual(ctx)) return 'erro'
+  if (data === 'ok') { co2Envia('sala'); await co2RecarregaSala(); if (mundo && contextoAtual(ctx)) await co2LeMundo() }
   return String(data ?? 'erro')
 }
 export async function co2Gaveta(publico: Record<string, unknown>): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data } = await supabase.rpc('esc_carr_gaveta', { p_sala: canalSala, p_publico: publico })
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return 'erro'
+  const { data } = await co2Rpc('esc_carr_gaveta', { p_sala: sala, p_publico: publico })
+  if (!contextoAtual(ctx)) return 'erro'
   if (data === 'ok') co2Envia('clubes')
   return String(data ?? 'erro')
 }
 export async function co2Pronto(rodada: number, escala: Record<string, unknown> = {}): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data } = await supabase.rpc('esc_carr_pronto', { p_sala: canalSala, p_rodada: rodada, p_escala: escala })
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return 'erro'
+  const { data } = await co2Rpc('esc_carr_pronto', { p_sala: sala, p_rodada: rodada, p_escala: escala })
+  if (!contextoAtual(ctx)) return 'erro'
   if (data === 'ok') { co2Envia('clubes'); await co2RecarregaClubes() }
   return String(data ?? 'erro')
 }
 export async function co2Comecar(): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data } = await supabase.rpc('esc_carr_comecar', { p_sala: canalSala })
-  if (data === 'ok') { co2Envia('sala'); await co2RecarregaSala() }
+  const sala = canalSala, ctx = co2Contexto(), esperado = snap.sala
+  if (!sala || !esperado) return 'erro'
+  const ativo = co2JogoAtivo()
+  const { data } = await co2Rpc(ativo ? 'esc_carr_jogo_comecar' : 'esc_carr_comecar', { p_sala: sala, ...(ativo ? { p_temporada: esperado.temporada, p_rodada: esperado.rodada } : {}) })
+  if (!contextoAtual(ctx)) return 'erro'
+  // A resposta pode cair DEPOIS de o servidor ter começado. Conferir, sem iniciar outra rodada.
+  if (data === 'ok' || data === 'fora_de_hora') {
+    await co2RecarregaSala()
+    if (!contextoAtual(ctx)) return 'erro'
+    const atual = snap.sala
+    if (data === 'ok' || atual?.temporada === esperado.temporada && atual.rodada === esperado.rodada && atual.fase === 'jogando') { co2Envia('sala'); return 'ok' }
+  }
   return String(data ?? 'erro')
 }
 export async function co2Apito(rodada: number, prazoS = 60): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data } = await supabase.rpc('esc_carr_apito', { p_sala: canalSala, p_rodada: rodada, p_prazo_s: prazoS })
-  if (data === 'ok') { co2Envia('sala'); await co2RecarregaSala() }
+  const sala = canalSala, ctx = co2Contexto(), esperado = snap.sala
+  if (!sala || !esperado) return 'erro'
+  const ativo = co2JogoAtivo()
+  const { data } = await co2Rpc(ativo ? 'esc_carr_jogo_apito' : 'esc_carr_apito', { p_sala: sala, p_rodada: rodada, p_prazo_s: prazoS, ...(ativo ? { p_temporada: esperado.temporada } : {}) })
+  if (!contextoAtual(ctx)) return 'erro'
+  if (data === 'ok' || data === 'fora_de_hora') {
+    await co2RecarregaSala()
+    if (!contextoAtual(ctx)) return 'erro'
+    const atual = snap.sala
+    if (data === 'ok' || atual?.temporada === esperado.temporada && atual.rodada >= rodada) {
+      co2Envia('sala'); if (co2JogoAtivo()) await co2RecarregaJogos(); return 'ok'
+    }
+  }
   return String(data ?? 'erro')
 }
 export async function co2Ritmo(auto: boolean, velocidade: number, pausado: boolean): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data } = await supabase.rpc('esc_carr_ritmo', { p_sala: canalSala, p_auto: auto, p_velocidade: velocidade, p_pausado: pausado })
-  if (data === 'ok') { co2Envia('sala'); await co2RecarregaSala() }
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return 'erro'
+  const { data } = await co2Rpc(co2JogoAtivo() ? 'esc_carr_jogo_ritmo' : 'esc_carr_ritmo', { p_sala: sala, p_auto: auto, p_velocidade: velocidade, p_pausado: pausado })
+  if (!contextoAtual(ctx)) return 'erro'
+  if (data === 'ok') { co2Envia('sala'); await co2RecarregaSala(); if (co2JogoAtivo()) { co2Envia('jogo'); await co2RecarregaJogos() } }
   return String(data ?? 'erro')
 }
 export async function co2EncerrarDia(): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data } = await supabase.rpc('esc_carr_encerrar_dia', { p_sala: canalSala })
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return 'erro'
+  const { data } = await co2Rpc('esc_carr_encerrar_dia', { p_sala: sala })
+  if (!contextoAtual(ctx)) return 'erro'
   if (data === 'ok') { co2Envia('sala'); await co2RecarregaSala() }
   return String(data ?? 'erro')
 }
 export async function co2Vice(vice: string | null): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data } = await supabase.rpc('esc_carr_vice', { p_sala: canalSala, p_vice: vice })
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return 'erro'
+  const { data } = await co2Rpc('esc_carr_vice', { p_sala: sala, p_vice: vice })
+  if (!contextoAtual(ctx)) return 'erro'
   if (data === 'ok') { co2Envia('sala'); await co2RecarregaSala() }
   return String(data ?? 'erro')
 }
 /** Gaveta PRIVADA (dinheiro, Agência, estádio, presidência… — o save do MEU clube). Só eu leio e escrevo. */
 export async function co2SalvaPrivado(dados: Record<string, unknown>): Promise<boolean> {
-  const uid = await meuUid()
-  if (!canalSala || !uid) return false
-  const { error } = await supabase.from('esc_carr_privado').upsert({ sala: canalSala, user_id: uid, dados, atualizado_em: new Date().toISOString() })
-  return !error
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return false
+  try {
+    const uid = await meuUid()
+    if (!uid || !contextoAtual(ctx)) return false
+    if(!co2PodeEscrever())return false
+    const {data,error}=await co2Rpc('esc_carr_privado_guarda',{p_sala:sala,p_token:tokenAparelho,p_dados:dados})
+    if(data==='outro_aparelho')muda({aparelho:'ocupado'})
+    return !error&&data==='ok'&&contextoAtual(ctx)
+  } catch { return false }
 }
 export async function co2LePrivado(): Promise<Record<string, unknown> | null> {
-  const uid = await meuUid()
-  if (!canalSala || !uid) return null
-  const { data } = await supabase.from('esc_carr_privado').select('dados').eq('sala', canalSala).eq('user_id', uid).maybeSingle()
-  return ((data as { dados?: Record<string, unknown> } | null)?.dados) ?? null
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return null
+  try {
+    const uid = await meuUid()
+    if (!uid || !contextoAtual(ctx)) return null
+    const { data, error } = await supabase.from('esc_carr_privado').select('dados').eq('sala', sala).eq('user_id', uid).maybeSingle()
+    return error || !contextoAtual(ctx) ? null : ((data as { dados?: Record<string, unknown> } | null)?.dados) ?? null
+  } catch { return null }
 }
 export const co2SalaAtual = (): string | null => canalSala
 /** 🔄 26/11: a FOTO da virada (estado do fim do leilão de todos), pra quem faltou alcançar. Só quem comanda grava. */
 export async function co2SalvaVirada(temporada: number, z: string): Promise<string> {
-  if (!canalSala) return 'erro'
-  const { data, error } = await supabase.rpc('esc_carr_virada_salva', { p_sala: canalSala, p_temporada: temporada, p_z: z })
-  return error ? 'erro' : String(data ?? 'erro')
+  const sala=canalSala,ctx=co2Contexto(),key=`virada:${temporada}`
+  if (!sala) return 'erro'
+  let fila=sinaisEnvio.get(key)
+  if(!fila){fila=new Co2Fila(async foto=>{
+    if(!contextoAtual(ctx))return false
+    const {data,error}=await co2Rpc('esc_carr_virada_salva',{p_sala:sala,p_temporada:temporada,p_z:foto})
+    return !error&&data==='ok'&&contextoAtual(ctx)
+  },falhou=>{if(contextoAtual(ctx))co2AvisoSave(falhou)},0);sinaisEnvio.set(key,fila)}
+  fila.atualiza(z,z)
+  return await fila.confirma()?'ok':'erro'
 }
+
 export async function co2LeVirada(temporada: number): Promise<string | null> {
   if (!canalSala) return null
-  const { data, error } = await supabase.rpc('esc_carr_virada_le', { p_sala: canalSala, p_temporada: temporada })
+  const { data, error } = await co2Rpc('esc_carr_virada_le', { p_sala: canalSala, p_temporada: temporada })
   return error || typeof data !== 'string' ? null : data
 }
 /** 📸 bancada das fotos/testes (`scripts/foto-co2.mjs`): finge quem sou eu e quem está na sala. Não é usada pelo jogo. */
-export function _bancadaCo2(p: Partial<Snap>): void { muda(p) }
+export function _bancadaCo2(p: Partial<Snap>): void { muda({aparelho:'ok',...p}) }
 
 /** ⏱️ os tempos que o dono escolheu (padrão 60 s cada). O banco aceita de 15 a 300 s. */
 export const TEMPOS_OPCOES = [30, 60, 90, 120, 180] as const
 export const tempoPausa = (m: Co2Mundo | null | undefined): number => m?.tempos?.pausa ?? 60
 export const tempoRodada = (m: Co2Mundo | null | undefined): number => m?.tempos?.rodada ?? 60
+
+
+export const co2JogoAtivo = (): boolean => snap.mundo?.aoVivoDesde != null && (snap.sala?.temporada ?? 0) >= snap.mundo.aoVivoDesde
+export async function co2ProtocoloJogo(): Promise<boolean> {
+  try { const { data, error } = await co2Rpc('esc_carr_jogo_protocolo'); return !error && data === 1 } catch { return false }
+}
+export async function co2RecarregaJogos(todos = false): Promise<boolean> {
+  const sala = snap.sala, ctx = co2Contexto(), leitura = ++leituraJogo
+  if (!sala || !co2JogoAtivo()) return false
+  const rodada = sala.fase === 'jogando' ? sala.rodada : Math.max(0, sala.rodada - 1)
+  try {
+    const inicio = Date.now()
+    const temporadas = todos && sala.temporada > 1 ? [sala.temporada - 1, sala.temporada] : [sala.temporada]
+    const leituras = await Promise.all(temporadas.map(t => co2Rpc('esc_carr_jogos_le', { p_sala: sala.id, p_temporada: t, p_rodada: todos ? null : rodada, p_conhecidas: snap.jogos.filter(j=>j.temporada===t).map(j=>j.rodada) })))
+    if (!contextoAtual(ctx)) return false
+    if (leituras.some(r => r.error || !r.data)) { if(leitura===leituraJogo)retentaLeitura('jogo',()=>co2RecarregaJogos(todos)); return false }
+    const porId = new Map(snap.jogos.map(j => [`${j.temporada}:${j.rodada}`, j]))
+    for (const { data } of leituras) {
+      const d = data as { agora?: string; jogos?: Co2Jogo[] }
+      if (!Array.isArray(d.jogos)) { if(leitura===leituraJogo)retentaLeitura('jogo',()=>co2RecarregaJogos(todos)); return false }
+      for (const j of d.jogos) {
+        if (j.sala !== sala.id) continue
+        const key = `${j.temporada}:${j.rodada}`, old = porId.get(key)
+        if ((!old || j.revisao >= old.revisao) && (j.z || old?.z)) porId.set(key, { ...old, ...j })
+      }
+    }
+    const agora = Date.parse((leituras.at(-1)!.data as { agora: string }).agora)
+    if(leitura===leituraJogo)leituraOk('jogo')
+    muda({ jogos: [...porId.values()].filter(j => j.temporada >= sala.temporada - 1), ...(Number.isFinite(agora) && leitura === leituraJogo ? { desvioJogo: (inicio + Date.now()) / 2 - agora } : {}) })
+    return true
+  } catch { if(contextoAtual(ctx))if(leitura===leituraJogo)retentaLeitura('jogo',()=>co2RecarregaJogos(todos)); return false }
+}
+export async function co2FotoJogo(temporada: number, rodada: number, foto: { z: string; meta: Co2JogoMeta; duracao?: number;chave?:string }): Promise<boolean> {
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return false
+  try {
+    const { data, error } = await co2Rpc('esc_carr_jogo_foto', { p_sala: sala, p_temporada: temporada, p_rodada: rodada, p_z: foto.z, p_meta: { ...foto.meta, ...(foto.chave?{_chave:foto.chave}:{}), _duracao: Math.max(9000,Math.min(180000,Math.round(foto.duracao ?? 90000))) } })
+    if (error || data !== 'ok' || !contextoAtual(ctx)) return false
+    co2Envia('jogo'); return co2RecarregaJogos()
+  } catch { return false }
+}
+export async function co2TrocaJogo(temporada: number, rodada: number, pedido: string, base: number, novas: Omit<CareerLiveDecision, 't'>[]): Promise<string> {
+  const sala = canalSala, ctx = co2Contexto()
+  if (!sala) return 'erro'
+  try {
+    const { data, error } = await co2Rpc('esc_carr_jogo_troca', { p_sala: sala, p_temporada: temporada, p_rodada: rodada, p_pedido: pedido, p_base: base, p_novas: novas })
+    if (error || !contextoAtual(ctx)) return 'erro'
+    if (data === 'ok' || data === 'atualize') { co2Envia('jogo'); if (!await co2RecarregaJogos()) return 'erro' }
+    return String(data ?? 'erro')
+  } catch { return 'erro' }
+}
+
+export async function co2LesaoJogo(temporada:number,rodada:number):Promise<boolean>{
+ const ctx=co2Contexto(),sala=canalSala
+ if(!sala)return false
+ try{const{data,error}=await co2Rpc('esc_carr_jogo_lesao',{p_sala:sala,p_temporada:temporada,p_rodada:rodada});if(error||data!=='ok'||!contextoAtual(ctx))return false;co2Envia('jogo');return co2RecarregaJogos()}catch{return false}
+}
+
+export async function co2ConfirmaEnvios():Promise<boolean>{return (await Promise.all([...sinaisEnvio.values()].map(q=>q.confirma()))).every(Boolean)}

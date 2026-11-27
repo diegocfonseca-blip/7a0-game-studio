@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict'
+import {bancoCo2} from './banco-isolado.mjs'
+const db=await bancoCo2()
+try {
+ const room='00000000-0000-4000-8000-000000000001',owner='00000000-0000-4000-8000-000000000002',guest='00000000-0000-4000-8000-000000000003',outsider='00000000-0000-4000-8000-000000000004'
+ const uid=async id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id])
+ await db.query("insert into esc_carr_sala(id,dono,comandante,temporada,rodada,fase,mundo) values($1,$2,$2,1,0,'jogando',$3)",[room,owner,JSON.stringify({ordem:[owner,guest]})])
+ await db.query('insert into esc_carr_clube values($1,$2,null),($1,$3,null)',[room,owner,guest])
+ const initial=['g','l0','l1','z0','z1','m0','m1','m2','a0','a1','a2'],pos={g:'GOL',g2:'GOL',l0:'LAT',l1:'LAT',l2:'LAT',z0:'ZAG',z1:'ZAG',z2:'ZAG',m0:'MEI',m1:'MEI',m2:'MEI',m3:'MEI',a0:'ATA',a1:'ATA',a2:'ATA',a3:'ATA'}
+ const slot={partida:'jogo',xi:initial,pos,formation:'4-3-3',allowed:{'4-3-3':{GOL:1,LAT:2,ZAG:2,MEI:3,ATA:3}},blocked:['z2']},meta={0:slot,1:slot}
+ const call=async(name,args)=>{const r=await db.query(`select ${name}(${args.map((_,i)=>'$'+(i+1)).join(',')}) as r`,args);return r.rows[0].r}
+ await uid(guest);assert.equal(await call('esc_carr_jogo_foto',[room,1,0,'foto',JSON.stringify(meta)]),'sem_permissao')
+ await uid(owner);assert.equal(await call('esc_carr_jogo_comecar',[room,1,0]),'ok');assert.equal(await call('esc_carr_jogo_comecar',[room,2,0]),'fora_de_hora');assert.equal(await call('esc_carr_jogo_foto',[room,1,0,'foto',JSON.stringify(meta)]),'ok')
+ assert.equal(await call('esc_carr_jogo_foto',[room,1,0,'outro',JSON.stringify(meta)]),'ok');assert.equal((await db.query('select z from esc_carr_jogo')).rows[0].z,'foto','fotografia não pode ser reescrita')
+ const change=async(n,base,novas)=>call('esc_carr_jogo_troca',[room,1,0,`10000000-0000-4000-8000-${String(n).padStart(12,'0')}`,base,JSON.stringify(novas)])
+ await uid(outsider);assert.equal(await change(1,0,[{sai:'a0',entra:'a3'}]),'sem_permissao')
+ await uid(guest);assert.equal(await change(1,0,[{sai:'a0',entra:'a3'}]),'ok')
+ assert.equal(await change(1,0,[{sai:'a0',entra:'a3'}]),'ok','pedido repetido não duplica')
+ let row=(await db.query('select * from esc_carr_jogo')).rows[0]
+ assert.equal(row.comandos['1'].length,1);assert.equal(row.comandos['0'],undefined,'troca do convidado é só dele');assert(row.comandos['1'][0].t>0,'instante vem do servidor')
+ assert.equal(await change(2,0,[{tactic:'ataque'}]),'atualize','revisão velha não apaga troca')
+ assert.equal(await change(3,1,[{sai:'z0',entra:'z2'}]),'invalido','desfalque não pode entrar')
+ assert.equal(await change(4,1,[{sai:'a3',entra:'a0'}]),'invalido','quem saiu não volta')
+ assert.equal(await change(5,1,[{sai:'m0',entra:'m3',t:1}]),'invalido','cliente não escolhe instante passado')
+ assert.equal(await change(6,1,[{sai:'m0',entra:'m3'},{sai:'l0',entra:'l2'}]),'ok')
+ assert.equal(await change(7,3,[{sai:'g',entra:'g2'}]),'invalido','só três substituições')
+ assert.equal(await change(8,3,[{tactic:'ataque'}]),'ok','tática não gasta substituição')
+ assert.equal(await call('esc_carr_jogo_ritmo',[room,true,2,true]),'sem_permissao','convidado não muda ritmo')
+ await uid(owner)
+ await db.exec("update esc_carr_jogo set inicio_em=clock_timestamp()-interval '10 seconds'")
+ assert.equal(await call('esc_carr_jogo_ritmo',[room,true,2,true]),'ok')
+ row=(await db.query('select * from esc_carr_jogo')).rows[0];assert(row.elapsed_ms>=10_000&&row.elapsed_ms<11_000)
+ await db.exec("update esc_carr_jogo set inicio_em=clock_timestamp()-interval '10 seconds'")
+ await call('esc_carr_jogo_ritmo',[room,true,1,false]);const resumed=(await db.query('select * from esc_carr_jogo')).rows[0];assert.equal(resumed.elapsed_ms,row.elapsed_ms,'pausa não conta como tempo jogado')
+ assert.equal(await call('esc_carr_jogo_apito',[room,1,1,60]),'aguarde','não encerra antes do apito')
+ await db.exec('update esc_carr_jogo set elapsed_ms=90000,pausado=true')
+ assert.equal(await call('esc_carr_jogo_apito',[room,1,1,60]),'ok')
+ assert.equal(await call('esc_carr_jogo_apito',[room,1,1,60]),'ok','resposta perdida do apito não trava na repetição')
+ await uid(guest);assert.equal(await change(9,4,[{tactic:'retranca'}]),'fora_de_hora','não muda partida encerrada')
+ const read=await call('esc_carr_jogos_le',[room,1,null]);assert.equal(read.jogos.length,1);assert.equal(read.jogos[0].pedidos,undefined,'não expõe recibos internos')
+ const cached=await call('esc_carr_jogos_le',[room,1,0,[0]]);assert.equal(cached.jogos[0].z,undefined,'atualização não reenvia a fotografia já recebida');assert(cached.jogos[0].comandos['1'].length>0)
+ assert.equal((await db.query("select has_function_privilege('anon','public.esc_carr_jogo_protocolo()','EXECUTE') as p")).rows[0].p,false,'GRANT padrão do projeto não libera a chamada anônima')
+ await db.exec('set role authenticated')
+ assert.equal((await db.query('select count(*) from esc_carr_jogo')).rows[0].count,1)
+ await assert.rejects(db.query("update esc_carr_jogo set z='x'"),/permission denied/)
+ await db.exec('reset role');await uid(outsider);assert.equal(await call('esc_carr_jogos_le',[room,1,null]),null)
+ await db.exec('set role authenticated');assert.equal((await db.query('select count(*) from esc_carr_jogo')).rows[0].count,0);await db.exec('reset role;set role anon')
+ await assert.rejects(call('esc_carr_jogos_le',[room,1,null]),/permission denied/)
+ console.log('✅ PostgreSQL isolado: fotografia imutável, identidade, RLS, idempotência, três trocas, reservas/desfalques, tática, instante do servidor, pausa/velocidade, apito e partida encerrada.')
+} finally { await db.close() }
