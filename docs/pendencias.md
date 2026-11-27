@@ -6,6 +6,11 @@ Correção da disputa dos controles entre a liga e a copa aberta: táticas, nave
 
 Nome corrigido de Arena de Pernambuco para **Arruda**, a pedido de Diego, no catálogo compartilhado por agenda e estádio do Brasil Oficial. Consulta `estadioDoClube("Santa Cruz")` conferida; sem alteração de saves.
 
+## 27/11 — 🔨 PREGÃO ABERTO: CARA NOVA PRA TODOS NA MESA DE UMA CARTA (Diego: *"já bote p todos qd for uma carta apenas.. pra dois ainda não"*)
+- Mesa de UMA carta (até 10 clubes, Vice City, ou sala grande com "uma carta") = `PregaoAbertoNovo` + layout compacto do PC pra TODOS.
+- Mesa de DUAS cartas (11+ clubes) segue no pregão de hoje pra todos; a cara nova das duas mesas continua só na conta do Diego
+  (`usePregaoNovo`). A escolha "uma ou duas cartas" ao criar sala grande também segue só na conta dele (não foi pedido liberar).
+
 ## 27/11 — 📋 LIGA DRAFT: BARALHO TODOS POR PADRÃO + AVISO DO BARALHO NO DRAFT (Diego: *"deixe sempre marcado padrão c todos"*)
 - Conferido: o draft já obedecia o baralho escolhido (Brasil = 773 cartas só do Brasil · Europa = 1.353 só da Europa · Todos = 2.631).
 - Agora a Liga Draft nasce com 🌎 Todos marcado; na criação, o aviso diz o que vale ("🇧🇷 Brasil: no leilão E no draft só cartas do Brasil"

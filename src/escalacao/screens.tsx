@@ -1077,12 +1077,13 @@ export function HoldButton({ onStep, disabled = false, className = '', style, ch
 const MobileAuctionHeaderContext = createContext(false)
 
 export function Shell({ children, bar, presentationHeader, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget, presentationClock }: { presentationHeader?:React.ReactNode; presentationClock?:MatchPresentationClock|null; children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
-  const pregaoNovo = usePregaoNovo() // 🔨 26/11: o pregão de cara nova (layout compacto no PC) só na conta do Diego
+  const pregaoNovoConta = usePregaoNovo() // 🔨 26/11: o pregão de cara nova (layout compacto no PC) — na conta do Diego, as duas mesas também
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
   const { state, dispatch, kickPlayer, leaveRoom: leaveRoomHard } = useEsc()
+  const pregaoNovo = pregaoNovoConta || (!!state.pa && !state.pa.duplo) // 🔨 27/11: mesa de UMA carta = cara nova pra todos
   const ownerVisual = useOwnerOnlineVisual(state)
   // 🌴 19/11: a sala do Vice City leva o pôr do sol neon do pregão pra revelação, temporada, copas e fim (só o fundo)
   const viceSala = !!state.viceCity && (VICE_TELAS as readonly string[]).includes(state.screen)
