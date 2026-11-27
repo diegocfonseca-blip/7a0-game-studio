@@ -2,17 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { EscState, FormationKey } from './types'
 import type { SimMatch, RoundCardMods } from './pyramidseason'
 import { validateLivePlan, type CareerLiveDecision } from './career-live-plan'
-import { co2Contexto, co2FotoJogo, co2JogoAtivo, co2RecarregaJogos, co2TrocaJogo, useCo2 } from './co2'
+import { co2LesaoJogo,co2Contexto, co2FotoJogo, co2JogoAtivo, co2RecarregaJogos, co2TrocaJogo, useCo2 } from './co2'
 import { CO2_TROCAS_HABILITADAS, fotoJogoCo2, leFotoCo2, minutoJogoCo2 } from './co2-jogo-model'
 import { Co2Tentativas } from './co2-sincronia'
 import { useCo2Envio } from './co2-envio'
 import { tr } from './lang'
 const EMPTY: CareerLiveDecision[] = []
 type Pedido = { id: string; season: number; round: number; base: number; novas: Omit<CareerLiveDecision, 't'>[]; contexto: string }
-export function usePartidaCo2(state: EscState, matches: readonly SimMatch[], mods: RoundCardMods, duracao = 90_000) {
-  const sn = useCo2(), contexto = co2Contexto(), active = !!state.co2 && co2JogoAtivo()
+export function usePartidaCo2(state: EscState, matches: readonly SimMatch[], mods: RoundCardMods, duracao = 90_000,opcoes?:{chave?:string;enabled?:boolean}) {
+  const sn = useCo2(), contexto = co2Contexto(), active = !!state.co2 && co2JogoAtivo() && opcoes?.enabled!==false
   const season = state.seasonNo ?? 1, round = state.round - 1, me = state.managers[state.youIdx]
-  const game = active ? sn.jogos.find(j => j.temporada === season && j.rodada === round) : undefined
+  const game = active ? sn.jogos.find(j => j.temporada === season && (opcoes?.chave?j.chave===opcoes.chave:j.rodada===round&&j.chave==null)) : undefined
   const foto = useMemo(() => game ? leFotoCo2(game) : null, [game?.z]) // eslint-disable-line react-hooks/exhaustive-deps
   const slot = me ? foto?.clubes[me.id] : undefined
   const commands = me ? game?.comandos[me.id] ?? EMPTY : EMPTY
@@ -29,14 +29,22 @@ export function usePartidaCo2(state: EscState, matches: readonly SimMatch[], mod
     return () => clearInterval(t)
   }, [active, game, sn.desvioJogo])
   useEffect(() => { if (active) void co2RecarregaJogos(true) }, [active, contexto, season])
-  useEffect(() => { pendingRef.current = null; setPending(null); setNotice('') }, [contexto, season, round])
+  useEffect(() => { pendingRef.current = null; setPending(null); setNotice('') }, [contexto, season, round,opcoes?.chave])
   useEffect(() => {
-    if (!active || !state.co2?.comanda || game || sn.sala?.fase !== 'jogando' || sn.sala.temporada !== season || sn.sala.rodada !== round || !matches.some(m => m.m2)) return
+    if (!active || !state.co2?.comanda || game || !sn.sala || (!opcoes?.chave&&(sn.sala.fase!=='jogando'||sn.sala.rodada!==round)) || sn.sala.temporada !== season || !matches.some(m => m.m2)) return
     const repertorios: Record<number, FormationKey[]> = {}
     for (const g of [...(state.co2.gavetas ?? []), ...(state.co2.minha ? [state.co2.minha] : [])]) if (g.repertorio) repertorios[g.mgrId] = g.repertorio
-    void tentativas.faz(`foto:${season}:${round}`, () => co2FotoJogo(season, round, { ...fotoJogoCo2(state, matches, mods, repertorios), duracao }))
-  }, [active, game, state.co2?.comanda, sn.sala, season, round, agora]) // eslint-disable-line react-hooks/exhaustive-deps
+    void tentativas.faz(`foto:${season}:${opcoes?.chave??round}`, () => co2FotoJogo(season, opcoes?.chave?100:round, { ...fotoJogoCo2(state, matches, mods, repertorios), duracao,chave:opcoes?.chave }))
+  }, [active, game, state.co2?.comanda, sn.sala, season, round, agora,opcoes?.chave]) // eslint-disable-line react-hooks/exhaustive-deps
   const minute = minutoJogoCo2(game, agora - (sn.desvioJogo ?? 0))
+  const pendencias=Object.entries(game?.clinica??{})
+  useEffect(()=>{
+    if(!active||!state.co2?.comanda||!game||!foto)return
+    const devidas=Object.values(foto.clubes).filter(c=>c.lesao&&!game.lesoes?.[c.lesao.mgrId]&&minute>=c.lesao.minute)
+    if(!devidas.length&&!pendencias.length)return
+    if(!pendencias.length)void tentativas.faz(`clinica:${season}:${game.rodada}:${devidas.map(c=>c.lesao?.mgrId).join()}`,()=>co2LesaoJogo(season,game.rodada))
+    if(pendencias.length){const prazo=Math.min(...pendencias.map(([,l])=>Date.parse(l.abriu)))+60000+(sn.desvioJogo??0);const timer=setTimeout(()=>void co2LesaoJogo(season,game.rodada),Math.max(1000,prazo-Date.now()+100));return()=>clearTimeout(timer)}
+  },[active,state.co2?.comanda,game,minute,agora]) // eslint-disable-line react-hooks/exhaustive-deps
   const save = useCo2Envio(contexto, pending?.id ?? '', pending, async p => {
     if (p.contexto !== co2Contexto()) return false
     const r = await co2TrocaJogo(p.season, p.round, p.id, p.base, p.novas)
@@ -53,8 +61,8 @@ export function usePartidaCo2(state: EscState, matches: readonly SimMatch[], mod
     if (!validateLivePlan({ squad: slot.squad, initial: base.ids, formation: base.formation, commands: proposed, existing: commands, allowed: slot.allowed, blocked: new Set(slot.blocked) })) {
       setNotice(tr('Confira os jogadores disponíveis, a formação e o limite de três substituições.', 'Check available players, formation and the three-substitution limit.')); return
     }
-    const p: Pedido = { id: crypto.randomUUID(), season, round, base: commands.length, novas, contexto }
+    const p: Pedido = { id: crypto.randomUUID(), season, round:game.rodada, base: commands.length, novas, contexto }
     pendingRef.current = p; setPending(p); setNotice(tr('Confirmando alteração…', 'Confirming change…'))
   }
-  return { active, canChange: active && CO2_TROCAS_HABILITADAS, game, slot, commands, minute, paused: game?.pausado ?? true, ready: !!game && minute >= 93, notice, send }
+  return { active, canChange: active && CO2_TROCAS_HABILITADAS, game, slot, commands, minute, clinica:me?game?.clinica?.[me.id]:undefined,paused: game?.pausado ?? true, ready: !!game && minute >= 93, notice, send }
 }

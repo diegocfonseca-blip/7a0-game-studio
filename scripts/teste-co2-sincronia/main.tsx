@@ -20,6 +20,8 @@ const sb = supabase as any
 sb.auth.getUser = async () => ({ data: { user: { id: uid } } })
 sb.channel = () => ({ on() { return this }, subscribe() { return this }, unsubscribe() {}, send() {}, track() {} })
 sb.rpc = async (name: string, args: any) => {
+  if(name==='esc_carr_comando'){name=args.p_funcao;args=args.p_args}
+  if(name==='esc_carr_sinais_le')return{data:{estado:null,acoes:[]}}
   if (name === 'esc_carr_gaveta') { W.qa.gravacoes++; return { data: W.qa.falhaEnvio ? 'erro' : 'ok' } }
   if (name === 'esc_carr_pronto') { W.qa.prontos++; clubes.find(c=>c.user_id===uid)!.pronto_rodada = args.p_rodada }
   if (name === 'esc_carr_comecar') { W.qa.inicios++; if (W.qa.falhaInicio) return { data: 'erro' }; sala = { ...sala, fase: 'jogando' } }

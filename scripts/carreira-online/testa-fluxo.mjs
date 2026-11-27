@@ -284,6 +284,16 @@ ok(aparelhos.every(s => resultado(s) === t3), 'quem voltou vê as MESMAS tabelas
   const eu = r.managers[r.youIdx]
   ok(!eu.squad.some(x => x.id === alvo.id) && eu.squad.length === me.squad.length && !eu.squad.some(x => x.fake), 'resolvida com a Cria da Base: sai o craque, entra o guri (nunca fake)')
 }
+// Retorno após três temporadas de ausência, sem herdar o presidente nem duplicar o caixa.
+{
+ const base={...aparelhos[2],co2:{...aparelhos[2].co2,comanda:false},careerTorcida:{...aparelhos[2].careerTorcida,minhaMarca:71}},cmd={...aparelhos[0],seasonNo:5,round:0,screen:'season',careerCoins:{...aparelhos[0].careerCoins,2:321},careerPlacements:{...aparelhos[0].careerPlacements,m2:'B'}}
+ const voltou=reducer(base,{type:'CO2_RETORNO',newState:cmd,meuId:2})
+ ok(voltou.seasonNo===5&&voltou.youIdx===2&&voltou.careerCoins[2]===321&&voltou.careerPlacements.m2==='B','retorno de várias temporadas: calendário, caixa e divisão atuais da sala')
+ const donoRetorna=reducer({...base,co2:{...base.co2,comanda:true}},{type:'CO2_RETORNO',newState:cmd,meuId:2});ok(donoRetorna.co2.comanda===true,'retorno em outro aparelho não rebaixa o dono')
+ ok(voltou.stadiums===base.stadiums&&voltou.careerPresident===base.careerPresident&&voltou.careerTorcida.minhaMarca===71,'retorno preserva estádio, presidente e torcida do próprio clube')
+ ok(reducer(voltou,{type:'CO2_RETORNO',newState:cmd,meuId:2})===voltou,'repetir o retorno não duplica prêmios nem dinheiro')
+ ok(reducer(base,{type:'CO2_RETORNO',newState:{...cmd,co2:{...cmd.co2,sala:'outra'}},meuId:2})===base,'não aceita foto de outra carreira')
+}
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ fluxo da carreira online v2 ok')
 await vite.close()
 process.exit(falhas ? 1 : 0)

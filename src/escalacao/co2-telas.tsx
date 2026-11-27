@@ -8,7 +8,7 @@ import { unpack } from './netpack'
 import type { EscState } from './types'
 import {
   useCo2, co2Abrir, co2Fechar, co2Criar, co2Entrar, co2MinhasSalas, co2Continuar, co2Mundo, co2Envia, co2PodeCriar,
-  co2LeGavetasConferidas, co2Contexto, co2ProtocoloJogo, co2JogoAtivo, co2Gaveta, co2Pronto, co2Comecar, co2Apito, co2Ritmo, co2EncerrarDia, co2LePrivado, co2Agora,
+  co2PuxaSinais,co2PodeEscrever,co2VerificaAparelho,co2LeGavetasConferidas, co2Contexto, co2ProtocoloJogo, co2JogoAtivo, co2Gaveta, co2Pronto, co2Comecar, co2Apito, co2Ritmo, co2EncerrarDia, co2LePrivado, co2Agora,
   type Co2Sala, type Co2Mundo, TEMPOS_OPCOES, tempoPausa, tempoRodada,
   co2Pedidos, co2PedidoDecide, co2PedidoEntra, co2MeusPedidos, co2LeVirada, type Co2Pedido,
   co2Sair, co2Saidas, co2SaidaAplicada, type Co2Saida,
@@ -16,7 +16,7 @@ import {
 import { liveFormations } from './career-live-plan'
 import { useCo2Envio } from './co2-envio'
 import { Co2Tentativas, co2CopiaRecente } from './co2-sincronia'
-import { minhaGaveta, co2Fechamento, vagasDeNovos, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
+import { co2RetornoAtrasado,minhaGaveta, co2Fechamento, vagasDeNovos, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
 import { useMotor2Carreira, copaBrasilLiberada, internacionalCarreiraLiberada } from './sport'
 import { avisoFechado, fechaAviso } from './avisos-fechados'
 import { CMModal, ConvocacaoScreen, CupScreen, simulaCopaMundo, loadCopaSave, bandeiraDe, countryPool, bestXI, formationFits, xiStrength, type CopaSave, type Formation, type CMStatCarta } from './copa-mundo'
@@ -324,7 +324,7 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
   const entrouRef = useRef(false)
   useEffect(() => { entrouRef.current = false }, [salaId])
   useEffect(() => {
-    if (!sala || entrouRef.current || sala.fase === 'espera' || possoComandar) return
+    if (!co2PodeEscrever() || !sala || entrouRef.current || sala.fase === 'espera' || possoComandar) return
     const contexto = co2Contexto()
     let cancelado = false
     void (async () => {
@@ -343,7 +343,7 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
     return () => { cancelado = true }
   }, [sala, possoComandar, local, dispatch, sn.mundo, sn.uid])
   const comecar = async (modo: 'dinamica' | 'livre' = 'livre') => {
-    if (!sala || indo) return
+    if (!co2PodeEscrever() || !sala || indo) return
     const contexto = co2Contexto()
     setIndo(true); setErro('')
     try {
@@ -374,6 +374,7 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
     if (r !== 'ok') { setErro(tr('Não deu pra sair agora. Tenta de novo.', 'Could not leave right now. Try again.')); return }
     onSair()
   }
+  if(!co2PodeEscrever())return <div style={caixa('#F4ECD6')} role="status"><p>{sn.aparelho==='ocupado'?tr('Esta carreira está aberta em outro aparelho. Feche lá para continuar aqui.','This career is open on another device. Close it there to continue here.'):tr('Conferindo conexão e acesso deste aparelho…','Checking connection and device access…')}</p><button style={botao('#fff')} onClick={()=>void co2VerificaAparelho(true)}>{tr('Tentar novamente','Retry')}</button><button style={botao('#fff')} onClick={onSair}>{tr('Voltar','Back')}</button></div>
   if (!sala) return <div style={{ ...caixa(CREAM), padding: 16, textAlign: 'center', fontWeight: 800 }}>{tr('Abrindo a carreira…', 'Opening the career…')}</div>
   const clubes = [...sn.clubes].sort((a, b) => a.assento - b.assento)
   const nomeDono = clubes.find(c => c.user_id === sala.dono)?.nome ?? '—'
@@ -464,7 +465,22 @@ async function lePrivado(salaId: string): Promise<EscState | null> {
         nuvem = { state: st, at: typeof d.at === 'number' && Number.isFinite(d.at) ? d.at : 0 }
     } catch { /* cópia local válida ainda pode recuperar o clube */ }
   }
-  return co2CopiaRecente(local, nuvem)
+  await co2PuxaSinais()
+  if(contexto!==co2Contexto())return null
+  const sn=co2Agora(),foto=sn.leilao
+  if(foto&&sn.sala?.fase==='virada')try{
+    const st=unpack<EscState>(foto.z),id=sn.uid&&sn.mundo?sn.mundo.ordem.indexOf(sn.uid):-1
+    if(st.co2?.sala===salaId&&id>=0&&st.seasonNo===sn.sala.temporada&&!['season','reserveList','intro','lobby'].includes(st.screen)){
+      if(sn.sala.comandante===sn.uid&&Date.parse(foto.em??'')>=(nuvem?.at??0))return {...st,...(foto.secreto??{}),youIdx:id,co2:{...st.co2,comanda:true,espelho:false}} as EscState
+    }
+  }catch{/* a fotografia privada/local continua disponível */}
+  const salvo=co2CopiaRecente(local,nuvem)
+  if(salvo&&sn.sala&&(salvo.seasonNo??1)<sn.sala.temporada){
+    const z=await co2LeVirada(sn.sala.temporada)
+    if(!z||contexto!==co2Contexto())return null
+    try{return co2RetornoAtrasado(salvo,unpack<EscState>(z),salvo.managers[salvo.youIdx].id)}catch{return null}
+  }
+  return salvo
 }
 
 // ═══ DENTRO DA TEMPORADA: a barra do PRONTO + o motor que segue o relógio do dono ═══════════════════════════════════
@@ -534,10 +550,11 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   const minhaCopa = state.co2?.minhaCopa
   const minhaIntl = state.co2?.minhaIntl
   const meuCaixa = me ? Math.round(state.careerCoins?.[me.id] ?? 0) : 0
-  const gaveta = useMemo<GavetaPublica | null>(() => (me ? { ...minhaGaveta(me, entradasLocais), repertorio: liveFormations(state,me,me.formation,true).filter(f=>f.available).map(f=>f.motor), ...(minhaCopa ? { copaMundo: minhaCopa } : {}), ...(minhaIntl ? { intl: minhaIntl } : {}), caixa: meuCaixa } : null), [me, entradasLocais, minhaCopa, minhaIntl, meuCaixa, state.careerTecnicos, state.careerFormacaoExtra])
+  const gaveta = useMemo<GavetaPublica | null>(() => (me ? { ...minhaGaveta(me, entradasLocais),pendente:state.eventoTemporada?.season===state.seasonNo&&state.eventoTemporada.status==='pendente',lesao:state.careerMatchInjury, repertorio: liveFormations(state,me,me.formation,true).filter(f=>f.available).map(f=>f.motor), ...(minhaCopa ? { copaMundo: minhaCopa } : {}), ...(minhaIntl ? { intl: minhaIntl } : {}), caixa: meuCaixa } : null), [me, entradasLocais, minhaCopa, minhaIntl, meuCaixa, state.careerTecnicos, state.careerFormacaoExtra,state.eventoTemporada,state.careerMatchInjury,state.seasonNo])
   const gavetaJson = useMemo(() => (gaveta ? JSON.stringify(gaveta) : ''), [gaveta])
   const contexto = co2Contexto()
   const [erroSync, setErroSync] = useState(false)
+  const [aguardaPreparo,setAguardaPreparo]=useState(false)
   const [prontoIndo, setProntoIndo] = useState(false)
   const { confirma: sobeGaveta, falhou: falhaGaveta } = useCo2Envio(contexto, gavetaJson, gaveta,
     async g => await co2Gaveta(g as unknown as Record<string, unknown>) === 'ok')
@@ -561,6 +578,8 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
     const e = etapa
     const gav = await leGavetas()
     if (!gav || !etapaAtual(e) || !gav.some(g => g.mgrId === me?.id)) return false
+    const pendente=gav.some(g=>g.pendente);setAguardaPreparo(pendente)
+    if(ate!=null&&pendente)return false
     dispatch({ type: 'CO2_GAVETAS', gavetas: gav, ate })
     return true
   }
@@ -582,7 +601,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
 
   // Rodada local só começa com o envio E a leitura confirmados. Erro libera nova tentativa.
   useEffect(() => {
-    if (!sala || sn.conexaoPendente || sala.fase !== 'jogando' || round !== sala.rodada) return
+    if (!co2PodeEscrever() || !sala || sn.conexaoPendente || sala.fase !== 'jogando' || round !== sala.rodada) return
     const e = etapa
     void tentativas.faz(`joga:${e}`, async () => {
       if (!await sobeGaveta() || !etapaAtual(e) || !await puxaGavetas(sala.rodada) || !etapaAtual(e)) return false
@@ -603,10 +622,10 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   const prontos = sala ? sn.clubes.filter(c => c.pronto_rodada === sala.rodada + 1).length : 0
   const restante = sala?.prazo ? Math.max(0, Math.round((new Date(sala.prazo).getTime() - agora) / 1000)) : null
   const comeca = async () => {
-    if (!sala || sn.conexaoPendente || !comanda || sala.fase !== 'preparo') return false
+    if (!co2PodeEscrever() || !sala || sn.conexaoPendente || !comanda || sala.fase !== 'preparo') return false
     const e = etapa
     const ok = await tentativas.faz(`comeca:${e}`, async () => {
-      if (!await sobeGaveta() || !etapaAtual(e)) return false
+      if (!await sobeGaveta() || !etapaAtual(e)||!await puxaGavetas(sala.rodada)||!etapaAtual(e)) return false
       return await co2Comecar() === 'ok'
     })
     if (etapaAtual(e)) setErroSync(!ok)
@@ -653,7 +672,8 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   const mm = restante != null ? `${Math.floor(restante / 60)}:${String(restante % 60).padStart(2, '0')}` : '–'
   return (
     <div style={{ display: 'grid', gap: 10, marginBottom: 10 }}>
-      {(erroSync || falhaGaveta || sn.savePendente || sn.conexaoPendente) && <p role="status" style={{ margin: 0, fontWeight: 800, fontSize: 12 }}>{tr('⚠️ A conexão falhou. Suas alterações continuam pendentes; aguarde a conexão ou tente novamente.', '⚠️ Connection failed. Your changes are still pending; wait for the connection or try again.')}</p>}
+      {aguardaPreparo&&<p role="status">{tr('Aguardando resolver o aviso do elenco antes da partida.','Waiting for the squad notice to be resolved before the match.')}</p>}
+      {(!aguardaPreparo&&erroSync || falhaGaveta || sn.savePendente || sn.conexaoPendente) && <p role="status" style={{ margin: 0, fontWeight: 800, fontSize: 12 }}>{tr('⚠️ A conexão falhou. Suas alterações continuam pendentes; aguarde a conexão ou tente novamente.', '⚠️ Connection failed. Your changes are still pending; wait for the connection or try again.')}</p>}
       <RecadoRenovados />
       <Co2PedidosDono />
       {sala.fase === 'preparo' && dinamica && sala.rodada === 0 && (

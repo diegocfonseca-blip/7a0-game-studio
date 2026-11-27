@@ -59,7 +59,8 @@ try {
   const { supabase } = await vite.ssrLoadModule('/src/lib/supabase.ts')
   let onRead = () => null, writes = 0
   supabase.auth.getUser = async () => ({ data: { user: { id: 'uid' } } })
-  supabase.rpc = async () => ({ data: 'ok', error: null })
+  let falhaVirada=false,tentativasVirada=0
+  supabase.rpc = async (nome,args) => {if(nome==='esc_carr_comando'&&args.p_funcao==='esc_carr_virada_salva'){tentativasVirada++;return {data:falhaVirada?'erro':'ok',error:null}};return {data:'ok',error:null}}
   supabase.channel = () => ({ on() { return this }, subscribe() { return this }, unsubscribe() {}, send() {}, track() {}, presenceState() { return {} } })
   supabase.from = table => {
     let cols, id
@@ -70,6 +71,7 @@ try {
   }
   try {
     await C.co2Abrir('A')
+    falhaVirada=true;assert.equal(await C.co2SalvaVirada(2,'foto-final'),'erro');falhaVirada=false;assert.equal(await C.co2ConfirmaEnvios(),true);assert.equal(tentativasVirada,2,'foto da virada falhou mas continua na fila e é confirmada antes de sair');assert.equal(await C.co2SalvaVirada(2,'foto-final'),'ok');assert.equal(tentativasVirada,2,'foto já confirmada não é enviada novamente')
     const old = deferred()
     onRead = ({ table, cols, id }) => table === 'esc_carr_sala' && cols !== 'mundo' && id === 'A' ? old.promise : null
     const late = C.co2RecarregaSala()

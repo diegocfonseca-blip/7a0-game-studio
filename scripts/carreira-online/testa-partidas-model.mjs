@@ -34,5 +34,18 @@ try {
  assert.equal(M.minutoJogoCo2({...game,pausado:true,elapsed_ms:45_000},999_000),46.5)
  assert.equal(M.minutoJogoCo2({...game,encerrado:true},0),93)
  assert.equal(M.leFotoCo2({...game,z:'corrompido'}),null)
+ // Copa: as duas decisões chegam à mesma partida e não reescrevem gols já mostrados.
+ const H=world.A[0],A=world.A[1],cup=P.jogoCopaM2(seed,1,'teste-copa',0,H,A,'equilibrio','equilibrio')
+ const cg={...game,...M.fotoJogoCo2({...state,careerMatchInjury:undefined},[{hId:H.teamId,aId:A.teamId,m2:cup.e}],{},{}),chave:'copa:ida',comandos:{},revisao:0}
+ const cf=M.leFotoCo2(cg)
+ for(const [id,c]of Object.entries(cf.clubes)){const byId=new Map(c.squad.map(x=>[x.id,x])),sai=c.xi.find(x=>byId.get(x).pos==='MEI'),entra=c.squad.find(x=>x.pos==='MEI'&&!c.xi.includes(x.id));cg.comandos[id]=[{t:30,sai,entra:entra.id}]}
+ const ce=M.entradasJogoCo2([cg]),c1=P.jogoCopaM2(seed,1,'teste-copa',0,{...H,cupOnline:ce},{...A,cupOnline:ce},'equilibrio','equilibrio'),c2=P.jogoCopaM2(seed,1,'teste-copa',0,{...H,you:!H.you,cupOnline:ce},{...A,you:!A.you,cupOnline:ce},'equilibrio','equilibrio')
+ assert.deepEqual([c1.hg,c1.ag,c1.h,c1.a],[c2.hg,c2.ag,c2.h,c2.a]);assert.equal(c1.e.aoVivo.length,2)
+ const injuryId=foto.clubes[0].xi.find(id=>managers[0].squad.find(c=>c.id===id).pos==='MEI')
+ const clinical={...game,comandos:{0:[],1:[]},meta:{...payload.meta,0:{...payload.meta[0],lesao:{cardId:injuryId,minute:60}}},lesoes:{}}
+ assert.equal(M.minutoJogoCo2(clinical,999999),60,'relógio não pula a lesão quando o navegador fica suspenso')
+ clinical.comandos[0]=[{t:60,sai:injuryId,injury:true}];clinical.lesoes={0:{}}
+ const shortEntry=M.entradasJogoCo2([clinical])[match.m2.partidaId].initial,shortMotor=E.novoMotor2(shortEntry);shortMotor.avancaAte(80)
+ assert.equal(shortMotor.atl.filter(a=>a.lado===0).length,10,'retirada sem reserva deixa dez jogadores reais em campo')
  console.log(`✅ Modelo: três trocas por lado, dois humanos, passado intacto, placar/tabela/autoria iguais, XI/notas preservados e relógio compartilhado. Fotografia comprimida: ${payload.z.length} bytes.`)
 }finally{await vite.close()}

@@ -8,10 +8,10 @@ import { pack, unpack } from './netpack'
 export const CO2_JOGO_DURACAO = 90_000
 /** Emergência: false impede novas decisões, mas mantém os registros e o relógio já compartilhados. */
 export const CO2_TROCAS_HABILITADAS: boolean = true
-export type Co2JogoSlot = { partida: string; lado: 0 | 1; xi: string[]; formation: FormationKey; allowed: FormationKey[]; squad: WonCard[]; blocked: string[] }
+export type Co2JogoSlot = { partida: string; lado: 0 | 1; xi: string[]; formation: FormationKey; allowed: FormationKey[]; squad: WonCard[]; blocked: string[];lesao?:import('./lesao-partida').LesaoPartida }
 export type Co2JogoFoto = { partidas: Record<string, EntradaM2>; clubes: Record<number, Co2JogoSlot> }
-export type Co2JogoMeta = Record<number, { partida: string; xi: string[]; pos: Record<string, string>; formation: FormationKey; allowed: Partial<typeof FORMATIONS>; blocked: string[] }>
-export type Co2Jogo = { sala: string; temporada: number; rodada: number; z: string; meta: Co2JogoMeta; comandos: Record<number, CareerLiveDecision[]>; revisao: number; duration_ms?: number; elapsed_ms: number; inicio_em: string; velocidade: number; pausado: boolean; encerrado: boolean }
+export type Co2JogoMeta = Record<number, { partida: string; xi: string[]; pos: Record<string, string>; formation: FormationKey; allowed: Partial<typeof FORMATIONS>; blocked: string[];lesao?:import('./lesao-partida').LesaoPartida }>
+export type Co2Jogo = { clinica?:Record<string,import('./lesao-partida').LesaoPartida&{abriu:string}>;lesoes?:Record<string,unknown>; sala: string; chave?:string; temporada: number; rodada: number; z: string; meta: Co2JogoMeta; comandos: Record<number, CareerLiveDecision[]>; revisao: number; duration_ms?: number; elapsed_ms: number; inicio_em: string; velocidade: number; pausado: boolean; encerrado: boolean }
 export type Co2Entrada = { initial: EntradaM2; rosters: [WonCard[], WonCard[]] }
 export function fotoJogoCo2(state: EscState, matches: readonly SimMatch[], mods: RoundCardMods, repertorios: Record<number, FormationKey[]> = {}) {
   const foto: Co2JogoFoto = { partidas: {}, clubes: {} }, meta: Co2JogoMeta = {}
@@ -27,8 +27,10 @@ export function fotoJogoCo2(state: EscState, matches: readonly SimMatch[], mods:
       const allowed = [...(repertorios[id] ?? liveFormations(state, m, m.formation, true).filter(f => f.available).map(f => f.motor))]
       if (!allowed.includes(base.formation)) allowed.push(base.formation)
       const squad = m.squad.filter(c => !c.fake).map(c => ({ ...c, gasMod: mods[id]?.[state.round - 1]?.[c.id] ?? (c as {gasMod?:number}).gasMod }))
-      foto.clubes[id] = { partida: e.partidaId, lado, xi: base.ids, formation: base.formation, allowed, squad, blocked }
-      meta[id] = { partida: e.partidaId, xi: base.ids, pos: Object.fromEntries(squad.map(c => [c.id, c.pos])), formation: base.formation,
+      const lesao=(id===state.managers[state.youIdx]?.id?state.careerMatchInjury:state.co2?.gavetas.find(g=>g.mgrId===id)?.lesao)
+      const clinica=e.partidaId.startsWith('liga:')&&lesao?.status==='programada'&&lesao.season===state.seasonNo&&lesao.round===state.round-1&&base.ids.includes(lesao.cardId)?lesao:undefined
+      foto.clubes[id] = {lesao:clinica, partida: e.partidaId, lado, xi: base.ids, formation: base.formation, allowed, squad, blocked }
+      meta[id] = {lesao:clinica, partida: e.partidaId, xi: base.ids, pos: Object.fromEntries(squad.map(c => [c.id, c.pos])), formation: base.formation,
         allowed: Object.fromEntries(allowed.filter(k => !!FORMATIONS[k]).map(k => [k, FORMATIONS[k]])), blocked }
     }
   }
@@ -56,7 +58,7 @@ export function entradasJogoCo2(jogos: readonly Co2Jogo[]): Record<string, Co2En
       if (!validateLivePlan({ squad: c.squad, initial: c.xi, formation: c.formation, commands: comandos, allowed: c.allowed, blocked: new Set(c.blocked) })) continue
       const byId = new Map(c.squad.map(x => [x.id, x]))
       match.initial.aoVivo!.push(...comandos.map(x => ({ t: x.t, lado: c.lado, sai: x.sai ? byId.get(x.sai)?.name : undefined,
-        entra: x.entra ? byId.get(x.entra) as never : undefined, tatica: x.tactic ? taticaM2(x.tactic) : undefined, formacao: x.formation })))
+        entra: x.entra ? byId.get(x.entra) as never : undefined, tatica: x.tactic ? taticaM2(x.tactic) : undefined, formacao: x.formation,...(x.injury?{lesao:true}:{}),...(x.emergencyKeeper?{goleiroEmergencia:byId.get(x.emergencyKeeper)?.name}:{}) })))
     }
     for (const id of Object.keys(foto.partidas)) out[id].initial.aoVivo!.sort((a, b) => a.t - b.t || a.lado - b.lado)
   }
@@ -66,5 +68,6 @@ export function minutoJogoCo2(jogo: Co2Jogo | null | undefined, agora: number): 
   if (!jogo) return 0
   if (jogo.encerrado) return 93
   const delta = jogo.pausado ? 0 : Math.max(0, agora - Date.parse(jogo.inicio_em)) * jogo.velocidade
-  return Math.max(0, Math.min(93, (jogo.elapsed_ms + delta) / (jogo.duration_ms ?? CO2_JOGO_DURACAO) * 93))
+  const limite=Math.min(93,...Object.entries(jogo.meta??{}).flatMap(([id,m])=>m.lesao&&!jogo.lesoes?.[id]&&!jogo.comandos[+id]?.some(x=>x.sai===m.lesao?.cardId)?[m.lesao.minute]:[]))
+  return Math.max(0, Math.min(limite, (jogo.elapsed_ms + delta) / (jogo.duration_ms ?? CO2_JOGO_DURACAO) * 93))
 }
