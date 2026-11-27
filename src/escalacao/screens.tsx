@@ -3095,7 +3095,7 @@ export function EscSetup() {
   // martelo em 6s. Só pra conta de teste (`PREGAO_ABERTO_TESTERS`); pra todo o resto o jogo segue idêntico.
   const [pregaoAb, setPregaoAb] = useState(false)
   const [paUma, setPaUma] = useState(false) // 🃏 26/11: uma carta na mesa mesmo com 11+ clubes (padrão: duas)
-  const pregaoNovoOk = usePregaoNovo() // 🔨 26/11: só na conta do Diego por enquanto
+  const pregaoNovoOk = usePregaoNovo() || true // 🔨 27/11 (Diego: *"sim"*): a escolha de uma/duas cartas (11+ clubes) vale pra TODOS
   const viceVe = useViceCity() // 🌴 19/11: Vice City (pregão aberto com cartas de golpe) — só pra quem o teste libera
   const [vice, setVice] = useState(false)
   const envUnicoOk = useEnvelopeUnicoLiberado() // ⚡ envelope único (28/10): só a conta do Diego por enquanto

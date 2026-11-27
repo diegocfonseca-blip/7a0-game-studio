@@ -801,7 +801,7 @@ export function EscLobby() {
   // 🃏 26/11 (Diego: *"dê opção ao usuário… quer com uma carta ou duas qd tiver escolhido 20"*): em sala de 20, o pregão aberto
   // abre DUAS cartas na mesa (regra de 17/10); quem cria pode preferir UMA. Padrão = duas, como sempre foi.
   const [paUma, setPaUma] = useState(false)
-  const pregaoNovoOk = usePregaoNovo() // 🔨 26/11: a escolha de uma/duas cartas só na conta do Diego por enquanto
+  const pregaoNovoOk = usePregaoNovo() || true // 🔨 27/11 (Diego: *"sim"*): a escolha de uma/duas cartas na sala grande vale pra TODOS
   const envUnicoOk = useEnvelopeUnicoLiberado() // ⚡ envelope único (28/10): só a conta do Diego por enquanto
   const [rapidoEnvUnico, setRapidoEnvUnico] = useState(false)
   // 🧱 LEILÃO DE CLUBES (27/09, em teste): o lote é um setor de clube e no fim vem a
