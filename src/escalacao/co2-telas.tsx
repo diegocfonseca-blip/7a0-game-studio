@@ -747,6 +747,7 @@ export function useCo2FimDaVirada() {
       if (contexto !== co2Contexto()) return
       const mundo = carimbo ?? mm
       const novo = proto && mundo && (mundo.m2 != null || poeM2) && mundo.aoVivoDesde == null ? { ...mundo, aoVivoDesde: state.seasonNo ?? 1 } : carimbo
+      if(sn.sala?.fase==='preparo'&&!novo)return
       return co2Mundo('preparo', state.seasonNo ?? 1, 0, novo, mm?.modo === 'dinamica' ? tempoPausa(mm) : Math.max(90, tempoRodada(mm)))
     }) // ⚡ Dinâmica: o tempo de pausa que o dono escolheu (aviso; o dono segue)
   }, [state.co2?.comanda, state.screen, sn.sala?.fase, state.seasonNo, m2Liberado, state.round])

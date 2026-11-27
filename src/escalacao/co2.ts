@@ -471,8 +471,11 @@ export const tempoRodada = (m: Co2Mundo | null | undefined): number => m?.tempos
 
 export const co2JogoAtivo = (): boolean => snap.mundo?.aoVivoDesde != null && (snap.sala?.temporada ?? 0) >= snap.mundo.aoVivoDesde
 export async function co2ProtocoloJogo(): Promise<boolean> {
-  try { const { data, error } = await co2Rpc('esc_carr_jogo_protocolo'); return !error && data === 1 } catch { return false }
+  const sala=canalSala,ctx=co2Contexto()
+  if(!sala)return false
+  try {const {data,error}=await co2Rpc('esc_carr_jogo_compativel',{p_sala:sala});return !error&&data===true&&ctx===co2Contexto()}catch{return false}
 }
+
 export async function co2RecarregaJogos(todos = false): Promise<boolean> {
   const sala = snap.sala, ctx = co2Contexto(), leitura = ++leituraJogo
   if (!sala || !co2JogoAtivo()) return false
