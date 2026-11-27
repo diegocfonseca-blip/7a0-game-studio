@@ -706,9 +706,9 @@ Autorizado implementar futevôlei/balada e demais acontecimentos, junto da lesã
 0. ✅ (publicado em 22/11) **Minha regressão de 22/11**: a ida pra Central depois da coletiva pegava QUALQUER um que estivesse na aba Clube
    (ex.: cuidando do estádio depois de um jogo visto no 2D, ou na apresentação das lendas da rodada 0). Agora só quem liberou o jogo pelo ▶ do 3D e
    não saiu do mapa (`viu3d`, pyramidseason.tsx).
-1. 🔴 **▶ do 3D "some" quando um causo/lesão/crise segura a rodada**: o toque gasta a escolha (`setJogoOk` + `setPend3d(null)`) antes de saber se o jogo
+1. ✅ (conferido 27/11: consertado em d75513d6, na main) **▶ do 3D "some" quando um causo/lesão/crise segura a rodada**: o toque gasta a escolha (`setJogoOk` + `setPend3d(null)`) antes de saber se o jogo
    começou; o causo aparece num painel escondido no mapa; voltar e escolher 3D de novo não mostra mais o ▶. Saída hoje: escolher 2D.
-2. 🔴 **Trocar pra "só no intervalo" ENTRE dois jogos trava a semana**: `halfMode` passa a valer pro jogo já apitado → dias param na Central, a rodada some
+2. ✅ (conferido 27/11: no futebol o modo "só no intervalo" foi aposentado em 8fdf5b9b — hoje só existe no basquete) **Trocar pra "só no intervalo" ENTRE dois jogos trava a semana**: `halfMode` passa a valer pro jogo já apitado → dias param na Central, a rodada some
    da tabela de novo e, sem Manual, o "▶ Começar o jogo" não responde. Saída hoje: voltar pra "dinâmico" (nada avisa).
 3. 🟠 **Copa de quarta escolhida no 3D abre na aba Jogos** (efeito antigo `if (copaPlaying && !copaSegura) setTab('jogos')`).
 4. 🟠 **Jogo com pênalti decisivo tira do 3D já no apito inicial** (efeito antigo `if (penMode && !penaltyDone) setTab('jogos')`; o novo já leva na hora certa).
