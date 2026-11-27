@@ -4542,7 +4542,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     // 2× e 4× ficavam iguais. E termina EXATO no fim do jogo (nada de liberar o
     // "próxima" antes do apito). Piso de 400ms pra nunca ficar instantâneo.
     const dur = officialFieldWatching?fieldDuration:Math.max(400, roundMs * 0.82)
-    // 🔁 INTERVALO (carreira offline com toggle): se vai pausar aos 45' e AINDA não
+    // 27/11: futebol usa trocas durante a partida. A preferência antiga só continua no basquete; xi2 dos saves permanece válido.
+  // 🔁 INTERVALO (carreira offline com toggle): se vai pausar aos 45' e AINDA não
     // resolveu, o relógio roda 0→45 e trava; depois de resolver (resumeHalf) retoma
     // 45→93. Sem pausa, é 0→93 como sempre. `span` mantém o ritmo proporcional.
     const mesmaParte=fieldMinute.current.round===roundKey&&fieldMinute.current.half===!!resumeHalf
@@ -8011,9 +8012,9 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
       })()}
       {/* 🔓 Substituições acabaram de liberar (T2, onSwap só existe com canSub true):
           avisa ANTES do seletor de modo, senão o botão só "aparece" sem explicar nada. */}
-      {elenco && onSetSubMode && onSwap && (
+      {elenco && onSwap && (onSetSubMode || escSt.sport!=='basquete') && (
         <div className="ll-elenco-help"><UnlockBanner k="sub" tag={tr('🔁 novo controle', '🔁 new control')} title={tr('Substituições liberadas', 'Substitutions unlocked')}>
-          {getLang() === 'en' ? <>Now you can swap <b>a starter for a sub MID-season</b> — not just in the starting line-up. Choose below how you prefer to make the swap.</> : <>Agora dá pra trocar <b>titular por reserva NO MEIO da temporada</b> — não só na escalação inicial. Escolha embaixo como prefere fazer a troca.</>}
+          {escSt.sport!=='basquete' ? <>{tr('Aqui você define os titulares dos próximos jogos. Durante a partida, use Substituir: até três trocas, válidas só naquele jogo. Uma reposição por lesão continua enquanto o jogador estiver fora.','Here you set the starters for upcoming matches. During a match, use Substitute: up to three changes, valid only for that match. An injury replacement stays while the player is unavailable.')}</> : getLang() === 'en' ? <>Now you can swap <b>a starter for a sub MID-season</b> — not just in the starting line-up. Choose below how you prefer to make the swap.</> : <>Agora dá pra trocar <b>titular por reserva NO MEIO da temporada</b> — não só na escalação inicial. Escolha embaixo como prefere fazer a troca.</>}
         </UnlockBanner></div>
       )}
       {elenco && criaDeEvento && (
@@ -12424,7 +12425,7 @@ export function PyramidSeasonScreen() {
   const curMatchIdx = round - 1
   const [halftimeOpen, setHalftimeOpen] = useState(false)
   const halftimeDone = !!state.careerHalftime?.[youId]?.[curMatchIdx]?.xi2?.length // (🔁 23/11: troca com o jogo rolando grava na mesma ficha sem os 11 do intervalo)
-  const halfMode = soloCareer && !state.co2 && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
+  const halfMode = state.sport === 'basquete' && soloCareer && !state.co2 && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
     && !(state.careerSubModeDesde && state.careerSubModeDesde.s === (state.seasonNo ?? 1) && round <= state.careerSubModeDesde.r) // 🧯 22/11: ligou o modo entre dois jogos → vale do PRÓXIMO (o jogo já apitado travava a semana)
   // fecha o banner ao virar a rodada (jogo novo) — nunca fica aberto de um jogo pro outro
   useEffect(() => { setHalftimeOpen(false) }, [round])
@@ -15858,7 +15859,7 @@ export function PyramidSeasonScreen() {
                 {' '}{tr('O que já apareceu na tela não muda mais: o campeão que sair é o campeão de verdade.', 'What already showed on screen no longer changes: the champion that comes out is the real champion.')}
               </div>
             )}
-            <SquadTab tatica={jogoTabela && !done ? taticaBotoes : undefined} ab={canSub && mgrMe ? { rotulo: (() => { const q = timeEmCampo(state, mgrMe, myXI.map(c => c.id)); return q ? `💾 ${tr('Time', 'Team')} ${q}` : `💾 ${tr('Time', 'Team')} A/B` })(), render: (aberto, fechar) => <EscalacaoAB mgr={mgrMe} xiIds={myXI.map(c => c.id)} slot={slotEscala} fora={suspenso ? new Set([suspenso.cardId]) : new Set<string>()} gas={condGas ?? undefined} aberto={aberto} fechar={fechar} /> } : undefined} mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={golsTemporada} assists={assTemporada} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
+            <SquadTab tatica={jogoTabela && !done ? taticaBotoes : undefined} ab={canSub && mgrMe ? { rotulo: (() => { const q = timeEmCampo(state, mgrMe, myXI.map(c => c.id)); return q ? `💾 ${tr('Time', 'Team')} ${q}` : `💾 ${tr('Time', 'Team')} A/B` })(), render: (aberto, fechar) => <EscalacaoAB mgr={mgrMe} xiIds={myXI.map(c => c.id)} slot={slotEscala} fora={suspenso ? new Set([suspenso.cardId]) : new Set<string>()} gas={condGas ?? undefined} aberto={aberto} fechar={fechar} /> } : undefined} mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={golsTemporada} assists={assTemporada} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.sport === 'basquete' && state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.sport === 'basquete' && state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
               estat={estatJogos ? { jogos: estatJogos, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined } : undefined}
               condicao={condGas && condJogosTela ? { gas: condGas, jogos: condJogosTela, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
               criaBase={{ onSubir: (pos, nome, historia) => dispatch({ type: 'SUBIR_CRIA', mgrId: youId, pos, nome, historia }) }} />

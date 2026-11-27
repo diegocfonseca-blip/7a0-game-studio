@@ -943,7 +943,7 @@ export interface EscState {
   /** 💾 ESCALAÇÃO A e B salvas (23/10, carreira): mgrId → 'A'|'B' → o time guardado por CARTA (`escalacao-salva.ts`) */
   careerEscalacoes?: Record<number, { A?: import('./escalacao-salva').EscalacaoSalva; B?: import('./escalacao-salva').EscalacaoSalva; /** qual dos dois entrou por último e com quais 11 — é o que a pílula mostra */ ativo?: { qual: 'A' | 'B'; ids: string[] } }>
   careerLineup?: Record<number, Record<number, string[]>> // carreira online: escalação (XI) POR JOGO (mgrId → rodada → ids dos 11 titulares); vale da rodada em diante, como a tática
-  careerSubMode?: 'dinamico' | 'intervalo' // 🔁 SÓ CARREIRA OFFLINE (Diego 12/08): como o técnico faz troca. 'dinamico' (padrão) = como sempre foi (troca vale pro PRÓXIMO jogo, sem pausa). 'intervalo' = o jogo PARA aos 45' e abre o banner pra trocar SÓ pro 2º tempo. Preferência do técnico, NÃO zera entre temporadas.
+  careerSubMode?: 'dinamico' | 'intervalo' // 27/11: legado ignorado no futebol; preferência ainda usada no basquete.
   /** 🧯 22/11: quando o técnico LIGOU o "só no intervalo" (temporada + rodada). O modo vale do jogo SEGUINTE — ligar entre dois jogos fazia o jogo já apitado esperar um intervalo que nunca viria. */
   careerSubModeDesde?: { s: number; r: number }
   careerMatchInjury?:import('./lesao-partida').LesaoPartida

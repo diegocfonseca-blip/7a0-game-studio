@@ -60,3 +60,49 @@ s=JSON.parse(JSON.stringify(s));const before=JSON.stringify(s.careerLineup);s=re
 assert(ZERA_NA_CARREIRA_NOVA.includes('careerMatchInjury'))
 for(let seed=0;seed<1000;seed++){const f=faseDaLesao(seed,3,10);assert(f.minute>=55&&f.minute<=78);assert.deepEqual(f,faseDaLesao(seed,3,10))}
 console.log('PASS lesão em partida: retirada real; reservas; goleiro de emergência; dez em campo; causalidade e replay; máximo três; persistência; preparação do próximo jogo')
+
+// 27/11: banco durante o jogo é temporário; só a reposição clínica é levada ao próximo XI.
+const initialState=()=>({...structuredClone(INITIAL),seed:44,careerOnline:true,agenciaOn:true,seasonNo:3,round:10,managers:[{id:0,isHuman:true,teamName:'Clube',formation:'4-3-3',squad}],youIdx:0,onlineMode:'cpu',careerLineup:{0:{0:[...ids],9:[...ids],10:[...ids]}}}) as any
+let chosen=initialState();chosen=reducer(chosen,{type:'PLAN_MATCH_INJURY',injury:plan});chosen={...chosen,round:11}
+const stableXI=JSON.stringify(chosen.careerLineup)
+chosen=reducer(chosen,{type:'SET_AO_VIVO',mgrId:0,round:10,initial:entradaM2(base),aoVivo:[{...injury,entra:reserve.id}]})
+assert.equal(JSON.stringify(chosen.careerLineup),stableXI,'troca em campo não altera escalação fixa durante o jogo')
+chosen=reducer(chosen,{type:'FINISH_MATCH_INJURY'})
+assert.equal(chosen.eventoTemporada.status,'banco','reserva já escolhido não exige segunda decisão')
+assert.equal(chosen.eventoTemporada.subId,reserve.id)
+assert.equal(chosen.eventoTemporada.volta,13,'mantém o prazo clínico original')
+assert(chosen.careerLineup[0][11].includes(reserve.id));assert(!chosen.careerLineup[0][11].includes(plan.cardId))
+assert.deepEqual(chosen.careerLineup[0][10],ids,'não reescreve o jogo que acabou')
+assert.deepEqual(chosen.careerLineup[0][13],ids,'preserva a volta agendada quando recuperar')
+assert.equal(reducer(chosen,{type:'FINISH_MATCH_INJURY'}),chosen,'fim repetido não agenda nem publica de novo')
+const rejected=reducer(chosen,{type:'SET_LINEUP',mgrId:0,ids})
+assert.deepEqual(rejected.careerLineup,chosen.careerLineup,'lesionado não pode voltar antes do prazo')
+let ordinary=initialState();ordinary.round=11
+ordinary=reducer(ordinary,{type:'SET_AO_VIVO',mgrId:0,round:10,initial:entradaM2(base),aoVivo:[{t:60,sai:plan.cardId,entra:reserve.id}]})
+assert.deepEqual(ordinary.careerLineup,initialState().careerLineup,'troca comum continua restrita ao jogo')
+const nextIds=ids.map(id=>id===plan.cardId?reserve.id:id)
+ordinary=reducer(ordinary,{type:'SET_LINEUP',mgrId:0,ids:nextIds})
+assert.deepEqual(ordinary.careerLineup[0][11],nextIds,'Elenco muda os titulares do próximo jogo')
+assert.deepEqual(ordinary.careerLineup[0][10],ids,'Elenco não muda titulares de jogo já iniciado')
+const football=reducer({...initialState(),careerSubMode:'intervalo'},{type:'SET_SUBMODE',mode:'intervalo'})
+assert.equal(football.careerSubMode,'dinamico','ação de cliente antigo não rearma modo aposentado')
+const basketball=reducer({...initialState(),sport:'basquete'},{type:'SET_SUBMODE',mode:'intervalo'})
+assert.equal(basketball.careerSubMode,'intervalo','preserva a regra do basquete')
+console.log('PASS escalação: troca comum temporária, Elenco permanente, reposição clínica automática validada, prazo preservado, sem duplicação e basquete isolado')
+
+let mixed=initialState();mixed=reducer(mixed,{type:'PLAN_MATCH_INJURY',injury:plan});mixed={...mixed,round:11}
+mixed=reducer(mixed,{type:'SET_AO_VIVO',mgrId:0,round:10,initial:entradaM2(base),aoVivo:[{t:20,sai:casa[0].id,entra:keeperReserve.id},{...injury,entra:reserve.id}]})
+mixed=reducer(mixed,{type:'FINISH_MATCH_INJURY'})
+assert(mixed.careerLineup[0][11].includes(casa[0].id),'goleiro trocado por opção técnica volta no próximo jogo')
+assert(!mixed.careerLineup[0][11].includes(keeperReserve.id),'troca comum não herda a persistência da lesão')
+assert(mixed.careerLineup[0][11].includes(reserve.id),'somente o substituto clínico fica no próximo XI')
+console.log('PASS trocas mistas: apenas a reposição do lesionado persiste')
+
+let edited=initialState();edited=reducer(edited,{type:'PLAN_MATCH_INJURY',injury:plan});edited={...edited,round:11}
+edited=reducer(edited,{type:'SET_AO_VIVO',mgrId:0,round:10,initial:entradaM2(base),aoVivo:[{...injury,entra:reserve.id}]})
+edited=reducer(edited,{type:'SET_LINEUP',mgrId:0,ids:nextIds})
+const chosenFuture=JSON.stringify(edited.careerLineup)
+edited=reducer(edited,{type:'FINISH_MATCH_INJURY'})
+assert.equal(JSON.stringify(edited.careerLineup),chosenFuture,'respeita XI já organizado pelo usuário na aba Elenco')
+assert.equal(edited.eventoTemporada.status,'banco')
+console.log('PASS escolha já feita no Elenco: nenhuma segunda troca nem restauração indesejada')

@@ -1,3 +1,7 @@
+## 27/11 — Futebol: trocas sem seletor antigo e reposição clínica
+
+Diego retirou a escolha Dinâmico/Só no intervalo: a aba Elenco define titulares futuros e as três substituições em partida valem só naquele jogo. Futebol ignora a preferência antiga; dados de halftime já gravados e basquete permanecem compatíveis. A reposição por lesão já escolhida passa ao próximo XI pelo prazo médico, sem uma segunda decisão; troca comum continua temporária e XI já organizado é respeitado. Caminhos de início/retorno do 3D e copas de quarta passaram nos testes, sem confirmar as travas suspeitas. Escopo, evidências e limite do teste S25: `docs/auditorias/fluxo-estadio-trocas-20261127.md`.
+
 ## 27/11 — Carreira viva: cinco itens aprovados
 
 Estreia contextual dispensável, variações factuais de personalidade e protagonistas, memória do clássico, PNG de momentos com o modelo atual do elenco e projeção das obras antes de comprar. Compartilhado entre Brasil Oficial e tradicional. Desafio semanal (4) e modos novos excluídos. Sem alterar notas, economia, sorteios ou motor. Diego aprovou as prévias e autorizou a publicação em 27/11. Escopo e provas: `docs/auditorias/carreira-viva-20261127.md`.

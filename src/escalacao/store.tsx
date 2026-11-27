@@ -12812,6 +12812,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🔁 liga/desliga "troca só no intervalo" — SÓ carreira offline (no online o
       // host conduz, não há pausa individual). É preferência do técnico.
       if (!s.careerOnline || s.onlineMode === 'online') return s
+      // 27/11: seletor aposentado no futebol; ações antigas não rearmam uma pausa obrigatória.
+      if(s.sport!=='basquete'){s.careerSubMode='dinamico';s.careerSubModeDesde=undefined;return s}
       if (action.mode === 'intervalo' && s.careerSubMode !== 'intervalo') s.careerSubModeDesde = { s: s.seasonNo ?? 1, r: s.round ?? 0 } // 🧯 22/11: vale do PRÓXIMO jogo
       s.careerSubMode = action.mode
       return s
@@ -12899,9 +12901,14 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'FINISH_MATCH_INJURY': {
       const l=s.careerMatchInjury,m=s.managers.find(m=>m.id===l?.mgrId),card=m?.squad.find(c=>c.id===l?.cardId)
-      if(!l||l.status!=='resolvida'||!card||l.season!==s.seasonNo||l.round!==s.round-1||s.onlineMode==='online')return state
+      if(!l||!m||l.status!=='resolvida'||!card||l.season!==s.seasonNo||l.round!==s.round-1||s.onlineMode==='online')return state
       s.careerMatchInjury={...l,status:'encerrada'}
-      s.eventoTemporada=eventoDepoisDaLesao(l,card,getLang()==='en');return s
+      s.eventoTemporada=eventoDepoisDaLesao(l,card,getLang()==='en')
+      // A troca clínica já foi decidida em campo. Reaproveita a validação e a agenda
+      // de recuperação do evento; não promove outras substituições nem reescreve o jogo.
+      const nextXI=frozenXIids(s.careerLineup?.[m.id]??{},s.round,m.squad,m.formation)
+      if(!s.co2&&s.sport!=='basquete'&&(!nextXI.includes(card.id)||l.subId))return reducerBase(s,{type:'EVENTO_DECIDE',escolha:'troca',subId:l.subId,xi:nextXI})
+      return s
     }
     case 'SET_AO_VIVO': {
       // 🔁 23/11 (Diego): troca com o jogo PAUSADO, em qualquer minuto — no máximo 3 por jogo, mesma posição, vale SÓ naquele jogo
