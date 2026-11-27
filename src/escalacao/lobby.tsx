@@ -956,6 +956,7 @@ export function EscLobby() {
   const [roomChat, setRoomChat] = useState(true)  // 💬 chat da sala: o host decide na criação (padrão = ligado)
   const [auctionSecs, setAuctionSecs] = useState(45) // ⏱️ tempo do leilão: 45 (padrão), outro nº, ou 0 = host avança no botão
   const [pwModal, setPwModal] = useState<RoomInfo | null>(null) // pedindo senha pra entrar
+  const [co2Aberta, setCo2Aberta] = useState(false) // 🌐 27/11: o cartão CARREIRA ONLINE em "O jogo" abre o painel da carreira online
   const [pwEntry, setPwEntry] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
   const [players, setPlayers] = useState<RoomPlayer[]>([])
@@ -3715,6 +3716,18 @@ export function EscLobby() {
       )}
 
       {/* 📋 05/11: grátis já está numa Liga Draft e tentou entrar em outra → sai da 1ª (sim) ou fica (não) */}
+      {/* 🌐 27/11: o painel da CARREIRA ONLINE aberto pelo cartão de "O jogo" (o mesmo painel de antes, que ficava escondido em Testes e ferramentas) */}
+      {co2Aberta && co2On && (
+        <div className="fixed inset-0 z-[9998] overflow-y-auto p-4" style={{ background: 'rgba(0,0,0,.7)' }} onClick={() => setCo2Aberta(false)}>
+          <div className="max-w-xl mx-auto rounded-2xl p-3" style={{ background: CREAM, border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}`, color: INK }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="uppercase" style={{ ...OSWALD, fontSize: 18 }}>🌐 {tr('Carreira online', 'Online career')}</span>
+              <button type="button" onClick={() => setCo2Aberta(false)} className="border-[2.5px] border-black rounded-lg px-2.5 py-1 font-black text-[12px]" style={{ background: '#fff', ...OSWALD }}>✕ {tr('Fechar', 'Close')}</button>
+            </div>
+            <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} />
+          </div>
+        </div>
+      )}
       {trocaDraft && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.55)' }} onClick={() => setTrocaDraft(null)}>
           <div className="w-full max-w-[420px] rounded-2xl border-[3px] border-black p-4 space-y-3" style={{ background: '#F4ECD6', boxShadow: `4px 4px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
@@ -4302,6 +4315,21 @@ export function EscLobby() {
                   </button>
                 )
               })}
+              {/* 🌐 27/11 (Diego: *"já faz logo… pra mim e Futpoint aparecer"*): a CARREIRA ONLINE vira um cartão em "O jogo", ao lado dos
+                  outros modos. Ela tem caminho próprio (regra de 19/10: não mexe nas salas daqui) — o cartão só abre o painel dela. */}
+              {co2On && !nbaSala && (
+                <button type="button" onClick={() => setCo2Aberta(true)} data-mode="carreira-online"
+                  className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
+                  style={{ background: CREAM, border: `2.5px solid ${INK}`, cursor: 'pointer' }}>
+                  <span className="min-w-0">
+                    <span className="flex items-center justify-center gap-1.5 flex-wrap">
+                      <span className="text-black text-[14px] uppercase" style={OSWALD}>🌐 {tr('Carreira online', 'Online career')}</span>
+                      <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: GOLD, color: '#000', ...OSWALD }}>{tr('TESTE', 'TEST')}</span>
+                    </span>
+                    <span className="block text-[10.5px] font-semibold leading-tight mt-0.5" style={{ color: '#6b6250' }}>{tr('A carreira com os amigos: cada um com o seu clube, temporada após temporada.', 'Career with your friends: everyone runs a club, season after season.')}</span>
+                  </span>
+                </button>
+              )}
               </div>
               {/* 💬 a explicação do modo ESCOLHIDO, colada nele. Antes só a liga tinha. */}
               <div className="rounded-xl border-2 border-black px-3 py-2.5 mt-2.5" style={{ background: CREAM }}>
