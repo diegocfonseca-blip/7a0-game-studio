@@ -3003,6 +3003,9 @@ export function dicaDoEnigma(card: Card, en = false): string {
 
 // managers que efetivamente brigam no leilão (exclui bots de preenchimento e o
 // 🏛️ MULTICLUBES que está DORMINDO — o 2º clube não-selecionado não dá lance).
+// 🤖 26/11 carreira online (Diego: *"se marcar sem bot, aí o bot N poderia pegar ng no leilão"*): o dono escolheu 0 bots na
+// largada → nenhum clube de máquina dá lance (nem o bot do mercado, nem o dono do jogador sondado). 0 bots = nenhum rival marcado.
+function semBotsCo2(state: EscState): boolean { return !!state.co2 && !state.managers.some(m => m.rival && !m.isHuman) }
 function auctioningManagers(managers: Manager[]): Manager[] {
   return managers.filter(m => (m.isHuman || m.auctionRival) && !m.dormindo)
 }
@@ -7057,8 +7060,9 @@ function abreHolandes(state: EscState, rescue = false) {
   const poe = (mgrId: number, cardId: string, amount: number) => {
     ;(tetos[cardId] = tetos[cardId] ?? {})[mgrId] = Math.max(tetos[cardId]?.[mgrId] ?? 0, amount)
   }
+  const semBots = semBotsCo2(state)
   for (const m of state.managers) {
-    if (m.isHuman) continue
+    if (m.isHuman || semBots) continue
     if (m.auctionRival) {
       for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) poe(m.id, b.cardId, b.amount)
     } else if (state.careerOnline && (m.backstop || m.marketCpu)) {
@@ -7177,7 +7181,7 @@ function holNinguemPodeMais(state: EscState): boolean {
   const mesa = holNaMesa(state)
   if (!mesa.length) return true
   for (const m of state.managers) {
-    if (!m.isHuman && !m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))) continue
+    if (!m.isHuman && (semBotsCo2(state) || (!m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))))) continue
     for (const card of mesa) {
       // o humano pode esperar o preço cair mais; o robô só age até o teto dele
       const teto = m.isHuman ? hol.preco : (hol.tetos[card.id]?.[m.id] ?? 0)
@@ -7224,7 +7228,7 @@ function holResgate(state: EscState) {
   const pos = ORDEM_ATIVA[state.sectorIdx]
   for (const m of state.managers) {
     if (m.isHuman) continue
-    if (!m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))) continue
+    if (semBotsCo2(state) || (!m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu)))) continue
     // só quem AINDA tem buraco nesta posição — quem já encheu não volta pra mesa
     if (openSlots(m, pos) - holVagasUsadas(hol, m.id, pos, state.currentCards) <= 0) continue
     for (const b of cpuEnvelope(m, mesa, state.sectorIdx, rng, true, econ, ...perfilNoLeilao(state, m))) {
@@ -7256,7 +7260,7 @@ export function paAbertura(c: { fame?: number; promessa?: boolean }): number {
 }
 
 function paRobosQueDisputam(state: EscState): Manager[] {
-  return state.managers.filter(m => !m.isHuman && (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu))))
+  return semBotsCo2(state) ? [] : state.managers.filter(m => !m.isHuman && (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu))))
 }
 /** 🧠 o teto de UM robô numa carta do pregão aberto (16/10, Diego no 1º teste: "só tem 100 moedas e teve gente que de
  * primeira já chegou em quase 50 num jogador"). Antes o teto vinha do `cpuEnvelope`, que divide o caixa por SETOR na
@@ -8315,8 +8319,9 @@ function leilaoResolveLeva(state: EscState, rescue: boolean): { queue: ResolvedC
   // um decide sozinho (cpuEnvelope) se compra e por quanto; pagam com a caixa.
   if (state.careerOnline && !holandesJaDecidiu) {
     {
+      const semBots = semBotsCo2(state) // 🤖 carreira online com 0 bots: nenhum clube de máquina dá lance
       for (const m of state.managers) {
-        if (m.isHuman || !(m.backstop || m.marketCpu)) continue
+        if (m.isHuman || semBots || !(m.backstop || m.marketCpu)) continue
         // MONEY-SMART: o bot reserva grana pra CADA vaga que ainda precisa preencher.
         // Nunca estoura num jogador só (ex.: 80 de caixa, 8 vagas → ~10 por vaga,
         // teto ~16 num jogador que quer). Com poucas vagas, pode pagar mais.
@@ -8493,6 +8498,7 @@ function advanceSectorOrFinish(state: EscState, rng: () => number) {
   } else {
     state.monteOrder = buildMonteOrder(state.managers, rng, !!state.careerOnline, state.onlineMode !== 'online' && !state.co2 ? state.managers[state.youIdx]?.id : undefined) // 🌐 v2: todos os clubes de gente pescam
     if (state.co2?.fora?.length) state.monteOrder = state.monteOrder.filter(id => !state.co2!.fora!.includes(id)) // 🔄 quem não fechou a temporada não pesca
+    if (semBotsCo2(state)) state.monteOrder = state.monteOrder.filter(id => state.managers.some(m => m.id === id && m.isHuman)) // 🤖 0 bots: só gente pesca no Monte
     state.monteIdx = 0
     state.screen = 'monte'
     advanceMonte(state, rng)

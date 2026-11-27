@@ -52,8 +52,9 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
   dele podem sair um pouco diferentes; elenco/divisão vêm da foto e ficam certos).
 - ✅ (26/11) 🤖 dono escolhe 0–5 bots no leilão na largada (`mundo.bots`; teste roda com 0 e com 5) · bot que perdeu jogador pra
   clube de gente repõe com a carta REAL livre de over mais perto de quem saiu, com aviso nas notícias.
-- ⏳ falta: sondar de amigo, aviso do bot que perdeu jogador mesmo sem repor, com 0 bots os bots do mercado ainda podem brigar pelo
-  sondado do próprio clube (conferir com o Diego), anúncio de competição nova (pausa C), teste com 2 contas.
+- ✅ (27/11, Diego: *"Sim"*) com 0 bots NINGUÉM de máquina dá lance (envelope, Tocaia, Monte, nem o dono do sondado) — `semBotsCo2`.
+  Teste: 5 bots = 57 compras de máquina na virada · 0 bots = 0. O bot que perde jogador repõe com sobra real de over parecido.
+- ⏳ falta: sondar de amigo, aviso do bot que perdeu jogador mesmo sem repor, anúncio de competição nova (pausa C), teste com 2 contas.
 - Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).
 - Testes da v2 verdes depois da publicação do Codex (`npm run carreira-online` e `npm run carreira-online-fluxo`).
 
