@@ -25,3 +25,5 @@ Verificado: 75 asserções do modelo novo e 38 verificações no navegador (quat
 Testes e capturas: `scripts/testa-carreira-viva.mts`, `scripts/teste-carreira-viva/servidor.mjs`, `scripts/teste-carreira-viva/verifica.mjs`. Regressões existentes de cenas, persistência e paridade. `npm run build` completo passou (TypeScript + Vite, saída em `/tmp`); `npm run recarga` passou. `git diff --check` passou. Capturas e relatório estão em `/workspace/shared/carreira-viva-20261127`.
 
 Diego aprovou as prévias e autorizou explicitamente publicar em 27/11. Entrega em `feat/carreira-viva-20261127`, com integração da main atual, build completo e acompanhamento do deploy.
+
+Publicação autorizada: integração da main `bf8da3e5` sem conflitos. Após integrar, passaram novamente as 75 asserções, as 38 verificações de navegador, o build completo e a trava de recarga. Evidências integradas: `/tmp/carreira-viva-integrada-*.log` e `/tmp/carreira-viva-integrada/resultado.json`.

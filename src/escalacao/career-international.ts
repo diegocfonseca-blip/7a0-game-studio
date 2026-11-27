@@ -1,7 +1,13 @@
 import { CATALOG_BOTH } from './data'
 
 /** Regras esportivas da carreira internacional. Sem estado, UI ou sorteio. */
-export const INTERNATIONAL_UNLOCK_SEASON = 40
+// 🔓 27/11 (Diego: *"inclusive na tradicional também, não quero mais que seja só na 40… de início já"*): a carreira online e (por enquanto
+// só nas contas do Diego/Futpoint) a tradicional têm Libertadores/Champions/Mundial DESDE A T1. Os demais e o Brasil Oficial seguem na 40.
+export const INTERNATIONAL_UNLOCK_SEASON = 1
+export const INTERNATIONAL_UNLOCK_OFICIAL = 40
+/** a temporada em que a carreira passa a ter a campanha internacional de clubes */
+/** `t1` = a conta tem a liberação desde a T1 na tradicional (`intlT1Liberado`, só Diego/Futpoint por enquanto); carreira online é sempre T1 */
+export const intlDesdeDe = (s: { oficial?: unknown; co2?: unknown }, t1 = false): number => (s.co2 ? INTERNATIONAL_UNLOCK_SEASON : s.oficial ? INTERNATIONAL_UNLOCK_OFICIAL : t1 ? INTERNATIONAL_UNLOCK_SEASON : INTERNATIONAL_UNLOCK_OFICIAL)
 export const INTERNATIONAL_CAREER_TESTERS: readonly string[] = ['diego.c.fonseca@gmail.com']
 // 🟢 02/10 (Diego: "pode publicar… liberar pra todos"): toda conta logada. Voltar a
 // `false` fecha de novo só na conta dele (e o banco: `esc_private_international_rank_allowed`).
@@ -138,10 +144,12 @@ export function isInternationalClubCard(club: string, card: { id: string; name: 
  * Devolve erro explícito se o catálogo não sustentar todos os XI.
  */
 export function internationalBotSquads<T extends InternationalCard>(
-  cards: readonly T[], representedClub: string | null, userCards: readonly Pick<T, 'name' | 'club' | 'year'>[] = [],
+  cards: readonly T[], representedClub: string | null | readonly string[], userCards: readonly Pick<T, 'name' | 'club' | 'year'>[] = [],
 ): Map<string, T[]> {
-  if (representedClub !== null && !INTERNATIONAL_CLUBS.some(club => club.name === representedClub)) throw new Error('Escolha uma instituição internacional antes de distribuir os bots')
-  const bots = INTERNATIONAL_CLUBS.filter(club => club.name !== representedClub)
+  // 🌐 27/11 carreira online: vários clubes de gente na mesma campanha (cada amigo com o clube que aceitou)
+  const reps: readonly string[] = representedClub === null ? [] : typeof representedClub === 'string' ? [representedClub] : representedClub
+  if (reps.some(r => !INTERNATIONAL_CLUBS.some(club => club.name === r))) throw new Error('Escolha uma instituição internacional antes de distribuir os bots')
+  const bots = INTERNATIONAL_CLUBS.filter(club => !reps.includes(club.name))
   const used = new Set(userCards.map(internationalCardKey))
   const sorted = [...cards].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi) || internationalCardKey(a).localeCompare(internationalCardKey(b)))
   const result = new Map(bots.map(club => [club.name, [] as T[]]))

@@ -69,6 +69,8 @@ export const bandeiraDe = (pais: string) => FLAG[pais] ?? '🌍' // 📰 o jorna
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
 
 const FLAG: Record<string, string> = {
+  // 🏳️ 27/11: bandeiras que faltavam (apareciam como 🌍 no mural de convites)
+  'Angola': '🇦🇴', 'Armênia': '🇦🇲', 'Arábia Saudita': '🇸🇦', 'Bulgária': '🇧🇬', 'Bósnia': '🇧🇦', 'Cabo Verde': '🇨🇻', 'China': '🇨🇳', 'Congo': '🇨🇬', 'Egito': '🇪🇬', 'Eslováquia': '🇸🇰', 'Eslovênia': '🇸🇮', 'Estados Unidos': '🇺🇸', 'Finlândia': '🇫🇮', 'Gabão': '🇬🇦', 'Geórgia': '🇬🇪', 'Grécia': '🇬🇷', 'Guiné': '🇬🇳', 'Haiti': '🇭🇹', 'Honduras': '🇭🇳', 'Hungria': '🇭🇺', 'Irlanda do Norte': '🇬🇧', 'Libéria': '🇱🇷', 'Mali': '🇲🇱', 'Marrocos': '🇲🇦', 'Montenegro': '🇲🇪', 'Nigéria': '🇳🇬', 'Noruega': '🇳🇴', 'País de Gales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Polônia': '🇵🇱', 'RD Congo': '🇨🇩', 'Rep. Tcheca': '🇨🇿', 'Romênia': '🇷🇴', 'Rússia': '🇷🇺', 'Suíça': '🇨🇭', 'Togo': '🇹🇬', 'Trinidad e Tobago': '🇹🇹', 'Ucrânia': '🇺🇦', 'Zimbábue': '🇿🇼', 'África do Sul': '🇿🇦', 'Áustria': '🇦🇹',
   'Brasil': '🇧🇷', 'Argentina': '🇦🇷', 'França': '🇫🇷', 'Espanha': '🇪🇸',
   'Inglaterra': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Itália': '🇮🇹', 'Alemanha': '🇩🇪', 'Holanda': '🇳🇱',
   'Portugal': '🇵🇹', 'México': '🇲🇽', 'Colômbia': '🇨🇴', 'Uruguai': '🇺🇾',
@@ -514,7 +516,7 @@ export function bestXISemRepetir(pool: Record<Sec, PoolCard[]>, f: Formation): P
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural, internationalCareer = false, motor2 = false, versaoM2, anchor = COPA_ANCHOR, ciclo = COPA_CICLO, convite = false, muralGuardado }: { muralGuardado?:CopaSave['mural']; /** 🇧🇷 de quantas em quantas temporadas (4 no Brasil Oficial) */ ciclo?: number; /** 🇧🇷 Brasil Oficial (17/11): a Copa usa a agenda `anchor`/`ciclo` e chega por CONVITE — a seleção da mesma posição do seu clube no ranking; aceita ou recusa */ anchor?: number; convite?: boolean; /** ⚽🧠 o motor novo decide o jogo da sua seleção (só carreira) */ motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; internationalCareer?: boolean }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural, internationalCareer = false, intlT1 = false, motor2 = false, versaoM2, anchor = COPA_ANCHOR, ciclo = COPA_CICLO, convite = false, muralGuardado }: { muralGuardado?:CopaSave['mural']; /** 🇧🇷 de quantas em quantas temporadas (4 no Brasil Oficial) */ ciclo?: number; /** 🇧🇷 Brasil Oficial (17/11): a Copa usa a agenda `anchor`/`ciclo` e chega por CONVITE — a seleção da mesma posição do seu clube no ranking; aceita ou recusa */ anchor?: number; convite?: boolean; /** ⚽🧠 o motor novo decide o jogo da sua seleção (só carreira) */ motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; internationalCareer?: boolean; /** 🔓 27/11: Libertadores desde a T1 nesta conta (some o bloco da T40) */ intlT1?: boolean }) {
   // 🔗 "(aba Rank)" virou link de verdade (Diego 14/08): antes era só texto
   // solto, a pessoa tinha que sair da tela e procurar a aba na mão.
   const rankLink = onGoRank
@@ -548,7 +550,8 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
 
   if (seasonNo < anchor) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
-      {internationalCareer && !convite && <div className="ov3-surface" style={{ background: seasonNo >= 40 ? '#E3F2DC' : '#F4ECD6', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9 }}>
+      {/* 🔓 27/11: quem tem a Libertadores desde a T1 (`intlT1`) não vê o bloco "TEMPORADA 40" */}
+      {internationalCareer && !convite && !intlT1 && <div className="ov3-surface" style={{ background: seasonNo >= 40 ? '#E3F2DC' : '#F4ECD6', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0 }}>{seasonNo >= 40 ? '✓' : '🔒'} TEMPORADA 40 · 🌎 FUTEBOL INTERNACIONAL DE CLUBES</p>
         <p style={{ fontSize: 10, fontWeight: 800, margin: '4px 0' }}>CONMEBOL Libertadores · UEFA Champions League · Mundial de Clubes</p>
         <div className="ov3-surface" style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}><div style={{ width: `${Math.min(100, seasonNo / 40 * 100)}%`, height: '100%', background: '#1B7A3D' }} /></div>
@@ -737,7 +740,7 @@ export function ConviteSelecao({ pais, clube, onAceita, onRecusa }: { pais: stri
 }
 
 // ── tela 1: escolha da seleção (trava pela posição no ranking de clubes) ──
-function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose,onDecline }: { onDecline?:()=>void; paises16: string[]; myPos: number; myClub: string; onPick: (p: string) => void; onClose: () => void }) {
+export function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose,onDecline }: { onDecline?:()=>void; paises16: string[]; myPos: number; myClub: string; onPick: (p: string) => void; onClose: () => void }) {
   return (
     <>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase' }}>{tr('✉️ Convites de seleções', '✉️ National team invitations')}</p>
@@ -1042,7 +1045,7 @@ function jogoM2(entrants: Entrant[], seed: number, seasonNo: number, jogo: strin
   let n = 0
   for (let i = 0; i < jogo.length; i++) n = Math.imul(n ^ jogo.charCodeAt(i), 0x01000193) >>> 0
   const H = entrants[h], A = entrants[a]
-  const e = entradaM2({ versao, preservarGuardado:true, partidaId:`mundial:${seed}:${seasonNo}:${n}:${h}:${a}`, seed: sementeM2((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, 'M', n, h, a), casa: H.xi as never, fora: A.xi as never, fCasa: H.form, fFora: A.form, tatica: [0, 0], bots: [!H.you, !A.you] })
+  const e = entradaM2({ versao, preservarGuardado:true, partidaId:`mundial:${seed}:${seasonNo}:${n}:${h}:${a}`, seed: sementeM2((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, 'M', n, h, a), casa: H.xi as never, fora: A.xi as never, fCasa: H.form, fFora: A.form, tatica: [0, 0], bots: [!(H.you || H.humano), !(A.you || A.humano)] })
   const res = resultadoM2(e)
   const ev: ScoreGoal[] = res.gols.map(g => g.contra ? { home: g.home, min: g.min, name: g.nome + GOL_CONTRA } : { home: g.home, min: g.min, name: g.nome, assist: g.assist })
   return { e, g: [res.placar[0], res.placar[1]], ev }
@@ -1051,7 +1054,9 @@ function jogoM2(entrants: Entrant[], seed: number, seasonNo: number, jogo: strin
  *  Sem ela, a Copa é idêntica à de sempre. */
 export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number, potes = false, forte = false, m2 = false, tat?: QualTatica, versao?: VersaoM2) {
   const peso = forte ? PESO_FORCA : PESO_FORCA_VELHO
-  const meu = (h: number, a: number) => m2 && (!!entrants[h]?.you || !!entrants[a]?.you)
+  // 🌍 27/11 carreira online: o jogo de QUALQUER seleção de gente (`humano`) usa o motor novo, não só o da tela de quem vê — senão
+  // cada aparelho calcularia diferente. Salas online mandam m2=false e a solo não tem `humano`: nada muda nelas.
+  const meu = (h: number, a: number) => m2 && (!!entrants[h]?.you || !!entrants[a]?.you || !!entrants[h]?.humano || !!entrants[a]?.humano)
   {
     const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ 0xC0FA) >>> 0)
     const aBase = (seed ^ Math.imul(seasonNo, 2654435761) ^ 0x5A5511) >>> 0 // 🅰️ dado das assistências (não encosta no rng)

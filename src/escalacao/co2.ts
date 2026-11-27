@@ -15,7 +15,7 @@ export type Co2Sala = {
 }
 export type Co2Clube = { sala: string; assento: number; user_id: string; nome: string; pronto_rodada: number | null; na_sala_em: string | null; publico?: Record<string, unknown> }
 /** O que é de todos e não muda a cada rodada: a ordem dos clubes de gente (uid por posição = id do técnico no jogo). */
-export type Co2Mundo = { ordem: string[]; v?: number; /** ⚽🧠 temporada a partir da qual o motor novo decide os jogos de gente (a mesma pra todo aparelho; o dono grava no preparo) */ m2?: number }
+export type Co2Mundo = { ordem: string[]; v?: number; /** 🔀 26/11 (Diego): ⚡ Dinâmica = rodadas seguem direto · 🧭 Livre = PRONTO a cada rodada (o padrão de antes) */ modo?: 'dinamica' | 'livre'; /** 🤖 26/11: quantos bots disputam o leilão (0–5, o dono escolhe na largada) */ bots?: number; /** 🌍 27/11 Copa do Mundo única: quem o dono pulou na fila dos convites (sumiu) e os campeões já decididos (pro ranking igual em todo aparelho) */ copaPula?: { season: number; ids: number[] }; copaHist?: { season: number; campeao: string; pais: string }[]; /** 🌎 27/11 Libertadores/Champions únicas: quem o dono pulou na fila dos convites e os títulos carimbados (ranking igual em todo aparelho) */ intlPula?: { season: number; ids: number[] }; intlHist?: import('./co2-internacional').Co2IntlHist[]; /** ⏱️ 27/11: o relógio da vez (o dono carimba quando a vez/fase muda) e as escolhas automáticas (o pior clube; os piores 11 saem do clube, iguais em todo aparelho) */ intlVez?: { season: number; mgrId: number; fase: 'escolha' | 'convoca'; desde: string }; intlAuto?: { season: number; por: Record<number, string | null> }; /** ⏱️ 27/11: o mesmo relógio/automático na Copa do Mundo (seleção carimbada; os piores 11 saem dela) */ copaVez?: { season: number; mgrId: number; fase: 'escolha' | 'convoca'; desde: string }; copaAuto?: { season: number; por: Record<number, string | null> }; /** ⏱️ 27/11 (Diego: *"nas configurações do host p ele escolher os tempos"*): pausa = anúncio/virada · rodada = PRONTO da 🧭 Livre (segundos) */ tempos?: { pausa: number; rodada: number }; /** 🏆 26/11: regras do fim da temporada carimbadas pelo dono (as mesmas em todo aparelho, nunca da conta de cada um) */ fim?: { copaBR: boolean }; /** 🏆 26/11: a escalação da copa do fim, congelada pelo DONO (todo aparelho usa a mesma) */ copaXi?: { season: number; xi: Record<number, string[]> }; /** ⚽🧠 temporada a partir da qual o motor novo decide os jogos de gente (a mesma pra todo aparelho; o dono grava no preparo) */ m2?: number }
 
 type Snap = { sala: Co2Sala | null; clubes: Co2Clube[]; uid: string | null; aqui: string[]; mundo: Co2Mundo | null }
 let snap: Snap = { sala: null, clubes: [], uid: null, aqui: [], mundo: null }
@@ -62,9 +62,11 @@ export async function co2RecarregaClubes(): Promise<void> {
 }
 export async function co2LeMundo(): Promise<Co2Mundo | null> {
   if (!canalSala) return null
-  const { data } = await supabase.from('esc_carr_sala').select('m:mundo->ordem, v:mundo->v, m2:mundo->m2').eq('id', canalSala).maybeSingle()
-  const d = data as { m?: string[] | null; v?: number | null; m2?: number | null } | null
-  const mundo = d?.m ? { ordem: d.m, v: d.v ?? undefined, m2: d.m2 ?? undefined } : null
+  // 🐛 26/11: antes lia só ordem/v/m2 — o modo (Dinâmica/Livre), a regra da copa (`fim`) e a escalação congelada da copa
+  // (`copaXi`) nunca chegavam nos aparelhos dos amigos. O mundo é pequeno (uids + 20×11 ids): lê inteiro.
+  const { data } = await supabase.from('esc_carr_sala').select('mundo').eq('id', canalSala).maybeSingle()
+  const d = (data as { mundo?: Co2Mundo | null } | null)?.mundo
+  const mundo = d && Array.isArray(d.ordem) ? d : null
   muda({ mundo })
   return mundo
 }
@@ -199,5 +201,21 @@ export async function co2LePrivado(): Promise<Record<string, unknown> | null> {
   return ((data as { dados?: Record<string, unknown> } | null)?.dados) ?? null
 }
 export const co2SalaAtual = (): string | null => canalSala
+/** 🔄 26/11: a FOTO da virada (estado do fim do leilão de todos), pra quem faltou alcançar. Só quem comanda grava. */
+export async function co2SalvaVirada(temporada: number, z: string): Promise<string> {
+  if (!canalSala) return 'erro'
+  const { data, error } = await supabase.rpc('esc_carr_virada_salva', { p_sala: canalSala, p_temporada: temporada, p_z: z })
+  return error ? 'erro' : String(data ?? 'erro')
+}
+export async function co2LeVirada(temporada: number): Promise<string | null> {
+  if (!canalSala) return null
+  const { data, error } = await supabase.rpc('esc_carr_virada_le', { p_sala: canalSala, p_temporada: temporada })
+  return error || typeof data !== 'string' ? null : data
+}
 /** 📸 bancada das fotos/testes (`scripts/foto-co2.mjs`): finge quem sou eu e quem está na sala. Não é usada pelo jogo. */
 export function _bancadaCo2(p: Partial<Snap>): void { muda(p) }
+
+/** ⏱️ os tempos que o dono escolheu (padrão 60 s cada). O banco aceita de 15 a 300 s. */
+export const TEMPOS_OPCOES = [30, 60, 90, 120, 180] as const
+export const tempoPausa = (m: Co2Mundo | null | undefined): number => m?.tempos?.pausa ?? 60
+export const tempoRodada = (m: Co2Mundo | null | undefined): number => m?.tempos?.rodada ?? 60

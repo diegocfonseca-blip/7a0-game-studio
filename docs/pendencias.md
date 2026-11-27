@@ -82,6 +82,50 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
 
 
 ## 26/11 — 🌐 Carreira Online (tradicional): análise da logística feita, esperando 5 decisões do Diego
+- ✅ **(26/11 noite) VIRADA da temporada no branch** (só conta do Diego, não publicado): cada um fecha o próprio clube
+  (contas + contratos no aparelho dele) → o dono abre o leilão de todos (quem não fechou fica fora, contrato vencido renova
+  sozinho) → no fim cada aparelho junta elencos/bots do dono com o próprio clube (estádio, Agência, caixa não se perdem).
+  Quem faltou alcança pela foto da virada. Plano/estado: `docs/carreira-online-virada-plano.md`.
+- ⏳ **SQL `docs/sql/carreira-online-virada-20261126.sql` NÃO APLICADO** (tabela da foto da virada). Aplicar fora do pico.
+- 🐛 consertado no mesmo dia: os aparelhos dos amigos não liam o modo (Dinâmica/Livre) nem a escalação congelada da copa.
+- ✅ (26/11) quem volta depois de rodadas fora ALCANÇA sozinho (`CO2_ALCANCA_RODADAS`: joga as rodadas que perdeu com as gavetas do
+  banco, mesmo placar que a turma viu) · ⚡ Dinâmica: relógio de 60 s na virada (aviso; o dono abre, confirma se ainda tem tempo).
+- ⚠️ caso raro aberto: quem perdeu a VIRADA inteira alcança as rodadas da temporada velha com as gavetas da nova (prêmios do fim
+  dele podem sair um pouco diferentes; elenco/divisão vêm da foto e ficam certos).
+- ✅ (26/11) 🤖 dono escolhe 0–5 bots no leilão na largada (`mundo.bots`; teste roda com 0 e com 5) · bot que perdeu jogador pra
+  clube de gente repõe com a carta REAL livre de over mais perto de quem saiu, com aviso nas notícias.
+- ✅ (27/11, Diego: *"Sim"*) com 0 bots NINGUÉM de máquina dá lance (envelope, Tocaia, Monte, nem o dono do sondado) — `semBotsCo2`.
+  Teste: 5 bots = 57 compras de máquina na virada · 0 bots = 0. O bot que perde jogador repõe com sobra real de over parecido.
+- ✅ (27/11) notícia de todo jogador que um clube de gente tirou de bot ("🔨 X levou Y do Z por N") · 🎬 ⚡ Dinâmica: anúncio de cinema
+  (opção C) na ESTREIA de cada temporada, 60 s de aviso, só o dono segue (confirma antes do tempo). Foto `scripts/mockups/co2-anuncio-estreia.png`.
+- ✅ (27/11) anúncio da estreia fecha no ✕ e vira faixa fininha (cada um livre nas abas) · ⚙️ dono escolhe os TEMPOS (pausas e rodada da Livre: 30 s–3 min) na largada e muda depois (`Co2TemposDono`, só fora do jogo rolando).
+- ✅ (27/11) 🕵️ SONDAR DE AMIGO (regra do Diego de 26/11): no Sondar aparecem os clubes dos amigos (🤝), só os RESERVAS (titular =
+  última escalação salva; `titularesDoClube`/`reservaDeAmigoCo2`, mesma conta na tela e no motor). Gasta a sondagem de jogador · vai
+  pro leilão de todos com mínimo = valor · dono não dá lance · dinheiro pro dono · ninguém pagou = volta pro dono com o mesmo contrato ·
+  quem sondou e deu lance IGUALA o maior lance dos outros automaticamente (se tiver caixa e vaga). Teste cobre os 2 caminhos
+  (`LANCE_SONDA=1` = ele leva; sem = volta pro dono). ⚠️ "igualar" é automático (deu lance = quer igualar); se o Diego quiser
+  a pergunta na hora, é uma tela a mais.
+- ✅ (27/11) auditoria das competições no co2 (tabela em `docs/carreira-online-virada-plano.md`): copa só com escalação+regra do dono, mundo refaz com elenco de amigo. ⏳ DECIDIR com o Diego: Copa do Mundo e Liberta/Champions/Mundial hoje são de cada aparelho (2 amigos podem ser campeões juntos).
+- ✅ (27/11) 🌍 COPA DO MUNDO ÚNICA na carreira online (regra principal do Diego: tudo é único): ranking de clubes igual em todo aparelho
+  (caixa do amigo pela gaveta, títulos da Copa pelo que o dono carimba em `mundo.copaHist`, internacionais fora até serem únicos) ·
+  convites pela ordem do ranking, da posição pra baixo, seleção escolhida sai da lista dos outros (`co2-copa-mundo.ts`) · dono pode
+  PULAR quem sumiu · as 32 seleções e os jogos (motor novo pra toda seleção de gente) saem iguais — trava `testa-copa-mundo.mjs`.
+  Foto `scripts/mockups/co2-copa-mundo-vez.png`. ⏳ Liberta/Champions/Mundial únicos = próximo (enquanto isso a campanha individual
+  fica DESLIGADA no co2 e a virada da T40+ não espera por ela).
+- ✅ (27/11) 🔒 PUBLICADO SÓ PRA DIEGO + FUTPOINT (*"faça tudo mas só p minha conta e do Futpoint"*): Libertadores desde a T1 na tradicional atrás de `INTL_T1_TESTERS` (os outros seguem na 40; a novidade da home saiu, volta quando for pra todos); carreira online com o Futpoint em `CO2_TESTERS` e no banco (`esc_carr_pode_criar`). Banco: aplicada a foto da virada (`esc_carr_virada` + `esc_carr_virada_salva/le`, `docs/sql/carreira-online-virada-20261126.sql`). Pra todos: `INTL_T1_GERAL`/`CO2_GERAL = true` + o e-mail fora de `esc_carr_pode_criar`.
+- ✅ (27/11) ⏱️ RELÓGIO DOS CONVITES na ⚡ Dinâmica (Diego: *"se ele não escolher o sistema dá o pior time dos listados… e escala os piores caso não escale no tempo, 90 s"*): 60 s pra escolher, 90 s pra convocar (o clube/seleção aceito fica RESERVADO na hora e já sai da lista dos outros). Esgotou: o dono carimba no mundo (`intlAuto`/`copaAuto`) o pior clube livre da Libertadores (ou o reservado) / a pior seleção livre, e os PIORES 11 saem dele igual em todo aparelho. Na 🧭 Livre sem relógio; o "Pular" do dono faz o mesmo. Vale pra Libertadores/Champions e Copa do Mundo. Trava: os dois testes de `scripts/carreira-online/`.
+- ✅ (27/11) ✉️ CONVITES DO ONLINE VIRARAM MURAL (Diego: *"todos esses times te querem… por qual você vai brigar pelo título?"*): na sua vez aparecem TODOS os clubes livres (Libertadores; Champions se aberta) do mais forte pro mais fraco, sem número de força na tela (Diego: *"não mostre média de over"* — a força só ordena); tocar abre a carta do convite. Ordem: quem ficou mais alto escolhe primeiro, o escolhido some da lista dos de baixo. Copa do Mundo igual (todas as seleções livres, com bandeira). Só na carreira online; a tradicional segue com os 2 convites do bloco. Mockups `scripts/mockups/co2-intl-mural*.png` e `co2-copa-mundo-convites.png` — ⏳ esperando OK visual.
+- ✅ (27/11) 🔓 Libertadores/Champions/Mundial DESDE A T1 também na carreira TRADICIONAL (Diego: *"inclusive na tradicional também… de início já"*). `intlDesdeDe`: tradicional e online = 1, Brasil Oficial = 40 (não pedido). Metas internacionais do Master acompanham; o bloco "TEMPORADA 40" da Copa saiu; títulos de antes da T40 contam no ranking global. Save parado no fim de temporada (antes do leilão) abaixo da 40 vai pedir a temporada internacional antes de seguir.
+- ✅ (27/11) 🌎🌍🌐 LIBERTADORES/CHAMPIONS/MUNDIAL ÚNICOS na carreira online, DESDE A T1 (Diego: *"que temporada 40 o quê… desde o início já, tem que liberar"*).
+  Fila de convites pela prioridade da regra de sempre (campeão da A → campeão da Copa → 2º–8º); cada um recebe os 2 convites do bloco dele e aceita UM;
+  o clube aceito sai da lista dos de baixo; o dono pula quem sumiu; quando todos decidiram, a MESMA campanha nasce em todo aparelho (amigos nos clubes
+  deles, motor novo em todo jogo de gente). Champions continua abrindo só depois de ganhar a Libertadores. Fechar a temporada exige a internacional
+  encerrada no aparelho (o prêmio vai no caixa do fechamento). Ranking: títulos carimbados pelo dono contam a partir da temporada seguinte, e o
+  desempate do ranking no co2 virou a ordem das tabelas (o caixa muda no fim da temporada em momentos diferentes e mexeria na Copa do Mundo).
+  A virada agora sobe a gaveta com Copa/Libertadores/caixa juntos (antes o fechamento apagava a escolha da Copa — amigo mais lento podia montar outra Copa).
+  ⏳ Falta: teste real com 2 contas; quem faltou a virada inteira não joga a internacional daquela temporada.
+- ⚠️ (27/11) o teste da Copa do fim falhou 1 vez em ~20 rodadas (Copa diferente entre aparelhos, semente aleatória). Não reproduziu em 18 seguidas; o teste agora imprime a semente quando falhar — investigar antes de liberar.
+- ⏳ falta: anúncio C também nas copas (hoje a copa do fim roda em cada aparelho), dia dos contratos, teste com 2 contas.
 - Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).
 - Testes da v2 verdes depois da publicação do Codex (`npm run carreira-online` e `npm run carreira-online-fluxo`).
 
@@ -15780,3 +15824,11 @@ sozinha. Faltava: (1) o removido ao tentar entrar vê "você foi removido" e pod
 com plano; (3) a vaga antiga fica anotada (`esc_liga_removidos.indice`) e o dono não consegue pôr ele de volta no time antigo (a lista
 esconde, o banco recusa com 'antigo', e a virada não usa esse time nem como reserva). SQL: `docs/sql/liga-removido-convite-20261126.sql`
 (APLICADO em 26/11; publicado no mesmo dia). Trava `npm run liga-volta` verde.
+
+## 🌐 26/11 — Carreira online: 1º pedaço da ⚡ Dinâmica (só na conta do Diego, no branch)
+- Feito: o dono escolhe **⚡ Dinâmica** ou **🧭 Livre** ao começar (grava em `mundo.modo`); **vice saiu da tela** (só o dono continua;
+  a função do banco `esc_carr_continuar` ainda aceita vice — tirar junto da próxima leva de SQL); na Dinâmica as rodadas seguem
+  direto (o dono começa a próxima 3 s depois do apito, sem PRONTO; Pausar segura pra todo mundo). Travas `carreira-online` e
+  `carreira-online-fluxo` verdes.
+- Falta: anúncio C (pausa de 60 s) quando começa competição nova + dia dos contratos — dependem das copas e da VIRADA, que ainda
+  travam na carreira online (próximo passo: a virada). Depois: alcance de quem faltou, entrada só com plano, crise de -500 no online.

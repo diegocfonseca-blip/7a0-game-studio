@@ -57,7 +57,7 @@ try {
   const qualifiers = internationalQualifiers(league, league[5], team => String(team.id))
   assert.equal(qualifiers.length, 8)
   assert.equal(qualifiers[1].team.id, 6)
-  assert.equal(internationalChoice(true, 39, qualifiers, '1', team => String(team.id)).length, 0)
+  assert.equal(internationalChoice(true, 1, qualifiers, '1', team => String(team.id)).length, 72) // 🔓 27/11: desde a T1 (Diego)
   assert.equal(internationalChoice(true, 87, qualifiers, '1', team => String(team.id)).length, 72)
   assert.equal(internationalChoice(false, 87, qualifiers, '1', team => String(team.id)).length, 0)
   const nine = internationalQualifiers(league, league[9], team => String(team.id))

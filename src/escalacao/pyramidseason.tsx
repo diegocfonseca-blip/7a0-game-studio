@@ -51,8 +51,8 @@ import {RitmoCampoProvider} from './presidencia-velocidade'
 import { MENSAIS } from './planos-regras'
 import { assinarMensal } from './vendria-checkout'
 import { PixMP } from './pix-mp'
-import { Co2Temporada, useCo2FimDaVirada } from './co2-telas' // 🌐 carreira online v2 (19/10)
-import { useCo2 } from './co2'
+import { Co2Temporada, useCo2FimDaVirada, Co2FecharTemporada, Co2ViradaEspera, Co2CopaMundo } from './co2-telas' // 🌐 carreira online v2 (19/10)
+import { useCo2, co2Agora, co2Mundo } from './co2'
 import { mesclaEntradas, congelaMeu, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import {useAssistindoCampo} from './presidencia-campo-observacao'
 import {duracaoPartidaCampo,avancarMinutoCampo} from './presidencia-partida-tempo'
@@ -132,7 +132,7 @@ import { simulaIntercontinental, europaDaTemporada, INTERCONTINENTAL_2026, CLUBE
 import { simulaLibertadores, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { marcaCarreiraJogada } from './store' // 🗑️ 18/11
-import { useEsc, divOficialDe, savePyramidCloud, salvarSemConta, voltaProUltimoSalvo, ultimaSubidaNuvem, carreiraTemAlteracoes, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, salaryOfCard, squadPayroll, contratoAtletaFalta, clubesNacionaisDoMercado, reservaTransferivelOficial, podeRetirarOficial, contratacaoOficialPermitida, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, divOficialDe, savePyramidCloud, salvarSemConta, voltaProUltimoSalvo, ultimaSubidaNuvem, carreiraTemAlteracoes, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, salaryOfCard, squadPayroll, contratoAtletaFalta, clubesNacionaisDoMercado, reservaTransferivelOficial, reservaDeAmigoCo2, podeRetirarOficial, contratacaoOficialPermitida, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -165,7 +165,8 @@ import { useRitmo2D, useVel2DAqui, useVel3DAqui, setVel2D } from './ritmo2d'
 import { useCampo2DLigado, useCampo2DExtras, ligaCampo2D, useQuadra2DLigada } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
-import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
+import { internationalQualifiers, internationalChoice, isInternationalCareerTester, intlDesdeDe, INTERNATIONAL_CLUBS } from './career-international'
+import { vezDaIntl, clubesTomados, amigosDaIntl, filaIntl, titulosDaIntl, contaTitulosIntl, decidiuIntl, piorXIIntl, escolhaAutomatica, INTL_PRAZO_ESCOLHA_S, INTL_PRAZO_CONVOCA_S, type Co2IntlEscolha } from './co2-internacional' // 🌎 27/11 Libertadores/Champions únicas na carreira online
 import { CareerInternationalView, topoInternacional, CarreiraPresidente } from './career-international-view'
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
@@ -174,7 +175,7 @@ import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira, 
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado, useIntlT1 } from './sport'
 import {DesktopRankSummary} from './desktop-layout'
 import { CentralCarreira, FaixaSalvar } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
@@ -6961,7 +6962,7 @@ function useJanelaNovaOn(): boolean {
 }
 // 🕵️ os clubes da SUA série — a conta ÚNICA do Sondar e do Mercado (bots da sua divisão + rivais escolhidos + times de fundo, que
 // vêm da receita da pirâmide). Era copiada nas duas telas; a confirmação do leilão e a virada da janela nova leem a mesma.
-type ClubeSerie = { teamName: string; squad: WonCard[]; fundo?: boolean }
+type ClubeSerie = { teamName: string; squad: WonCard[]; fundo?: boolean; amigo?: boolean }
 function clubesDaSerie(state: EscState, mundo: ReturnType<typeof buildPyramid>, divAtual: DivTec): ClubeSerie[] {
   if(state.oficial||gestaoAtiva(state))return clubesNacionaisDoMercado(state)
   const pl = state.careerPlacements ?? {}
@@ -6975,6 +6976,8 @@ function clubesDaSerie(state: EscState, mundo: ReturnType<typeof buildPyramid>, 
     if (dm !== divAtual && !m.auctionOnly && !rivaisTime.has(newestTeamName(m.teamName))) continue
     vistos.add(m.teamName); out.push({ teamName: m.teamName, squad: m.squad as WonCard[] })
   }
+  // 🕵️ 27/11 carreira online: os clubes dos AMIGOS (qualquer divisão) — só o reserva deles pode ser sondado (`reservaDeAmigoCo2`)
+  if (state.co2) for (const m of state.managers) if (m.isHuman && m.id !== state.managers[state.youIdx]?.id) { vistos.add(m.teamName); out.push({ teamName: m.teamName, squad: m.squad as WonCard[], amigo: true }) }
   for (const [k, v] of Object.entries(pl)) {
     if (v !== divAtual || /^m\d+$/.test(k)) continue
     const nome = newestTeamName(k)
@@ -7245,6 +7248,8 @@ export function MercadoAba({ mgr, ordem,dealFocus,onClearDeal }: { mgr: Manager;
       {painel==='sondar'&&<div className="ll-mk-panel" style={caixa}>
         {titulo(tr('🕵️ Sondar · 1 técnico + 1 jogador', '🕵️ Scout · 1 coach + 1 player'))}
         {sub(tr('Acompanhe 1 jogador e 1 técnico para a próxima janela. Você pode trocar os alvos até lá.','Follow 1 player and 1 coach for the next window. Targets can be changed until then.'))}
+        {/* 💡 26/11 (Diego: "deixe a msg… do reserva e jogador sem contrato juntos que podem ser sondados"): a regra inteira numa linha */}
+        {(state.oficial || gestaoAtiva(state)) && sub(tr('Pode ser sondado: 🆓 jogador sem contrato e 🪑 reserva de outro clube (esse ainda tem contrato: você paga a transferência). Titular nunca.', 'Can be scouted: 🆓 out-of-contract players and 🪑 another club\'s reserves (still under contract: you pay the transfer). Starters never.'))}
         <div className="ll-mk-targets" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           {vaga('🧢', tr('TÉCNICO', 'COACH'), deOlho.tec ?? null)}
           {vaga('⚽', tr('JOGADOR', 'PLAYER'), deOlho.jog ? deOlho.jog.nome : null)}
@@ -7431,7 +7436,8 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   if (jogadorOn) for (const c of clubes) for (const x of c.squad) {
     if (ehFake(x) || x.cria || x.emprestado) continue
     if (!marcadosJ.includes(x.id) && !sondarLiberado(x, olheiroTier)) { escondidos++; continue }
-    jogs.push({ card: x, clube: c, falta: contratoAtletaFalta(state,x), negociavel: reservaTransferivelOficial(state,c.squad,x,state.managers.find(m=>m.teamName===c.teamName)?.formation) })
+    if (c.amigo && !reservaDeAmigoCo2(state, x.id)) continue // 🕵️ titular de amigo nem aparece: só reserva
+    jogs.push({ card: x, clube: c, falta: contratoAtletaFalta(state,x), negociavel: c.amigo || reservaTransferivelOficial(state,c.squad,x,state.managers.find(m=>m.teamName===c.teamName)?.formation) })
   }
   const tecLivres = tecs.filter(t => t.falta <= 0).length
   const jogLivres = jogs.filter(j => j.falta <= 0 || j.negociavel).length
@@ -7564,7 +7570,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
                 const trava = travaRegra ?? (j.falta > 0 && !j.negociavel ? (getLang() === 'en' ? `${j.falta} left` : `falta${j.falta > 1 ? 'm' : ''} ${j.falta}`) : (!marcado && marcadosJ.length >= 1 ? '1/1' : undefined))
                 return linha(`j:${x.id}:${c.teamName}`, marcado, trava, () => dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName, squad: c.squad } : {}) }),
                   <>{x.name}</>,
-                  <>📍 {tr('está no', 'at')} {rivais.has(c.teamName) ? '⚔️ ' : ''}{c.teamName} · {j.negociavel && j.falta > 0 ? tr('reserva disponível para transferência', 'reserve available for transfer') : contratoTxt(j.falta)}</>,
+                  <>📍 {tr('está no', 'at')} {c.amigo ? '🤝 ' : rivais.has(c.teamName) ? '⚔️ ' : ''}{c.teamName} · {c.amigo ? tr('reserva de amigo: vai pro leilão de todos, o dinheiro é dele', 'a friend\'s reserve: goes to everyone\'s auction, the money is theirs') : j.negociavel && j.falta > 0 ? tr('reserva disponível para transferência', 'reserve available for transfer') : contratoTxt(j.falta)}</>,
                   marcado ? historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo) : null,
                   { pos: x.pos, etiqueta: `${x.club} · ${x.year}` })
               })}
@@ -10288,7 +10294,10 @@ export function PyramidSeasonScreen() {
   // 🏛️ `state.youIdx` entra nas dependências (07/09): ao passar o comando pro 2º
   // clube, o `you` do mundo continuava no clube antigo até outra coisa mexer —
   // "minha colocação", "minha divisão" e o desfecho descreviam o clube errado.
-  const worldVivo = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🌐 27/11 carreira online: o elenco dos AMIGOS chega pelas gavetas no meio da temporada — o mundo tem que refazer quando ele muda,
+  // senão este aparelho simula com o elenco velho e a tabela sai diferente da dos outros. Solo: assinatura vazia, nada muda.
+  const co2Elencos = state.co2 ? state.managers.filter(m => m.isHuman).map(m => `${m.id}:${m.formation}:${m.squad.map(c => c.id).join(',')}`).join('|') : ''
+  const worldVivo = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx, co2Elencos]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🧊 DEPOIS DO APITO, O PASSADO NÃO MUDA MAIS (conserto 24/09 — caso do Futpoint FC).
   // A tela REFAZ as 38 rodadas a partir do elenco de AGORA, e a janela de empréstimo
   // fica nesta mesma tela: trazer um jogador da SAF mexia em `cpuSquads`, a conta era
@@ -10553,7 +10562,11 @@ export function PyramidSeasonScreen() {
   // (Brasil Oficial: a D joga só em algumas datas — quem diz se a rodada tem jogo é a série A, que joga todas)
   const hasMatches = round >= 1 && (state.oficial ? matches.A.length > 0 : matches.D.length > 0)
   const youId = state.managers[state.youIdx]?.id ?? 0
-  const intlEnabled = useInternacionalCarreiraLiberada()
+  // 🌍 27/11: na carreira online a Liberta/Champions/Mundial vai ser UMA só pra turma (em construção) — até lá, a campanha individual
+  // fica desligada lá (senão dois amigos seriam campeões da mesma Libertadores)
+  const intlEnabled = useInternacionalCarreiraLiberada() // 🌎 27/11: na carreira online também (única pra todos, desde a T1)
+  const intlT1 = useIntlT1()
+  const intlDesde = intlDesdeDe(state, intlT1) // 🔓 Diego 27/11: *"que temporada 40 o quê… desde o início já"* — tradicional e online desde a T1 (Brasil Oficial: 40)
   // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
   // nova, pra montar o rank travado na temporada de quem olha (anti-spoiler — ver
   // `esc_pyramid_rank` no banco). Só carreira com Agência 2.0, offline, e só 1×
@@ -10757,6 +10770,7 @@ export function PyramidSeasonScreen() {
   // campeão, prêmios e carta ficam idênticos pra sempre — e o técnico segue
   // mexendo no time à vontade, que nada disso alcança o que já foi decidido.
   const copaXiFixo = state.copaXiSeason === state.seasonNo ? state.copaXi : undefined
+  const mundoCo2 = useCo2().mundo // 🌐 26/11: regras/escalação da copa do fim carimbadas pelo dono (carreira online)
   const lineupsCopa = useMemo<RoundLineups>(() => {
     // 🌐 `entradasSim.lineups` = a escalação de sempre na solo; na carreira online v2 já vem com a dos outros clubes
     if (!copaXiFixo) return entradasSim.lineups // 1ª vez: a Copa nasce da escalação de agora (é ela que vai ser congelada logo abaixo)
@@ -10766,11 +10780,20 @@ export function PyramidSeasonScreen() {
   }, [entradasSim.lineups, copaXiFixo])
   useEffect(() => {
     if (!done || !state.careerOnline || state.copaXiSeason === state.seasonNo) return
+    // 🌐🏆 26/11: na carreira online quem congela é o DONO e manda no mundo; os outros aparelhos usam exatamente essa
+    if (state.co2 && !state.co2.comanda) {
+      const cx = mundoCo2?.copaXi
+      if (cx && cx.season === (state.seasonNo ?? 1)) dispatch({ type: 'FREEZE_COPA_XI', season: cx.season, xi: cx.xi })
+      return
+    }
     const xi: Record<number, string[]> = {}
-    for (const m of state.managers) if (m.isHuman) xi[m.id] = lineupAt(careerLineup, m.id, 38, m.squad, m.formation).map(c => c.id)
+    // 🌐 26/11: na carreira online a escalação dos OUTROS clubes vem das gavetas (a local deles aqui é velha)
+    const fonteXi = state.co2 ? entradasSim.lineups : careerLineup
+    for (const m of state.managers) if (m.isHuman) xi[m.id] = lineupAt(fonteXi, m.id, 38, m.squad, m.formation).map(c => c.id)
     dispatch({ type: 'FREEZE_COPA_XI', season: state.seasonNo ?? 1, xi })
+    if (state.co2?.comanda) { const mm = co2Agora().mundo; if (mm) void co2Mundo('virada', state.seasonNo ?? 1, 38, { ...mm, copaXi: { season: state.seasonNo ?? 1, xi }, ...(mm.fim ? {} : { fim: { copaBR: cbUnlockedConta } }) }) } // 🛡️ carreira que começou sem o carimbo da regra: o dono carimba aqui
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [done, state.seasonNo, state.copaXiSeason])
+  }, [done, state.seasonNo, state.copaXiSeason, mundoCo2?.copaXi?.season])
   // 🏆🇧🇷 COPA DO BRASIL LEGENDS (em construção, 15/08): só a conta liberada
   // (copaBrasilLiberada, ver sport.ts) joga essa Copa no lugar da Legends —
   // pra todo mundo o resto desta tela nem sabe que ela existe. `copaBR` é o
@@ -10779,7 +10802,13 @@ export function PyramidSeasonScreen() {
   // no MESMO formato que a Copa Legends sempre teve, então toda a UI de
   // baixo (chaveamento, placar ao vivo, prêmios, `copaRound`) funciona sem
   // precisar saber qual das duas Copas está rolando.
-  const cbUnlocked = useCopaBrasilLiberada()
+  const cbUnlockedConta = useCopaBrasilLiberada()
+  // 🌐🏆 26/11: na carreira online a copa do fim tem que ser a MESMA em todo aparelho — vale o que o dono carimbou no mundo
+  const co2Fim = mundoCo2?.fim
+  const cbUnlocked = state.co2 && co2Fim ? co2Fim.copaBR : cbUnlockedConta
+  // 🌐🛡️ 27/11 (Diego: *"isso não pode ocorrer"*): na carreira online a copa do fim só existe quando a regra do dono (`mundo.fim`) e a
+  // escalação congelada (`copaXi`) já chegaram neste aparelho. Antes disso não se calcula NADA de copa — nem placar, nem prêmio.
+  const copaCo2Pronta = !state.co2 || (!!co2Fim && state.copaXiSeason === state.seasonNo)
   // 🗑️ 18/11: abrir/jogar a carreira conta como "jogou" na regra dos 5 dias de quem não tem plano (o save pode estar travado)
   useEffect(() => { if (state.onlineMode !== 'online') marcaCarreiraJogada(state.seed) }, [state.seed, state.seasonNo, round, state.onlineMode])
   // 🛒 aba Mercado (18/11): nasceu no Brasil Oficial e foi levada pra carreira de sempre (*"pode fazer tudo daí"*) — por enquanto só na
@@ -10808,11 +10837,11 @@ export function PyramidSeasonScreen() {
   }, [state.oficial, state.seasonNo, state.oficialCampeoes, state.oficialEstaduais, worldBase, state.seed, capElite, realGoals])
   // 🇧🇷 no Brasil Oficial a Copa do Brasil é a REAL (126 clubes, 9 fases — `entradasCopaBrasilOficial`), sem esperar desbloqueio
   const copaBR = useMemo(() => {
-    if (!(done || copaMid)) return null
+    if (!(done || copaMid) || !copaCo2Pronta) return null
     const base = copaMid ? world : tables
     if (state.oficial) { const ent = entradasCopaBrasilOficial(base, state.seed, ctxCopaOficial); return ent ? computeCopaBrasil(base, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, ent) : null }
     return cbUnlocked ? computeCopaBrasil(base, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa) : null
-  }, [state.oficial, done, copaMid, world, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, ctxCopaOficial])
+  }, [state.oficial, done, copaMid, world, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, ctxCopaOficial, copaCo2Pronta])
   // 🏆🔵 SUPERCOPA LEGENDS: campeão da Série A × campeão da Copa do Brasil,
   // jogo único, logo depois que a Copa do Brasil termina (docs/conceito-
   // copa-brasil.md § 5). Já sai calculada junto (é determinística — não
@@ -10832,9 +10861,10 @@ export function PyramidSeasonScreen() {
     // Legends? Esse modo são copas originais"*. Até a Copa do Brasil REAL entrar, a temporada do modo não tem copa nacional.
     if (state.oficial) return copaBR ? copaBrasilAsCopaResult(copaBR, null) : null // só a Copa do Brasil REAL (a Supercopa real ainda não entrou)
     if (!done && !copaMid) return null
+    if (!copaCo2Pronta) return null // 🌐 carreira online: esperando a regra/escalação do dono
     if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
     return computeCopa(copaMid ? world : tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa)
-  }, [state.oficial, done, copaMid, world, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa])
+  }, [state.oficial, done, copaMid, world, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, copaCo2Pronta])
   // 🇧🇷 BRASIL OFICIAL · PLAYOFF DA SÉRIE B NA TELA: terminou a 38ª entre o 3º e o 6º da B, o playoff (3º×6º e 4º×5º, ida e volta)
   // entra como mais uma página da esteira pós-temporada — a MESMA da Supercopa (placar, Manual, campinho, intervalo). É este
   // resultado (e não o simulado de fundo) que decide quem sobe; a tabela só mostra o playoff depois de ele ser jogado.
@@ -10969,11 +10999,79 @@ export function PyramidSeasonScreen() {
   const intlAuthReady = useInternacionalCarreiraAuthResolvida()
   const intlHistory = intlEnabled ? (state.careerInternationalHistory ?? []) : []
   const intlCampaign = intlEnabled && state.careerInternational?.season === state.seasonNo ? state.careerInternational : null
-  const intlRequired = intlEnabled && !!state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= 40 && done
-  const intlPendente = state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= 40 && done && ((!intlAuthReady) || (intlRequired && !intlHistory.some(entry => entry.season === state.seasonNo)))
+  const intlRequired = intlEnabled && !!state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= intlDesde && done
+  const intlPendente = state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= intlDesde && done && ((!intlAuthReady) || (intlRequired && !intlHistory.some(entry => entry.season === state.seasonNo)))
   const intlQualifiers = useMemo(() => internationalQualifiers(tables.A, copaBrOk ? copaBR?.champion : null, teamKey), [tables.A, copaBrOk, copaBR?.champion])
+  // 🌎🧑‍🤝‍🧑 27/11 CARREIRA ONLINE: a fila dos convites (clubes de gente no G8/Copa, na ordem da prioridade), quem já aceitou qual
+  // clube e — quando todos decidiram — os amigos que entram na MESMA campanha em todo aparelho
+  const intlCo2 = useMemo(() => {
+    if (!state.co2 || !intlEnabled) return null
+    const season = state.seasonNo ?? 1
+    const fila = filaIntl(intlQualifiers.filter(q => q.team.human && q.team.teamId >= 0).map(q => ({ mgrId: q.team.teamId, priority: q.priority, name: q.team.name })))
+    const escolhas: Record<number, Co2IntlEscolha | undefined> = {}
+    for (const g of state.co2.gavetas) if (g.intl) escolhas[g.mgrId] = g.intl
+    if (state.co2.minhaIntl) escolhas[youId] = state.co2.minhaIntl
+    // ⏱️ escolha AUTOMÁTICA (relógio da Dinâmica esgotou ou o dono pulou): o clube carimbado pelo dono + os piores 11 — vale por cima
+    // do que a pessoa tiver mandado (todo aparelho monta a MESMA campanha)
+    const auto = mundoCo2?.intlAuto?.season === season ? mundoCo2.intlAuto.por : {}
+    for (const [id, club] of Object.entries(auto)) escolhas[Number(id)] = club ? { season, club, xi: piorXIIntl(club) ?? [] } : { season, club: null }
+    const vez = vezDaIntl(fila, escolhas, [], season)
+    const nomeDe = (id: number) => state.managers.find(m => m.id === id)?.teamName ?? fila.find(v => v.mgrId === id)?.name ?? '?'
+    const filaVez = fila.map(v => {
+      const e = escolhas[v.mgrId]
+      const estado = decidiuIntl(e, season) ? (e!.club ?? 'sem') + (v.mgrId in auto ? ' 🤖' : '') : v.mgrId === vez ? (e?.club ? 'convoca' : 'vez') : 'espera'
+      return { ...v, estado }
+    })
+    const minha = escolhas[youId]?.season === season ? escolhas[youId] : undefined
+    const vezE = vez != null ? escolhas[vez] : undefined
+    const fase: 'escolha' | 'convoca' = vezE?.season === season && vezE.club ? 'convoca' : 'escolha'
+    const relogio = mundoCo2?.modo === 'dinamica' && vez != null && mundoCo2.intlVez?.season === season && mundoCo2.intlVez.mgrId === vez && mundoCo2.intlVez.fase === fase
+      ? new Date(mundoCo2.intlVez.desde).getTime() + (fase === 'escolha' ? INTL_PRAZO_ESCOLHA_S : INTL_PRAZO_CONVOCA_S) * 1000 : null
+    return {
+      fila: filaVez, vez, fase, prazo: relogio, pulado: false, qualificado: fila.some(v => v.mgrId === youId),
+      decidi: decidiuIntl(minha, season), automatica: youId in auto,
+      tomados: clubesTomados(escolhas, season, youId), minha,
+      // quem está acima da vez já decidiu: os clubes deles saem da lista do pior clube
+      tomadosAntes: vez != null ? clubesTomados(escolhas, season, vez) : [],
+      amigos: vez === null ? amigosDaIntl(escolhas, season, youId, nomeDe) : null,
+    }
+  }, [state.co2, intlEnabled, intlQualifiers, state.seasonNo, youId, mundoCo2?.intlAuto, mundoCo2?.intlVez, mundoCo2?.modo, state.managers])
+  // ⏱️ o DONO carimba o relógio quando a vez (ou a fase: escolher → convocar) muda, e dá o automático quando ele esgota (só na ⚡ Dinâmica)
+  const intlVezChave = intlCo2 && intlCo2.vez != null ? `${state.seasonNo}:${intlCo2.vez}:${intlCo2.fase}` : ''
+  useEffect(() => {
+    if (!state.co2?.comanda || !intlCo2 || intlCo2.vez == null || mundoCo2?.modo !== 'dinamica' || !intlRequired) return
+    const mm = co2Agora().mundo ?? mundoCo2
+    const iv = mm.intlVez
+    if (iv?.season === (state.seasonNo ?? 1) && iv.mgrId === intlCo2.vez && iv.fase === intlCo2.fase) return
+    void co2Mundo('virada', null, null, { ...mm, intlVez: { season: state.seasonNo ?? 1, mgrId: intlCo2.vez, fase: intlCo2.fase, desde: new Date().toISOString() } })
+  }, [intlVezChave, state.co2?.comanda, mundoCo2?.modo, intlRequired]) // eslint-disable-line react-hooks/exhaustive-deps
+  const intlDaAuto = (id: number) => {
+    const mm = co2Agora().mundo ?? mundoCo2
+    if (!mm || !intlCo2) return
+    const season = state.seasonNo ?? 1
+    const reservado = state.co2?.gavetas.find(g => g.mgrId === id)?.intl ?? (id === youId ? state.co2?.minhaIntl : undefined)
+    const e = escolhaAutomatica(season, reservado?.season === season ? reservado.club : null, intlCo2.tomadosAntes)
+    const por = { ...(mm.intlAuto?.season === season ? mm.intlAuto.por : {}), [id]: e.club }
+    void co2Mundo('virada', null, null, { ...mm, intlAuto: { season, por } })
+  }
+  useEffect(() => {
+    if (!state.co2?.comanda || !intlCo2?.prazo || intlCo2.vez == null) return
+    const vez = intlCo2.vez
+    const t = setTimeout(() => intlDaAuto(vez), Math.max(0, intlCo2.prazo - Date.now()) + 500)
+    return () => clearTimeout(t)
+  }, [intlCo2?.prazo, intlCo2?.vez, state.co2?.comanda]) // eslint-disable-line react-hooks/exhaustive-deps
   const intlPriority = intlQualifiers.find(entry => entry.team.teamId === youId)?.priority ?? null
-  const intlChoices = internationalChoice(intlEnabled, state.seasonNo, intlQualifiers, `m${youId}`, teamKey)
+  const intlChoices = useMemo(() => {
+    const base = internationalChoice(intlEnabled && (state.seasonNo ?? 1) >= intlDesde, state.seasonNo ?? 1, intlQualifiers, `m${youId}`, teamKey)
+    // 🌎 carreira online (Diego 27/11): TODOS os clubes convidam quem tem vaga — o de cima escolhe primeiro; clube que amigo já aceitou sai da lista
+    return intlCo2 ? (base.length ? INTERNATIONAL_CLUBS.filter(c => !intlCo2.tomados.includes(c.name)) : []) : base
+  }, [intlEnabled, intlDesde, state.seasonNo, intlQualifiers, youId, intlCo2])
+  // 🏆 o DONO carimba no mundo quem levou cada título (é o que entra no ranking de clubes, igual em todo aparelho)
+  useEffect(() => {
+    if (!state.co2?.comanda || !intlCampaign || !mundoCo2 || (mundoCo2.intlHist ?? []).some(h => h.season === intlCampaign.season)) return
+    const mm = co2Agora().mundo ?? mundoCo2
+    void co2Mundo('virada', null, null, { ...mm, intlHist: [...(mm.intlHist ?? []), titulosDaIntl(intlCampaign)] })
+  }, [state.co2?.comanda, intlCampaign, mundoCo2])
   const intlStats = useMemo(() => intlCampaign && !intlPendente ? intlCampaign.statistics : [], [intlCampaign, intlPendente])
   const intlPorCarta = useMemo(() => {
     const gl: Record<string, number> = {}, ass: Record<string, number> = {}, jogos: Record<string, number> = {}
@@ -11141,7 +11239,7 @@ export function PyramidSeasonScreen() {
     dispatch({ type: 'ESTADUAL_FEITO', premios, estadual: { temporada: state.seasonNo ?? 1, nome: r ? estadualNome! : '', campeao: r?.campeao ?? '', vice: r?.vice ?? '', caem: r?.caem ?? [], classificacao: r?.classificacao ?? [] } })
     setEstadualOn(false); setCopaRound(0)
   }, [estadualOn, preRounds, copaRound]) // eslint-disable-line react-hooks/exhaustive-deps
-  const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  const copaFinished = done && copaCo2Pronta && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds) // 🌐 carreira online: sem a copa do dono, a temporada não fecha
   // 💰 18/11 (Diego: *"vai sendo eliminado mas ganha alguma coisa… sempre deixando claro pro usuário"*): no Brasil Oficial, quando a
   // ÚLTIMA página do seu clube numa copa já passou na tela (caiu, ou a copa acabou), um aviso diz quanto aquela campanha rendeu. Mesma
   // régua do caixa (`economia-oficial.ts`); o dinheiro entra no fechamento da temporada. Fechou o aviso, não volta (`fechaAviso`).
@@ -11952,32 +12050,41 @@ export function PyramidSeasonScreen() {
     const cmMuralG = state.seed != null ? (loadCopaSave(state.seed)?.mural ?? []) : []
     const cmTitlesG: Record<string, number> = {}
     for (const m of cmMuralG) cmTitlesG[m.campeao] = (cmTitlesG[m.campeao] ?? 0) + 1
+    const cmTitlesCo2: Record<string, number> = {}
+    for (const m of mundoCo2?.copaHist ?? []) cmTitlesCo2[m.campeao] = (cmTitlesCo2[m.campeao] ?? 0) + 1
     // 🇧🇷 Libertadores real do Brasil Oficial: a MESMA conta do Rank (RankingTab), senão a vaga da Copa do Mundo discorda da tela
     const libOfG: Record<string, number> = {}, sulaOfG: Record<string, number> = {}, interOfG: Record<string, number> = {}
     if (state.oficial) for (const e of state.oficialCampeoes ?? []) { if (e.liberta) libOfG[e.liberta] = (libOfG[e.liberta] ?? 0) + 1; if (e.sula) sulaOfG[e.sula] = (sulaOfG[e.sula] ?? 0) + 1; if (e.intercontinental) interOfG[e.intercontinental] = (interOfG[e.intercontinental] ?? 0) + 1 }
     const estOfG: Record<string, number> = {}
     if (state.oficial) for (const e of state.oficialEstaduais ?? []) estOfG[e.campeao] = (estOfG[e.campeao] ?? 0) + 1
+    let ordemTab = 0
     const rws = DIVS.flatMap(d => tables[d]).map(t => {
       const key = teamKey(t)
       const olds = oldChain(key)
       const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
-      const money = t.human ? (state.careerCoins?.[t.teamId] ?? 0) : Math.round(pick(cc) ?? 0)
-      const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitlesG[o] ?? 0), 0)
-      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId ? intlHistory : [], libOf: libOfG[t.name] ?? 0, sulaOf: sulaOfG[t.name] ?? 0, interOf: interOfG[t.name] ?? 0, estOf: estOfG[t.name] ?? 0 }
+      // 🌍 27/11 carreira online: o ranking tem que sair IGUAL em todo aparelho — caixa dos amigos vem da gaveta deles, títulos da Copa do
+      // Mundo vêm do que o dono carimbou no mundo (a Copa é uma só), e os internacionais ficam de fora até eles também serem únicos
+      const caixaAmigo = state.co2 && t.human && t.teamId !== youId ? state.co2.gavetas.find(g => g.mgrId === t.teamId)?.caixa : undefined
+      const money = t.human ? (caixaAmigo ?? (t.teamId === youId || !state.co2 ? (state.careerCoins?.[t.teamId] ?? 0) : 0)) : Math.round(pick(cc) ?? 0)
+      const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + ((state.co2 ? cmTitlesCo2 : cmTitlesG)[o] ?? 0), 0)
+      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId && !state.co2 ? intlHistory : [], ordem: ordemTab++, libOf: libOfG[t.name] ?? 0, sulaOf: sulaOfG[t.name] ?? 0, interOf: interOfG[t.name] ?? 0, estOf: estOfG[t.name] ?? 0 }
     })
     // 🏅 MESMA CONTA DE PONTOS do Rank (Diego 17/08) — e isto aqui não é
     // detalhe: é este sort que escolhe o TOP 32 que entra na Copa do
     // Mundo. Se a ordem daqui discordar da do Rank, a pessoa vê uma
     // colocação e se classifica por outra (bug de 10/08).
     const ptsDe = (x: typeof rws[number]) => {
-      const intl = internationalTitleCounts(x.intl, state.seasonNo)
+      // 🌎 27/11 carreira online: os internacionais são únicos — títulos carimbados pelo dono, só de temporadas já fechadas
+      const intl = state.co2 ? (x.t.human && x.t.teamId >= 0 ? contaTitulosIntl(mundoCo2?.intlHist, x.t.teamId, state.seasonNo ?? 1) : { mundial_titles: 0, libertadores_titles: 0, champions_titles: 0 }) : internationalTitleCounts(x.intl, state.seasonNo)
       return pontosDeTitulos({
         world: x.wc, copa: x.copas, supercopa: x.supercopa,
         mundial: intl.mundial_titles + x.interOf, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles, sula: x.sulaOf, estadual: x.estOf,
         A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
       })
     }
-    rws.sort((a, b) => ptsDe(b) - ptsDe(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
+    // 🌐 27/11 carreira online: desempate pela ordem das tabelas (igual em todo aparelho na hora) — o caixa muda no fim da temporada
+    // (prêmios da Libertadores/Copa chegam em momentos diferentes em cada aparelho) e mudaria a Copa do Mundo no meio
+    rws.sort((a, b) => ptsDe(b) - ptsDe(a) || (state.co2 ? a.ordem - b.ordem : b.money - a.money || a.t.name.localeCompare(b.t.name)))
     // 🏛️ SÓ O CLUBE PRINCIPAL VAI PRA COPA DO MUNDO (regra NOVA do Diego,
     // 11/09 — substitui a de 04/08, em que os DOIS clubes contavam).
     // Palavras dele: *"não quero mais que o segundo clube (multiclube)
@@ -11991,11 +12098,11 @@ export function PyramidSeasonScreen() {
     // nunca discordarem sobre qual é o clube principal.
     const principalId = state.multiClubeAtivo && state.multiClube ? state.multiClube.id : youId
     const meu = (id: number) => id >= 0 && id === principalId
-    const top16 = rws.slice(0, 32).map(r => ({ name: r.t.name, you: meu(r.t.teamId) })) // 🌍 Copa de 32 seleções (era 16, 20, 24 — 32 desde 02/10)
+    const top16 = rws.slice(0, 32).map(r => ({ name: r.t.name, you: meu(r.t.teamId), mgrId: r.t.human && r.t.teamId >= 0 ? r.t.teamId : null })) // 🌍 Copa de 32 seleções (era 16, 20, 24 — 32 desde 02/10) · mgrId = clube de gente (carreira online)
     const meusNoTop = rws.slice(0, 32).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
     return { top16, meusNoTop, principalId }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tables, state.careerHonors, state.careerCopaHonors, state.careerSupercopaHonors, state.clubCash, state.careerCoins, state.seed, state.multiClubeAtivo, state.multiClube, youId, state.copaMundoMural, state.careerInternationalHistory, state.oficial, state.oficialCampeoes, state.oficialEstaduais])
+  }, [tables, state.careerHonors, state.careerCopaHonors, state.careerSupercopaHonors, state.clubCash, state.careerCoins, state.seed, state.multiClubeAtivo, state.multiClube, youId, state.copaMundoMural, state.careerInternationalHistory, state.oficial, state.oficialCampeoes, state.oficialEstaduais, state.co2?.gavetas, mundoCo2?.copaHist, mundoCo2?.intlHist])
   // 🌍 ANO DE COPA DO MUNDO: ELA VEM ANTES DO JORNAL (Diego 26/09: *"a copa do
   // mundo deveria ser jogada antes então de chegar o passo 1 do jornal"*). Motivo:
   // a Bola de Ouro sai no jornal e soma gol + assistência de TODAS as competições —
@@ -12015,7 +12122,7 @@ export function PyramidSeasonScreen() {
     && (cmVaga.top16.some(r => r.you) || cmAgenda.emAndamento || state.copaMundoStats?.season === state.seasonNo)
   const mundoPendente = mundoAntes && !cmAgenda.jogada && state.copaMundoStats?.season !== state.seasonNo
   // 🌍 22/11 (Diego, print do "nenhuma seleção te chamou": *"não precisa, só vai aparecer algo quando tiver o convite"*): o passo 3
-  // só entra no roteiro quando há o que fazer nele — Copa do Mundo com o SEU clube convidado, ou a temporada internacional (T40+).
+  // só entra no roteiro quando há o que fazer nele — Copa do Mundo com o SEU clube convidado, ou a temporada internacional (desde a T1; Brasil Oficial T40+).
   // Sem isso o roteiro é jornal → caixa → decisão. (Revê o "4 passos sempre" de 19/09 só neste ponto.)
   const passo3Vale = !!intlPendente || !!intlRequired || mundoAntes
   const fimOrdem = intlPendente || mundoAntes ? [3, 1, 2, 4] : passo3Vale ? [1, 2, 3, 4] : [1, 2, 4]
@@ -13516,7 +13623,7 @@ export function PyramidSeasonScreen() {
       { k: 'liga', ic: '⚽', nome: round > 0 && !done ? tr(`Liga · R${round}/38`, `League · R${round}/38`) : tr('Liga', 'League') },
       { k: 'copa', ic: '🏆', nome: !done ? tr('Copa', 'Cup') : copaBrOk ? 'Copa do Brasil' : tr('Copa Legends', 'Legends Cup') },
       ...(temSuper ? [{ k: 'super', ic: '⭐', nome: tr('Supercopa', 'Super Cup') }] : []),
-      ...(intlEnabled && (state.seasonNo ?? 1) >= 40 ? [{ k: 'intl', ic: '🌎', nome: tr('Internacional', 'International') }] : []),
+      ...(intlEnabled && (state.seasonNo ?? 1) >= intlDesde ? [{ k: 'intl', ic: '🌎', nome: tr('Internacional', 'International') }] : []),
       ...(mundoAntes ? [{ k: 'mundo', ic: '🌍', nome: tr('Copa do Mundo', 'World Cup') }] : []),
     ]
     const agora = !done ? 'liga'
@@ -13615,7 +13722,7 @@ export function PyramidSeasonScreen() {
       for (const c of m.squad as WonCard[]) { if (c.fake || c.cria || !(c.paid > 0)) continue; if (!maisCaro || c.paid > maisCaro.paid) maisCaro = { name: c.name, teamName: m.teamName, paid: c.paid, you: m.id === youId,club:c.club,year:c.year } }
     }
     for(const item of [maiorLance,maisCaro])if(item)item.deal=[...(state.careerTransferHistory??[])].reverse().find(d=>d.name===item.name&&d.team===item.teamName&&d.paid===item.paid&&(!item.club||d.club===item.club&&d.year===item.year))
-    const intlAberta = intlEnabled && sn >= 40
+    const intlAberta = intlEnabled && sn >= intlDesde
     const g8Faltam = Math.max(0, (tables.A?.[7]?.pts ?? 0) - meusPts)
     const outra: Div = myDiv === 'A' ? 'B' : 'A'
     // 🏆 DEPOIS DA LIGA, A CENTRAL SEGUE A COMPETIÇÃO NO AR (04/10, Diego: *"começou outras copas
@@ -13727,7 +13834,7 @@ export function PyramidSeasonScreen() {
       })(),
       copaChegando: [
         ...(!seasonOver && 38 - round <= 5 ? [{ nome: (copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']) as [string, string], rodadasFaltam: 38 - round }] : []),
-        ...(intlEnabled && sn === 39 ? [{ nome: ['Libertadores', 'Libertadores'] as [string, string], proximaTemporada: true }] : []),
+        ...(intlEnabled && sn === intlDesde - 1 ? [{ nome: ['Libertadores', 'Libertadores'] as [string, string], proximaTemporada: true }] : []),
         ...(sn >= cmAncora - 1 && cmAgenda.ano && !cmAgenda.jogada ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], esteAno: true }] : cmAgenda.proxima===sn+1 ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], proximaTemporada: true }] : []),
       ],
     })
@@ -13755,7 +13862,7 @@ export function PyramidSeasonScreen() {
     if (!state.oficial) agendaVelha.push({ arte: copaBrOk ? 'copaBr' : 'copaLeg', titulo: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
       sub: !seasonOver ? ['depois da rodada 38', 'after round 38'] : copaPlaying ? ['rolando agora', 'live now'] : copaFinished ? ['encerrada', 'over'] : ['começa em seguida', 'up next'] })
     if (intlEnabled) agendaVelha.push({ arte: 'liberta', titulo: ['Libertadores', 'Libertadores'],
-      sub: sn < 40 ? [`abre na temporada 40 (faltam ${40 - sn})`, `opens in season 40 (${40 - sn} to go)`] : myDiv !== 'A' ? ['vaga: G8 da Série A ou campeão da Copa', 'spot: Serie A top 8 or Cup winner'] : minhaPos > 0 && minhaPos <= 8 ? ['você está no G8 ✓', 'you are in the top 8 ✓'] : [`G8: faltam ${g8Faltam} ponto${g8Faltam === 1 ? '' : 's'}`, `top 8: ${g8Faltam} point${g8Faltam === 1 ? '' : 's'} short`] })
+      sub: sn < intlDesde ? [`abre na temporada ${intlDesde} (faltam ${intlDesde - sn})`, `opens in season ${intlDesde} (${intlDesde - sn} to go)`] : myDiv !== 'A' ? ['vaga: G8 da Série A ou campeão da Copa', 'spot: Serie A top 8 or Cup winner'] : minhaPos > 0 && minhaPos <= 8 ? ['você está no G8 ✓', 'you are in the top 8 ✓'] : [`G8: faltam ${g8Faltam} ponto${g8Faltam === 1 ? '' : 's'}`, `top 8: ${g8Faltam} point${g8Faltam === 1 ? '' : 's'} short`] })
     const proxMundo = sn <= 100 ? 100 : 100 + Math.ceil((sn - 100) / 10) * 10
     agendaVelha.push({ arte: 'mundo', titulo: ['Copa do Mundo', 'World Cup'],
       sub: sn < 100 ? [`desbloqueia na temporada 100`, `unlocks in season 100`] : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + 10 : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + 10 : proxMundo}`] })
@@ -14498,7 +14605,10 @@ export function PyramidSeasonScreen() {
           squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} choices={intlChoices} priority={intlPriority} campaign={intlCampaign} history={intlHistory}
           onStart={campaign => dispatch({ type: 'START_INTERNATIONAL_CAMPAIGN', campaign })}
           onAdvance={() => dispatch({ type: 'ADVANCE_INTERNATIONAL_CAMPAIGN' })}
-          onFinish={entry => dispatch({ type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry })} topoGrande={privateCareer && intlNoAr} />}
+          onFinish={entry => dispatch({ type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry })} topoGrande={privateCareer && intlNoAr}
+          co2={intlCo2 ? { ...intlCo2, comanda: !!state.co2?.comanda, meuId: youId,
+            onEscolha: (e: Co2IntlEscolha) => dispatch({ type: 'CO2_INTL_ESCOLHA', escolha: e }),
+            onPular: intlDaAuto } : undefined} />}
         {/* 📰 PASSO 1: a NOTÍCIA. Primeiro o jornal, que é o que a cabeça quer saber. */}
         {copaFinished && me && (!roteiroOn || fimPasso === 1) && (
           <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copaBase} oficial={state.oficial && desfecho ? { tipo: desfecho.tipo, para: desfecho.para, playoff: !!playoffB } : undefined} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
@@ -14804,7 +14914,7 @@ export function PyramidSeasonScreen() {
                         de leitura (que não é passo, é só informação). */}
                     <span data-passos-virada style={{ display: 'block', scrollMarginTop: 70 }} />
                     <MasterBanner semCopa={!!state.oficial} cinematic={privateCareer} div={me.div} seasonNo={sn}
-                      contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId} intl={masterIntlAberto(sn, state.onlineMode === 'online')}
+                      contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId} intl={masterIntlAberto(sn, state.onlineMode === 'online', !!state.oficial, intlT1 || !!state.co2)}
                       onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })}
                       onRenovar={() => dispatch({ type: 'MASTER_RENOVAR', mgrId: youId })}
                       onMercado={() => dispatch({ type: 'MASTER_MERCADO', mgrId: youId })} />
@@ -15059,7 +15169,15 @@ export function PyramidSeasonScreen() {
             // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
             // Ninguém aperta nada: é conversa entre os celulares.
-            return <CopaMundoGate muralGuardado={state.copaMundoMural} anchor={cmAncora} ciclo={cmCiclo} convite={!!state.oficial} seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
+            // 🌍 27/11 carreira online: a Copa é UMA só pra turma (convites pela ordem do ranking, sem repetir seleção)
+            if (state.co2) return <Co2CopaMundo top={top16.map(v => ({ name: v.name, mgrId: v.mgrId ?? null }))} seasonNo={state.seasonNo ?? 1} seed={state.seed} motor2={m2Desde != null}
+              onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
+              onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
+              agenciaOn={!!state.agenciaOn}
+              onArtilheiro={(nome, gols, meu) => { dispatch({ type: 'AGENCIA_COMISSAO_MUNDO', nome, gols, season: state.seasonNo ?? 1 }); if (meu) dispatch({ type: 'ARTILHEIRO_MUNDO_PREMIO', mgrId: principalId, nome, gols, season: state.seasonNo ?? 1 }) }}
+              onStats={linhas => dispatch({ type: 'COPA_MUNDO_STATS', season: state.seasonNo ?? 1, linhas })}
+              onMural={entries => dispatch({ type: 'COPA_MUNDO_MURAL_SYNC', entries })} />
+            return <CopaMundoGate muralGuardado={state.copaMundoMural} anchor={cmAncora} ciclo={cmCiclo} convite={!!state.oficial} seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} intlT1={intlT1} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}
@@ -16121,6 +16239,7 @@ export function ReserveListScreen() {
       </div>
     </div>
   )
+  if (state.co2 && state.co2.fechou === state.seasonNo) return <Co2ViradaEspera /> // 🔄 26/11: carreira online — já fechei, espero o dono abrir o leilão de todos
   const nListed = state.reserveListed?.[youId]?.length ?? 0
   const mostraPills = quinzeRL && state.onlineMode !== 'online' && !state.reserveListMesmo
   const nAliciados = (state.aliciarTecnicos?.length ?? 0) + (state.aliciarJogadores?.length ?? 0)
@@ -16280,7 +16399,9 @@ export function ReserveListScreen() {
             mesma área da aba Elenco, agora aqui na hora certa — marcou, ele
             ABRE o próximo leilão (que é este). */}
         {mostraPills && abaLeilao === 'aliciar' && <AliciarSection mgr={mgr} onPular={() => { setAbaLeilao('vender'); window.scrollTo({ top: 0 }) }} />}
-        {state.isHost ? (
+        {state.co2 ? (
+          <Co2FecharTemporada />
+        ) : state.isHost ? (
           <button onClick={() => dispatch({ type: state.reserveListMesmo ? 'CONFIRM_MESMO_TIME' : 'RESERVE_AUCTION_ONLINE' })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {state.reserveListMesmo ? tr('▶️ Continuar (mesmo time)', '▶️ Continue (same team)') : `${tr('▶️ Começar o leilão', '▶️ Start the auction')}${state.onlineMode === 'online' ? ` (${remaining}s)` : ''}`}

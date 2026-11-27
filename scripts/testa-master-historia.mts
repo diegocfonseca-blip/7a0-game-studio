@@ -8,7 +8,7 @@
 import assert from 'node:assert/strict'
 import { reducer } from '../src/escalacao/store'
 import type { EscState } from '../src/escalacao/types'
-import { masterMetaOferta, masterMetaBatida, masterMetaBatidaFecho, masterMetaBatidaIntl, masterOfertaRenovacao, masterRescinde, metasDaDivisao, masterMetaBonus, RENOVA_MULT, MASTER_METAS, type MasterMetaId } from '../src/escalacao/master-historia'
+import { masterMetaOferta, masterIntlAberto, masterMetaBatida, masterMetaBatidaFecho, masterMetaBatidaIntl, masterOfertaRenovacao, masterRescinde, metasDaDivisao, masterMetaBonus, RENOVA_MULT, MASTER_METAS, type MasterMetaId } from '../src/escalacao/master-historia'
 import { masterPorTemporada, MASTER_PRAZOS } from '../src/escalacao/estadiodata'
 
 // 1) regras puras
@@ -45,7 +45,7 @@ const fecha = (x: EscState, pos: number, liga = false) => reducer(x, { type: 'CL
 // assina a Vadico (5 temporadas) na Série B
 let x = reducer(base(1), { type: 'SET_MASTER', brandId: 'vadico', mgrId: id } as never)
 const c1 = x.careerMaster![id]
-const esperada = masterMetaOferta(x.seed ?? 0, 1, id, 'vadico', 'B')
+const esperada = masterMetaOferta(x.seed ?? 0, 1, id, 'vadico', 'B', masterIntlAberto(1, false)) // 🔓 27/11: internacional desde a T1
 assert.equal(c1.meta, esperada.meta, 'a meta assinada é a que a tela mostra'); assert.equal(c1.bonus, esperada.bonus)
 // fecho: bateu a meta (pos 1 + artilheiro bate qualquer meta da B)
 const antes = caixa(x)

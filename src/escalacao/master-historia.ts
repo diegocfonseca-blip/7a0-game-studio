@@ -66,8 +66,8 @@ export function metasDaDivisao(div: string, intl = false, semCopa = false): Mast
   if (intl && (div === 'A' || div === 'B')) out.push('continental', 'mundial', 'art_intl')
   return out
 }
-/** a carreira tem campanha internacional nesta temporada? (mesma régua da tela: solo, temporada 40+) */
-export function masterIntlAberto(season: number, online: boolean): boolean { return !online && season >= 40 }
+/** a carreira tem campanha internacional nesta temporada? (mesma régua da tela: T40; desde a T1 com `t1` — carreira online e as contas liberadas) */
+export function masterIntlAberto(season: number, online: boolean, oficial = false, t1 = false): boolean { return !online && season >= (!oficial && t1 ? 1 : 40) }
 export function masterMetaBonus(div: string, meta: MasterMetaId): number {
   return Math.max(1, Math.round((MASTER_BASE[div] ?? 0) * MASTER_METAS[meta].mult))
 }

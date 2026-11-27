@@ -16,6 +16,8 @@ export type InternationalTeam = {
   you: boolean
   teamId: number
   xi: Card[]
+  /** 🌐 27/11 carreira online: clube comandado por GENTE (o meu ou o de um amigo) — igual em todo aparelho; `you` é só o meu */
+  humano?: boolean
 }
 export type InternationalGoal = { name: string; card: string; min: number; home: boolean; assist?: string; assistCard?: string }
 /** `m2` = jogo decidido pelo motor novo (21/10): a semente e a tática de cada lado — o campinho remonta o MESMO motor com os
@@ -108,7 +110,7 @@ export function entradaInternacionalM2(teams: readonly InternationalTeam[], matc
   if (!match.m2) return undefined
   const h = teams.find(t => t.id === match.home), a = teams.find(t => t.id === match.away)
   if (!h || !a) return undefined
-  return entradaM2({ preservarGuardado:true, partidaId:`internacional:${match.m2.s}:${match.home}:${match.away}`, versao: match.m2.versao, seed: match.m2.s, casa: h.xi as never, fora: a.xi as never, tatica: match.m2.t, bots: [!h.you, !a.you] })
+  return entradaM2({ preservarGuardado:true, partidaId:`internacional:${match.m2.s}:${match.home}:${match.away}`, versao: match.m2.versao, seed: match.m2.s, casa: h.xi as never, fora: a.xi as never, tatica: match.m2.t, bots: [!(h.you || h.humano), !(a.you || a.humano)] })
 }
 
 /** Resultado e calendário completos são congelados no save no início da campanha.
@@ -117,17 +119,29 @@ export function entradaInternacionalM2(teams: readonly InternationalTeam[], matc
 export function makeInternationalCampaign(input: {
   season: number; seed: number; representedClub: string | null; userTeam: string; userId: number
   priority: number | null; userXI: Card[]; motor2?: boolean; versaoM2?: VersaoM2
+  /** 🌐 27/11 carreira online (*"tudo é único"*): os clubes que os AMIGOS aceitaram. Com isto a campanha é a MESMA em todo
+   *  aparelho — e o motor novo decide o jogo de qualquer clube de gente (nunca só o meu). */
+  amigos?: readonly { club: string; userTeam: string; userId: number; xi: Card[] }[]
 }): InternationalCampaign {
   const { season, seed, representedClub, userTeam, userId, priority, userXI, motor2 } = input
+  const amigos = (input.amigos ?? []).filter(a => a.club !== representedClub)
+  const co2 = !!input.amigos
   if (representedClub && (!validInternationalXI(userXI) || new Set(userXI.map(c => c.id)).size !== 11 || userXI.some(c => (c as Card & { fake?: boolean }).fake))) throw new Error('Inscrição internacional inválida')
+  if (amigos.some(a => !validInternationalXI(a.xi)) || new Set(amigos.map(a => a.club)).size !== amigos.length) throw new Error('Inscrição internacional de amigo inválida')
   let rng = mulberry((seed ^ Math.imul(season, 0x9E3779B1) ^ 0x1A7E25) >>> 0)
-  const squads = internationalBotSquads(footballCards, representedClub, userXI)
-  const teams: InternationalTeam[] = INTERNATIONAL_CLUBS.map(club => ({
-    id: club.name, institution: club.name, name: club.name === representedClub ? userTeam : club.name,
-    competition: club.competition, block: club.block, you: club.name === representedClub,
-    teamId: club.name === representedClub ? userId : -1,
-    xi: club.name === representedClub ? userXI : squads.get(club.name)!,
-  }))
+  // as cartas dos clubes de gente saem do baralho dos bots na MESMA ordem em todo aparelho (por nome do clube)
+  const gente = [...(representedClub ? [{ club: representedClub, userTeam, userId, xi: userXI }] : []), ...amigos].sort((a, b) => a.club.localeCompare(b.club))
+  const squads = co2 ? internationalBotSquads(footballCards, gente.map(g => g.club), gente.flatMap(g => g.xi)) : internationalBotSquads(footballCards, representedClub, userXI)
+  const teams: InternationalTeam[] = INTERNATIONAL_CLUBS.map(club => {
+    const g = gente.find(x => x.club === club.name)
+    return {
+      id: club.name, institution: club.name, name: g ? g.userTeam : club.name,
+      competition: club.competition, block: club.block, you: club.name === representedClub,
+      teamId: g ? g.userId : -1,
+      xi: g ? g.xi : squads.get(club.name)!,
+      ...(co2 && g ? { humano: true } : {}),
+    }
+  })
   const byId = new Map(teams.map(team => [team.id, team]))
   const stats = new Map<string, InternationalStat>()
   let matchNo = 0
@@ -174,7 +188,7 @@ export function makeInternationalCampaign(input: {
     }
     credit(h, hg, true); credit(a, ag, false)
     let out: InternationalMatch = { home: homeId, away: awayId, hg, ag, goals }
-    if (motor2 && (h.you || a.you)) {
+    if (motor2 && (co2 ? (h.humano || a.humano) : (h.you || a.you))) {
       // ⚽🧠 jogo do presidente: o motor novo decide (a conta acima só serviu pra gastar o dado igual)
       const m2 = { versao: input.versaoM2, s: sementeM2((seed ^ Math.imul(season, 0x9E3779B1)) >>> 0, 'I', matchNo, 0, 0), t: [taticaM2(th), taticaM2(ta)] as [number, number] }
       const e = entradaInternacionalM2([h, a], { ...out, m2 })!

@@ -43,7 +43,69 @@ passa… até quantos times, 20 seria o ideal?"*
 4. Criar sala = quem tem plano (como a Liga da Turma); entrar = qualquer conta? (recomendação: sim)
 5. Uma temporada por noite como meta? (recomendação: sim)
 
-## Ordem de trabalho (depois das respostas)
+## ✅ Decisões do Diego (26/11)
+1. **Até 20 clubes de gente.**
+2. **Vice: SAI.** Sem o dono a carreira espera (regra da coroa).
+3. **Criar = só quem tem plano.**
+4. **Entrar**: antes de começar, todo mundo de graça; depois que começou, **só com plano**, pedindo convite e com o aceite do dono
+   (igual à Liga Draft). Sem plano não entra nunca, nem na virada.
+5. **Quem não jogou não perde o clube**: o time joga sozinho; quando ele volta pra carreira, alcança onde todo mundo está. Na virada
+   (o leilão) é a mesma coisa: quem não está fica com o mesmo time (*"não é a mesma coisa de quem não jogou?"* — é).
+
+## 🔀 Dois jeitos de jogar (Diego, 26/11: *"eu queria testar os dois"*) — o dono escolhe ao criar
+**⚡ Dinâmica** (igual às salas online / Liga Draft):
+- Começou a temporada, as rodadas ROLAM uma atrás da outra, com as copas no meio, sem parar.
+- Só PARA quando começa uma competição nova (Copa do Brasil, Libertadores…): banner com quem se classificou e
+  *"tem 60 s pra mexer no time/estratégia"*; relógio no canto pra todos. Quem não está nela segue livre pelas abas (mercado,
+  ver os jogos de quem joga…).
+- O relógio é AVISO; quem manda seguir é o DONO (igual o draft): acabou o tempo, ele dá ok; antes do tempo, pede confirmação
+  ("avançar mesmo sem o tempo acabar?"). Avançou = avança pra todo mundo.
+- 🎬 **Visual da pausa = OPÇÃO C, anúncio de cinema** (Diego, 26/11: *"C"*) — mockup `scripts/mockups/carreira-online-dinamica-opcoes-bc.png`:
+  troféu + nome da competição, escudos de TODOS os classificados (o seu em dourado), relógio grande, Escalação/Tática. Quem não está
+  nela vê o mesmo anúncio com "Assistir" e "Fechar". Dono: ▶️ Seguir (pergunta se for antes do tempo). Opções A e B ficaram de fora.
+**🧭 Livre** (a proposta anterior): o que é seu no seu tempo; jogo da rodada, leilão e virada juntos, com ✋ Pronto e o dono mandando seguir.
+Construir primeiro a ⚡ Dinâmica (mais perto do que já existe nas salas), depois a 🧭 Livre.
+
+## ✍️ Contratos e caixa (Diego, 26/11)
+- **Renovar ou deixar sair = decisão de cada um, no dia dos contratos** (jogando ou não). 🔁 Corrigido pelo Diego no mesmo dia: NÃO existe
+  chave de "renovação automática". Se a pessoa NÃO escolheu nada até o dono avançar → **renova sozinho**. Quem escolheu "deixar sair"
+  perde o jogador e a vaga é completada com Cria da Base (nunca fake).
+  🏷️ **Aviso SUTIL (Diego, 26/11)**: uma linha miúda na tela do dia dos contratos ("se você não escolher, renova sozinho") e, pra quem
+  não estava, um recado discreto ao voltar ("enquanto você estava fora, renovamos Fulano e Ciclano"). Nada de banner grande.
+- **Caixa a cada -500 = o melhor jogador vai embora** (regra da tradicional, `START_CAREER_CRISE`; no Brasil Oficial ela já roda, é a
+  mesma tela). No online ela está desligada (`onlineMode === 'online'`) → ligar na carreira online, com o ausente trocando pela Cria da Base.
+- **Dia dos contratos**: um dia FIXO da temporada, igual pra todos (todo contrato termina no mesmo momento). Pausa de 60 s com banner
+  "o contrato de fulano acabou"; cada um mexe no time; o relógio é aviso e o dono avança (confirmação antes do tempo).
+- Pausas da ⚡ Dinâmica: começo de competição nova (60 s) · dia dos contratos (60 s) · leilão.
+
+## 📱💻 Mesma conta em 2 aparelhos (Diego, 26/11: *"gosto de como é na liga draft… só não quero novela"*)
+Igual à Liga Draft: só o aparelho do DONO salva a carreira; os outros só recebem. Celular e PC da mesma conta abertos juntos veem o
+mesmo time e qualquer ação vai pro dono. Gaveta do clube (coisas só dele) grava com carimbo de hora e o banco só aceita a mais nova.
+Nada de "o último que entrou manda / o outro só assiste".
+
+## 📲 Extras aprovados (Diego, 26/11)
+- **Resumo da turma** na Central (cartões: divisão/posição, último jogo, jogando/fora há X dias, etiquetas) — mockup `carreira-online-central-turma.png`.
+- **TUITER** (*"Twitter com U"*, paródia igual às marcas do fornecedor): rede da turma com cara de Twitter (branco, azul #1D9BF0,
+  passarinho amarelo com martelo), posts de 80 letras (banco barra palavrão/link), @ responder, reações; posts automáticos do
+  O Martelo e das copas; bots postam com selo BOT. Abas Para você · Só a turma · Meus. Mockup `carreira-online-tuiter.png` (aguarda OK).
+- ⚔️ Clássico da turma · 🏆 Galeria da turma (+ Sala de Troféus do clube) · 🥇 Prêmios da turma no fim (só zoeira, sem dinheiro).
+- 🤝 Troca/venda entre amigos: **DEPOIS** (*"deixa pra depois"*). Sem ranking global; vale a tabela da carreira.
+
+## 🕵️ Sondar e leilão na carreira online (Diego, 26/11: *"pode ser sim"*)
+- **Sondar de amigo** (regra aprovada): só RESERVA (titular protegido, igual bot) · gasta a sondagem de jogador daquele leilão · vai pro
+  leilão de todos com mínimo = valor dele · dinheiro vai pro DONO · ninguém deu lance = volta pro dono com o mesmo contrato · quem
+  sondou tem preferência de IGUALAR o maior lance no fim (igual à Liga Draft) · o dono não dá lance no próprio jogador.
+- **Bots no leilão = configuração do DONO** (*"ele escolhe o número… nenhum bot ou até 5"*): 0 a 5 bots dão lance; são rivais da(s)
+  divisão(ões) de quem está jogando e mudam quando a divisão muda. Motivo: com 2 amigos e 1 sem dar lance, o outro não leva tudo de
+  graça. Tela de CONFIGURAÇÕES do dono vai ganhar mais opções depois.
+- **Bot que perde jogador** (Diego, 26/11): SEMPRE avisa (Central/Tuiter: quem levou, por quanto, de quem). Só repõe se ficar com MENOS
+  de 11 pro time; a reposição é uma carta REAL livre (pode ser do jogo inteiro, mesmo que nunca tenha entrado em leilão — 🔁 correção do Diego: "não disse que é do leilão") com over PARECIDO com o de quem saiu (nunca jogador genérico/fake) — vale também quando o dono
+  configurou 0 bots no leilão (o bot não dá lance, mas não fica com buraco). Base que já existe: `completa` (store ~1530) usa
+  "carta real livre" por referência; conferir que pega a de over mais próximo da que saiu.
+- 💡 Feito no branch: linha no Sondar do Mercado (carreira normal e Oficial, com gestão nova) — "Pode ser sondado: 🆓 sem contrato e
+  🪑 reserva de outro clube (paga a transferência). Titular nunca."
+
+## Ordem de trabalho
 1. Alcance de quem faltou (`co2` + simulação das rodadas perdidas) — trava nova: aparelho que volta = mesmo estado do que ficou.
 2. A virada (leilão de todos no aparelho do comandante · ausente fica com o time · sobe/cai · T2) — trava: 3 clubes, 2 temporadas.
 3. Entrada só na virada (banco) + sair/remover = vira bot.
