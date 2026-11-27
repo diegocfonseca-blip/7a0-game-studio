@@ -921,7 +921,7 @@ export interface EscState {
   clubCash?: Record<string, number> // carreira online: caixa dos OUTROS times (CPUs + reservas de fundo, tudo que não é humano/fiador), por teamKey. Base por divisão + título/acesso/queda. Aparece no ranking pra todo time ter grana real.
   careerHonors?: Record<string, { A: number; B: number; C: number; D: number; V?: number }> // carreira online: títulos por divisão de CADA time (chave = m<id> humano / nome do CPU), acumulados por temporada; base do Ranking
   careerCronica?: Record<string, { t: number; div: string; campeao?: 1; copa?: 1; sup?: 1 }[]> // 📼 MEMÓRIA DO JORNAL (Diego 24/08): uma linha POR TEMPORADA por clube humano (chave m<id>) — divisão jogada, título da divisão, Copa, Supercopa. É daqui que o jornal puxa manchete de história ("3º título seguido", "acabou o jejum"). Começa a gravar a partir de agora (o passado não tem como reconstruir); teto de 200 temporadas.
-  /** 🌎 T40+: campanha internacional congelada por temporada; ausente nos saves antigos. */
+  /** 🌎 campanha internacional congelada por temporada (desde a T1 desde 27/11; Brasil Oficial T40+); ausente nos saves antigos. */
   careerInternational?: import('./career-international-season').InternationalCampaign | null
   /** 🌎 Histórico por temporada, independente do clube representado; ausente nos saves antigos. */
   careerMuseums?: Record<number, import('./museu-clube').MuseuClubeSave>

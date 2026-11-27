@@ -1,7 +1,12 @@
 import { CATALOG_BOTH } from './data'
 
 /** Regras esportivas da carreira internacional. Sem estado, UI ou sorteio. */
-export const INTERNATIONAL_UNLOCK_SEASON = 40
+// 🔓 27/11 (Diego: *"inclusive na tradicional também, não quero mais que seja só na 40… de início já"*): a carreira de sempre e a
+// online têm Libertadores/Champions/Mundial DESDE A T1. Só o Brasil Oficial segue na 40 (lá a Libertadores é a REAL — ele não pediu).
+export const INTERNATIONAL_UNLOCK_SEASON = 1
+export const INTERNATIONAL_UNLOCK_OFICIAL = 40
+/** a temporada em que a carreira passa a ter a campanha internacional de clubes */
+export const intlDesdeDe = (s: { oficial?: unknown; co2?: unknown }): number => (s.oficial && !s.co2 ? INTERNATIONAL_UNLOCK_OFICIAL : INTERNATIONAL_UNLOCK_SEASON)
 export const INTERNATIONAL_CAREER_TESTERS: readonly string[] = ['diego.c.fonseca@gmail.com']
 // 🟢 02/10 (Diego: "pode publicar… liberar pra todos"): toda conta logada. Voltar a
 // `false` fecha de novo só na conta dele (e o banco: `esc_private_international_rank_allowed`).

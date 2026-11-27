@@ -163,7 +163,7 @@ import { useRitmo2D, useVel2DAqui, useVel3DAqui, setVel2D } from './ritmo2d'
 import { useCampo2DLigado, useCampo2DExtras, ligaCampo2D, useQuadra2DLigada } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
-import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
+import { internationalQualifiers, internationalChoice, isInternationalCareerTester, intlDesdeDe } from './career-international'
 import { vezDaIntl, clubesTomados, amigosDaIntl, filaIntl, titulosDaIntl, contaTitulosIntl, type Co2IntlEscolha } from './co2-internacional' // 🌎 27/11 Libertadores/Champions únicas na carreira online
 import { CareerInternationalView, topoInternacional, CarreiraPresidente } from './career-international-view'
 import type { InternationalHistoryEntry } from './career-international-season'
@@ -10562,7 +10562,7 @@ export function PyramidSeasonScreen() {
   // 🌍 27/11: na carreira online a Liberta/Champions/Mundial vai ser UMA só pra turma (em construção) — até lá, a campanha individual
   // fica desligada lá (senão dois amigos seriam campeões da mesma Libertadores)
   const intlEnabled = useInternacionalCarreiraLiberada() // 🌎 27/11: na carreira online também (única pra todos, desde a T1)
-  const intlDesde = state.co2 ? 1 : 40 // 🌐 Diego 27/11: *"que temporada 40 o quê… desde o início já"* (só na carreira online)
+  const intlDesde = intlDesdeDe(state) // 🔓 Diego 27/11: *"que temporada 40 o quê… desde o início já"* — tradicional e online desde a T1 (Brasil Oficial: 40)
   // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
   // nova, pra montar o rank travado na temporada de quem olha (anti-spoiler — ver
   // `esc_pyramid_rank` no banco). Só carreira com Agência 2.0, offline, e só 1×
@@ -11020,9 +11020,9 @@ export function PyramidSeasonScreen() {
   const intlPriority = intlCo2?.pulado ? null : intlQualifiers.find(entry => entry.team.teamId === youId)?.priority ?? null
   const intlChoices = useMemo(() => {
     if (intlCo2?.pulado) return []
-    const base = internationalChoice(intlEnabled, state.co2 ? Math.max(40, state.seasonNo ?? 1) : state.seasonNo, intlQualifiers, `m${youId}`, teamKey)
+    const base = internationalChoice(intlEnabled && (state.seasonNo ?? 1) >= intlDesde, state.seasonNo ?? 1, intlQualifiers, `m${youId}`, teamKey)
     return intlCo2 ? base.filter(c => !intlCo2.tomados.includes(c.name)) : base // 🌎 clube que amigo já aceitou sai da lista
-  }, [intlEnabled, state.co2, state.seasonNo, intlQualifiers, youId, intlCo2])
+  }, [intlEnabled, intlDesde, state.seasonNo, intlQualifiers, youId, intlCo2])
   // 🏆 o DONO carimba no mundo quem levou cada título (é o que entra no ranking de clubes, igual em todo aparelho)
   useEffect(() => {
     if (!state.co2?.comanda || !intlCampaign || !mundoCo2 || (mundoCo2.intlHist ?? []).some(h => h.season === intlCampaign.season)) return
@@ -12079,7 +12079,7 @@ export function PyramidSeasonScreen() {
     && (cmVaga.top16.some(r => r.you) || cmAgenda.emAndamento || state.copaMundoStats?.season === state.seasonNo)
   const mundoPendente = mundoAntes && !cmAgenda.jogada && state.copaMundoStats?.season !== state.seasonNo
   // 🌍 22/11 (Diego, print do "nenhuma seleção te chamou": *"não precisa, só vai aparecer algo quando tiver o convite"*): o passo 3
-  // só entra no roteiro quando há o que fazer nele — Copa do Mundo com o SEU clube convidado, ou a temporada internacional (T40+).
+  // só entra no roteiro quando há o que fazer nele — Copa do Mundo com o SEU clube convidado, ou a temporada internacional (desde a T1; Brasil Oficial T40+).
   // Sem isso o roteiro é jornal → caixa → decisão. (Revê o "4 passos sempre" de 19/09 só neste ponto.)
   const passo3Vale = !!intlPendente || !!intlRequired || mundoAntes
   const fimOrdem = intlPendente || mundoAntes ? [3, 1, 2, 4] : passo3Vale ? [1, 2, 3, 4] : [1, 2, 4]
@@ -13807,7 +13807,7 @@ export function PyramidSeasonScreen() {
     if (!state.oficial) agendaVelha.push({ arte: copaBrOk ? 'copaBr' : 'copaLeg', titulo: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
       sub: !seasonOver ? ['depois da rodada 38', 'after round 38'] : copaPlaying ? ['rolando agora', 'live now'] : copaFinished ? ['encerrada', 'over'] : ['começa em seguida', 'up next'] })
     if (intlEnabled) agendaVelha.push({ arte: 'liberta', titulo: ['Libertadores', 'Libertadores'],
-      sub: sn < 40 ? [`abre na temporada 40 (faltam ${40 - sn})`, `opens in season 40 (${40 - sn} to go)`] : myDiv !== 'A' ? ['vaga: G8 da Série A ou campeão da Copa', 'spot: Serie A top 8 or Cup winner'] : minhaPos > 0 && minhaPos <= 8 ? ['você está no G8 ✓', 'you are in the top 8 ✓'] : [`G8: faltam ${g8Faltam} ponto${g8Faltam === 1 ? '' : 's'}`, `top 8: ${g8Faltam} point${g8Faltam === 1 ? '' : 's'} short`] })
+      sub: sn < intlDesde ? [`abre na temporada ${intlDesde} (faltam ${intlDesde - sn})`, `opens in season ${intlDesde} (${intlDesde - sn} to go)`] : myDiv !== 'A' ? ['vaga: G8 da Série A ou campeão da Copa', 'spot: Serie A top 8 or Cup winner'] : minhaPos > 0 && minhaPos <= 8 ? ['você está no G8 ✓', 'you are in the top 8 ✓'] : [`G8: faltam ${g8Faltam} ponto${g8Faltam === 1 ? '' : 's'}`, `top 8: ${g8Faltam} point${g8Faltam === 1 ? '' : 's'} short`] })
     const proxMundo = sn <= 100 ? 100 : 100 + Math.ceil((sn - 100) / 10) * 10
     agendaVelha.push({ arte: 'mundo', titulo: ['Copa do Mundo', 'World Cup'],
       sub: sn < 100 ? [`desbloqueia na temporada 100`, `unlocks in season 100`] : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + 10 : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + 10 : proxMundo}`] })
@@ -14854,7 +14854,7 @@ export function PyramidSeasonScreen() {
                         de leitura (que não é passo, é só informação). */}
                     <span data-passos-virada style={{ display: 'block', scrollMarginTop: 70 }} />
                     <MasterBanner semCopa={!!state.oficial} cinematic={privateCareer} div={me.div} seasonNo={sn}
-                      contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId} intl={masterIntlAberto(sn, state.onlineMode === 'online')}
+                      contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId} intl={masterIntlAberto(sn, state.onlineMode === 'online', !!state.oficial)}
                       onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })}
                       onRenovar={() => dispatch({ type: 'MASTER_RENOVAR', mgrId: youId })}
                       onMercado={() => dispatch({ type: 'MASTER_MERCADO', mgrId: youId })} />

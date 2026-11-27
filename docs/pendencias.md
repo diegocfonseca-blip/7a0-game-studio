@@ -70,6 +70,7 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
   PULAR quem sumiu · as 32 seleções e os jogos (motor novo pra toda seleção de gente) saem iguais — trava `testa-copa-mundo.mjs`.
   Foto `scripts/mockups/co2-copa-mundo-vez.png`. ⏳ Liberta/Champions/Mundial únicos = próximo (enquanto isso a campanha individual
   fica DESLIGADA no co2 e a virada da T40+ não espera por ela).
+- ✅ (27/11) 🔓 Libertadores/Champions/Mundial DESDE A T1 também na carreira TRADICIONAL (Diego: *"inclusive na tradicional também… de início já"*). `intlDesdeDe`: tradicional e online = 1, Brasil Oficial = 40 (não pedido). Metas internacionais do Master acompanham; o bloco "TEMPORADA 40" da Copa saiu; títulos de antes da T40 contam no ranking global. Save parado no fim de temporada (antes do leilão) abaixo da 40 vai pedir a temporada internacional antes de seguir.
 - ✅ (27/11) 🌎🌍🌐 LIBERTADORES/CHAMPIONS/MUNDIAL ÚNICOS na carreira online, DESDE A T1 (Diego: *"que temporada 40 o quê… desde o início já, tem que liberar"*).
   Fila de convites pela prioridade da regra de sempre (campeão da A → campeão da Copa → 2º–8º); cada um recebe os 2 convites do bloco dele e aceita UM;
   o clube aceito sai da lista dos de baixo; o dono pula quem sumiu; quando todos decidiram, a MESMA campanha nasce em todo aparelho (amigos nos clubes
