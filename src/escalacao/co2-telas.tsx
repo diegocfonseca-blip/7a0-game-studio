@@ -209,8 +209,8 @@ async function lePrivado(): Promise<EscState | null> {
 const PRAZO_S = 60
 const PRAZO_DINAMICA_S = 15 // o banco aceita no mínimo 15 s; na Dinâmica o dono começa logo que a rodada anterior terminou de animar
 
-export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, onEscalacao, onTatica }: {
-  entradasLocais: EntradasMundo; round: number; roundReady: boolean; seasonOver: boolean; onEscalacao: () => void; onTatica: () => void
+export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, onEscalacao }: {
+  entradasLocais: EntradasMundo; round: number; roundReady: boolean; seasonOver: boolean; onEscalacao: () => void; onTatica?: () => void
 }) {
   const { state, dispatch } = useEsc()
   const sn = useCo2()
@@ -323,7 +323,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   return (
     <div style={{ display: 'grid', gap: 10, marginBottom: 10 }}>
       {sala.fase === 'preparo' && dinamica && sala.rodada === 0 && (
-        <Co2Anuncio restante={restante} comanda={comanda} onEscalacao={onEscalacao} onTatica={onTatica} onSeguir={() => { comecouRef.current = sala.rodada; void co2Comecar() }} />
+        <Co2Anuncio restante={restante} comanda={comanda} onEscalacao={onEscalacao} onSeguir={() => { comecouRef.current = sala.rodada; void co2Comecar() }} />
       )}
       {sala.fase === 'preparo' && dinamica && sala.rodada > 0 && (
         <div style={{ ...caixa('#FFF8DC'), padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -342,10 +342,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
           </div>
           <div style={{ height: 12, border: `2.5px solid ${INK}`, borderRadius: 99, background: '#fff', margin: '10px 0 4px', overflow: 'hidden' }}><div style={{ width: `${pct}%`, height: '100%', background: GREEN }} /></div>
           <p style={{ fontWeight: 900, fontSize: 12, margin: '0 0 8px' }}>✅ {prontos} {tr('de', 'of')} {humanos} {tr('prontos', 'ready')}{faltam.length ? ` · ${tr('faltam', 'missing')}: ${faltam.join(', ')}` : ''}</p>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-            <button onClick={onEscalacao} style={{ ...botao('#fff'), fontSize: 14 }}>🧩 {tr('Escalação', 'Lineup')}</button>
-            <button onClick={onTatica} style={{ ...botao('#fff'), fontSize: 14 }}>🎯 {tr('Tática', 'Tactic')}</button>
-          </div>
+          <button onClick={onEscalacao} style={{ ...botao('#fff'), fontSize: 14, marginBottom: 8 }}>🧩 {tr('Escalação', 'Lineup')}</button>
           <button disabled={euPronto} onClick={() => void (async () => { await sobeGaveta(); await co2Pronto(sala.rodada + 1, { r: sala.rodada + 1 }) })()} style={botao(euPronto ? '#CFE8D6' : GREEN, euPronto ? INK : '#fff')}>
             {euPronto ? tr('✅ Pronto! Esperando os outros…', '✅ Ready! Waiting for the others…') : tr('✅ Estou pronto', '✅ I\'m ready')}
           </button>
@@ -494,7 +491,7 @@ export function Co2ViradaEspera() {
 // mundo mexer no time. Troféu + nome, os clubes da turma (o seu em dourado), relógio grande, Escalação/Tática. O relógio é AVISO:
 // quem segue é o dono (pergunta se for antes do tempo). Hoje: a estreia de cada temporada (a liga).
 const NOME_DIV: Record<string, [string, string]> = { A: ['SÉRIE A', 'SERIE A'], B: ['SÉRIE B', 'SERIE B'], C: ['SÉRIE C', 'SERIE C'], D: ['SÉRIE D', 'SERIE D'], V: ['VÁRZEA', 'AMATEUR LEAGUE'] }
-export function Co2Anuncio({ restante, comanda, onEscalacao, onTatica, onSeguir }: { restante: number | null; comanda: boolean; onEscalacao: () => void; onTatica: () => void; onSeguir: () => void }) {
+export function Co2Anuncio({ restante, comanda, onEscalacao, onSeguir }: { restante: number | null; comanda: boolean; onEscalacao: () => void; onSeguir: () => void }) {
   const { state } = useEsc()
   const meuId = state.managers[state.youIdx]?.id
   const divDe = (id: number) => state.careerPlacements?.[`m${id}`] ?? 'V'
@@ -526,10 +523,8 @@ export function Co2Anuncio({ restante, comanda, onEscalacao, onTatica, onSeguir 
       </div>
       <div style={{ display: 'inline-block', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${GOLD}`, padding: '4px 18px', ...OSWALD, fontWeight: 900, fontSize: 34 }}>{mm}</div>
       <p style={{ fontWeight: 800, fontSize: 12.5, margin: '10px 0 12px', color: 'rgba(255,255,255,.85)' }}>{restante === 0 ? tr('O tempo acabou. Quem começa é o dono.', 'Time is up. The owner kicks it off.') : tr('Mexa no time antes da estreia. Quem segue é o dono.', 'Tweak your team before kick-off. The owner moves it on.')}</p>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={onEscalacao} style={{ ...botao('#fff'), fontSize: 14 }}>🧩 {tr('Escalação', 'Lineup')}</button>
-        <button onClick={onTatica} style={{ ...botao('#fff'), fontSize: 14 }}>🎯 {tr('Tática', 'Tactic')}</button>
-      </div>
+      {/* 27/11 (Diego: *"escalação já engloba táticas"*): um botão só */}
+      <button onClick={onEscalacao} style={{ ...botao('#fff'), fontSize: 15 }}>🧩 {tr('Escalação', 'Lineup')}</button>
       {comanda && <button onClick={seguir} style={{ ...botao(GOLD), marginTop: 10 }}>▶️ {tr('Seguir', 'Go')}</button>}
     </div>
   )

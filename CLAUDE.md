@@ -429,6 +429,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
    leem.
 
 ## 💛 Gostos do Diego (aprendidos na prática — respeitar)
+- **🧩 27/11: ESCALAÇÃO JÁ ENGLOBA TÁTICA.** *"escalacao já engloba táticas e etc"*. Nada de botão 🎯 Tática separado do 🧩 Escalação nas telas novas (anúncio, PRONTO da carreira online): um botão só.
 - **🌐🧑‍🤝‍🧑 26/11: CARREIRA ONLINE — REGRAS DELE.** Até 20 clubes de gente · **sem vice** (sem o dono, espera) · **criar só com plano** · entrar
   de graça só ANTES de começar; depois, só com plano + convite aceito (igual Liga Draft, nem na virada) · quem não jogou **não perde o clube**:
   o time joga sozinho e ele alcança ao voltar (na virada, fica com o mesmo time). Plano em `docs/carreira-online-logistica.md`.

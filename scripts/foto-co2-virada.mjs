@@ -39,7 +39,7 @@ for (const c of casos) {
       createRoot(root).render(h(S.EscProvider, null, h(T.Co2Espera, { salaId: 's1', onSair(){} })))
     } else {
       await C.co2Abrir('s1')
-      const V = () => { const { state, dispatch } = S.useEsc(); window.__d = dispatch; return state.co2 ? (${JSON.stringify(c.tela)} === 'anuncio' ? h('div', { style: { padding: 14 } }, h(T.Co2Anuncio, { restante: 47, comanda: true, onEscalacao(){}, onTatica(){}, onSeguir(){} })) : h(T.Co2ViradaEspera)) : null }
+      const V = () => { const { state, dispatch } = S.useEsc(); window.__d = dispatch; return state.co2 ? (${JSON.stringify(c.tela)} === 'anuncio' ? h('div', { style: { padding: 14 } }, h(T.Co2Anuncio, { restante: 47, comanda: true, onEscalacao(){}, onSeguir(){} })) : h(T.Co2ViradaEspera)) : null }
       createRoot(root).render(h(S.EscProvider, null, h(V)))
       await new Promise(r=>setTimeout(r,800))
       window.__d({ type: 'START_CAREER_SOLO', teamName: 'Neymarzetti', formation: '4-3-3', rivals: 3, co2: { sala: 's1', nomes: ${JSON.stringify(NOMES)}, assento: 0 } })
