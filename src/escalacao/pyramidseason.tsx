@@ -130,7 +130,7 @@ import { simulaIntercontinental, europaDaTemporada, INTERCONTINENTAL_2026, CLUBE
 import { simulaLibertadores, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { marcaCarreiraJogada } from './store' // 🗑️ 18/11
-import { useEsc, divOficialDe, savePyramidCloud, salvarSemConta, voltaProUltimoSalvo, ultimaSubidaNuvem, carreiraTemAlteracoes, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, salaryOfCard, squadPayroll, contratoAtletaFalta, clubesNacionaisDoMercado, reservaTransferivelOficial, podeRetirarOficial, contratacaoOficialPermitida, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, divOficialDe, savePyramidCloud, salvarSemConta, voltaProUltimoSalvo, ultimaSubidaNuvem, carreiraTemAlteracoes, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, salaryOfCard, squadPayroll, contratoAtletaFalta, clubesNacionaisDoMercado, reservaTransferivelOficial, reservaDeAmigoCo2, podeRetirarOficial, contratacaoOficialPermitida, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -6958,7 +6958,7 @@ function useJanelaNovaOn(): boolean {
 }
 // 🕵️ os clubes da SUA série — a conta ÚNICA do Sondar e do Mercado (bots da sua divisão + rivais escolhidos + times de fundo, que
 // vêm da receita da pirâmide). Era copiada nas duas telas; a confirmação do leilão e a virada da janela nova leem a mesma.
-type ClubeSerie = { teamName: string; squad: WonCard[]; fundo?: boolean }
+type ClubeSerie = { teamName: string; squad: WonCard[]; fundo?: boolean; amigo?: boolean }
 function clubesDaSerie(state: EscState, mundo: ReturnType<typeof buildPyramid>, divAtual: DivTec): ClubeSerie[] {
   if(state.oficial||gestaoAtiva(state))return clubesNacionaisDoMercado(state)
   const pl = state.careerPlacements ?? {}
@@ -6972,6 +6972,8 @@ function clubesDaSerie(state: EscState, mundo: ReturnType<typeof buildPyramid>, 
     if (dm !== divAtual && !m.auctionOnly && !rivaisTime.has(newestTeamName(m.teamName))) continue
     vistos.add(m.teamName); out.push({ teamName: m.teamName, squad: m.squad as WonCard[] })
   }
+  // 🕵️ 27/11 carreira online: os clubes dos AMIGOS (qualquer divisão) — só o reserva deles pode ser sondado (`reservaDeAmigoCo2`)
+  if (state.co2) for (const m of state.managers) if (m.isHuman && m.id !== state.managers[state.youIdx]?.id) { vistos.add(m.teamName); out.push({ teamName: m.teamName, squad: m.squad as WonCard[], amigo: true }) }
   for (const [k, v] of Object.entries(pl)) {
     if (v !== divAtual || /^m\d+$/.test(k)) continue
     const nome = newestTeamName(k)
@@ -7430,7 +7432,8 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   if (jogadorOn) for (const c of clubes) for (const x of c.squad) {
     if (ehFake(x) || x.cria || x.emprestado) continue
     if (!marcadosJ.includes(x.id) && !sondarLiberado(x, olheiroTier)) { escondidos++; continue }
-    jogs.push({ card: x, clube: c, falta: contratoAtletaFalta(state,x), negociavel: reservaTransferivelOficial(state,c.squad,x,state.managers.find(m=>m.teamName===c.teamName)?.formation) })
+    if (c.amigo && !reservaDeAmigoCo2(state, x.id)) continue // 🕵️ titular de amigo nem aparece: só reserva
+    jogs.push({ card: x, clube: c, falta: contratoAtletaFalta(state,x), negociavel: c.amigo || reservaTransferivelOficial(state,c.squad,x,state.managers.find(m=>m.teamName===c.teamName)?.formation) })
   }
   const tecLivres = tecs.filter(t => t.falta <= 0).length
   const jogLivres = jogs.filter(j => j.falta <= 0 || j.negociavel).length
@@ -7563,7 +7566,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
                 const trava = travaRegra ?? (j.falta > 0 && !j.negociavel ? (getLang() === 'en' ? `${j.falta} left` : `falta${j.falta > 1 ? 'm' : ''} ${j.falta}`) : (!marcado && marcadosJ.length >= 1 ? '1/1' : undefined))
                 return linha(`j:${x.id}:${c.teamName}`, marcado, trava, () => dispatch({ type: 'ALICIAR_MARCAR', cardId: x.id, ...(c.fundo ? { card: x, clube: c.teamName, squad: c.squad } : {}) }),
                   <>{x.name}</>,
-                  <>📍 {tr('está no', 'at')} {rivais.has(c.teamName) ? '⚔️ ' : ''}{c.teamName} · {j.negociavel && j.falta > 0 ? tr('reserva disponível para transferência', 'reserve available for transfer') : contratoTxt(j.falta)}</>,
+                  <>📍 {tr('está no', 'at')} {c.amigo ? '🤝 ' : rivais.has(c.teamName) ? '⚔️ ' : ''}{c.teamName} · {c.amigo ? tr('reserva de amigo: vai pro leilão de todos, o dinheiro é dele', 'a friend\'s reserve: goes to everyone\'s auction, the money is theirs') : j.negociavel && j.falta > 0 ? tr('reserva disponível para transferência', 'reserve available for transfer') : contratoTxt(j.falta)}</>,
                   marcado ? historiaSondagem(x.name, 'jog', c.teamName, state.seasonNo) : null,
                   { pos: x.pos, etiqueta: `${x.club} · ${x.year}` })
               })}

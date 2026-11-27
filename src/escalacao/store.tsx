@@ -1246,7 +1246,7 @@ import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { tvOficial, porteOficial, NOME_PORTE, caixaInicialOficial } from './economia-oficial'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
-import { mesclaClubes, aplicaFechamentos, co2JuntaVirada, type GavetaPublica, type Fechamento } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
+import { mesclaClubes, aplicaFechamentos, co2JuntaVirada, titularesDoClube, type GavetaPublica, type Fechamento } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import { AvisoDonoFundo, salaEsperaODono } from './aviso-dono-fundo' // 🖥️ 20/10
 import { AvisoConta } from './aviso-conta'
 // 🖋📲 13/11: a ficha do clube (Batismo/Fundador) por cima de tudo até o WhatsApp ser salvo — preguiçosa, só baixa quem pagou
@@ -3005,6 +3005,18 @@ export function dicaDoEnigma(card: Card, en = false): string {
 // 🏛️ MULTICLUBES que está DORMINDO — o 2º clube não-selecionado não dá lance).
 // 🤖 26/11 carreira online (Diego: *"se marcar sem bot, aí o bot N poderia pegar ng no leilão"*): o dono escolheu 0 bots na
 // largada → nenhum clube de máquina dá lance (nem o bot do mercado, nem o dono do jogador sondado). 0 bots = nenhum rival marcado.
+// 🕵️ SONDAR DE AMIGO (Diego, 26/11: *"só reserva… titular protegido… gasta a sondagem… dinheiro vai pro dono… ninguém deu lance volta
+// pro dono… quem sondou tem preferência de igualar… o dono não dá lance"*). Devolve o clube de gente DONO da carta, se ela é RESERVA dele
+// (a mesma conta na tela e no motor). Fora da carreira online, ou carta de bot, ou titular: null.
+export function reservaDeAmigoCo2(s: EscState, cardId: string): Manager | null {
+  if (!s.co2) return null
+  const meuId = s.managers[s.youIdx]?.id
+  const dono = s.managers.find(m => m.isHuman && m.id !== meuId && m.squad.some(c => c.id === cardId))
+  const card = dono?.squad.find(c => c.id === cardId) as WonCard | undefined
+  if (!dono || !card || card.fake || card.cria || card.emprestado) return null
+  const tit = s.co2.tit?.[dono.id] ? new Set(s.co2.tit[dono.id]) : titularesDoClube(dono.squad, dono.formation, s.co2.gavetas.find(g => g.mgrId === dono.id)?.entradas?.xi)
+  return tit.has(String(cardId)) ? null : dono
+}
 function semBotsCo2(state: EscState): boolean { return !!state.co2 && !state.managers.some(m => m.rival && !m.isHuman) }
 function auctioningManagers(managers: Manager[]): Manager[] {
   return managers.filter(m => (m.isHuman || m.auctionRival) && !m.dormindo)
@@ -3229,12 +3241,12 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     accepts: (card, bid) => {
       const m = managers.find(x => x.id === bid.mgr)!
       const exDono = card.semContrato ? card.seller : undefined
-      return eligible(m, card) && (openSlots(m, card.pos) > 0 || (!!bid.reforco && !m.isHuman)) && m.money >= bid.amount && !(exDono != null && sameOwner(m.id, exDono))
+      return eligible(m, card) && (openSlots(m, card.pos) > 0 || (!!bid.reforco && !m.isHuman)) && m.money >= bid.amount && !(exDono != null && sameOwner(m.id, exDono)) && !(card.sondadoPor != null && card.seller === m.id) // 🕵️ o dono não dá lance no próprio reserva sondado
     },
     buy: (card, winner, amount) => {
       const m = managers.find(x => x.id === winner)!
       m.money = Math.max(0, m.money - amount)
-      m.squad.push({ ...card, paid: amount, buyPrice: amount, via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
+      m.squad.push({ ...card, paid: amount, buyPrice: amount, via, semContrato: undefined, tetoOficial: undefined, sondadoPor: undefined, paidAntes: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
     },
   })
   return { ...result, ties: result.ties.map(tb => ({ ...tb, cardId: tb.card.id, submitted: [], winner: null, paid: 0, viaRoulette: false, via })) }
@@ -3261,7 +3273,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number, so
   tb.viaRoulette = decision.roulette
   const m = state.managers.find(x => x.id === winner)!
   m.money = Math.max(0, m.money - max) // 🛟 mesmo piso do leilão: compra não vira dívida
-  m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
+  m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, tetoOficial: undefined, sondadoPor: undefined, paidAntes: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
   anotaMercado(state, m, tb.card, max, 'desempate') // 💸 mercado da temporada (Central)
   voltaCriaSeSobrou(state, m, tb.card.pos) // 🌱 reforço chegou pelo desempate: o guri volta pra base
@@ -8335,7 +8347,22 @@ function leilaoResolveLeva(state: EscState, rescue: boolean): { queue: ResolvedC
       }
     }
   }
-  const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', !!state.reserveAuction, (b, sl) => mesmoDono(state, b, sl), (m, c) => contratacaoOficialPermitida(state, m, c))
+  // 🕵️ 27/11 SONDAR DE AMIGO — quem sondou tem PREFERÊNCIA DE IGUALAR (igual à Liga Draft): se ele deu lance e alguém deu mais,
+  // ele fica com a carta pelo MAIOR lance dos outros (se tiver caixa). O dono da carta nunca entra na conta.
+  for (const card of state.currentCards) {
+    const quem = card.sondadoPor
+    if (quem == null) continue
+    const lista = (bidMap.get(card.id) ?? []).filter(b => b.mgr !== card.seller)
+    const meu = lista.find(b => b.mgr === quem)
+    const outros = lista.filter(b => b.mgr !== quem)
+    const maior = Math.max(0, ...outros.map(b => b.amount))
+    const sondador = state.managers.find(m => m.id === quem)
+    if (meu && sondador && maior >= meu.amount && sondador.money >= maior && openSlots(sondador, card.pos) > 0) {
+      bidMap.set(card.id, [{ ...meu, amount: maior }, ...outros.filter(b => b.amount < maior)])
+      ;(state.marketLog = state.marketLog ?? []).push(`🕵️ ${sondador.teamName} igualou ${maior} 🪙 e ficou com ${card.name} (preferência de quem sondou)`)
+    } else bidMap.set(card.id, lista)
+  }
+  const { queue, unsold: unsoldTodos, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', !!state.reserveAuction, (b, sl) => mesmoDono(state, b, sl), (m, c) => contratacaoOficialPermitida(state, m, c))
   // 🏆😂 PREMIAÇÃO DA RESENHA (Diego 25/08) — o caderninho do vexame.
   // O `revealQueue` é POR SETOR e é zerado no setor seguinte, então o 2º lance
   // de cada carta se perde. Aqui a gente anota o que interessa enquanto ele
@@ -8374,6 +8401,14 @@ function leilaoResolveLeva(state: EscState, rescue: boolean): { queue: ResolvedC
     if (w?.isHuman) voltaCriaSeSobrou(state, w, q.card.pos)
   }
   mirrorWallets(state) // 💰 arremates e vendas do pregão entram na caixa NA HORA
+  // 🕵️ reserva de amigo que ninguém quis VOLTA pro dono, com o mesmo contrato (nunca vai pro Monte)
+  const unsold: Card[] = []
+  for (const c of unsoldTodos) {
+    const dono = c.sondadoPor != null ? state.managers.find(m => m.id === c.seller && m.isHuman) : undefined
+    if (!dono) { unsold.push(c); continue }
+    dono.squad.push({ ...(c as WonCard), paid: c.paidAntes ?? (c as WonCard).paid ?? 0, seller: undefined, sondadoPor: undefined, paidAntes: undefined })
+    ;(state.marketLog = state.marketLog ?? []).push(`↩️ Ninguém deu lance em ${c.name}: voltou pro ${dono.teamName}`)
+  }
   return { queue, unsold, ties }
 }
 
@@ -9876,7 +9911,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const f = aplicaFechamentos(s, action.fechamentos ?? {})
       s.managers = f.managers; s.careerCoins = f.careerCoins; s.reserveListed = f.reserveListed
       s.contratoRelease = f.contratoRelease; s.aliciarJogadores = f.aliciarJogadores
-      s.co2 = { ...s.co2, fora: f.fora }
+      s.co2 = { ...s.co2, fora: f.fora, sondou: f.sondou, tit: f.tit }
       return reducer(s, { type: 'RESERVE_AUCTION_ONLINE', co2Abre: true })
     }
     case 'CO2_GAVETAS': {
@@ -13700,6 +13735,14 @@ function reducerBase(state: EscState, action: Action): EscState {
         // Então a tela manda a CARTA junto, e ela é guardada aqui pra virar lote no
         // leilão. Duplicata não acontece: assim que a carta passa a ser de alguém, a
         // receita de fundo para de oferecê-la (ela casa por nome|clube|ano).
+        // 🕵️ 27/11 carreira online: reserva de AMIGO (contrato não importa: ele vai pro leilão de todos e o dinheiro é do dono)
+        const amigo = reservaDeAmigoCo2(s, action.cardId)
+        if (amigo) {
+          const alvoA = amigo.squad.find(c => c.id === action.cardId)!
+          if (!sondarLiberado(alvoA, myApoioPerk()?.tier)) return s
+          s.aliciarJogadores = [action.cardId]; s.aliciarFundo = undefined
+          return s
+        }
         const dono = s.managers.find(m => !m.isHuman && (!action.clube || m.teamName===action.clube) && m.squad.some(c => c.id === action.cardId))
         const elencoDono = dono?.squad ?? (s.oficial || gestaoAtiva(s) ? s.cpuSquads?.[action.clube??''] : action.squad) ?? []
         const alvo = dono?.squad.find(c => c.id === action.cardId)
@@ -14445,6 +14488,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       // pra brigar de volta. Então o sondado SEMPRE vai pro leilão.
       if (s.onlineMode !== 'online') {
         for (const cid of s.aliciarJogadores ?? []) {
+          // 🕵️ 27/11 carreira online: reserva de AMIGO → lote no leilão de todos, mínimo = valor dele, dinheiro pro dono
+          const amigoDono = s.co2 ? s.managers.find(m => m.isHuman && m.squad.some(c => c.id === cid)) : undefined
+          if (amigoDono) {
+            const quem = s.co2?.sondou?.[String(cid)]
+            const cartaA = amigoDono.squad.find(c => c.id === cid) as WonCard
+            if (quem == null || quem === amigoDono.id || s.co2?.fora?.includes(amigoDono.id) || !reservaDeAmigoCo2({ ...s, youIdx: Math.max(0, s.managers.findIndex(m => m.id === quem)) }, cid)) continue
+            amigoDono.squad = amigoDono.squad.filter(c => c.id !== cid)
+            listedCards.push({ ...cartaA, seller: amigoDono.id, sondadoPor: quem, paidAntes: cartaA.paid, paid: Math.max(1, Math.round(valorOficial(s, cartaA))) } as Card)
+            ;(s.marketLog = s.marketLog ?? []).push(`🕵️ ${s.managers.find(m => m.id === quem)?.teamName ?? '?'} sondou ${cartaA.name}, reserva do ${amigoDono.teamName} — vai pro leilão`)
+            continue
+          }
           const dono = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === cid))
           const card = dono?.squad.find(c => c.id === cid)
           if (dono && card && !card.fake && !card.emprestado && podeRetirarOficial(s, dono.squad, card.pos, dono.formation) && (!(s.oficial || gestaoAtiva(s)) || contratoAtletaFalta(s,card)<=0 || reservaTransferivelOficial(s,dono.squad,card,dono.formation))) {

@@ -111,6 +111,7 @@ export interface Card {
    *  pegá-la no monte (senão "deixar vencer" sairia mais barato que renovar) e (2) ele
    *  recebe no máximo o valor oficial quando ela é vendida. */
   semContrato?: boolean
+  sondadoPor?: number // 🕵️ 27/11 carreira online: reserva de AMIGO sondada — id de quem sondou (preferência de igualar; o dono não dá lance; ninguém quis = volta pro dono)
   /** 💰 SÓ O TETO, sem a punição de não poder recuperar (19/09). Nasceu do caso do
    *  Garrincha (Rei da Bola FC) e do Maradona (Raiva Cajuri FC): quem LISTA um jogador
    *  está vendendo por vontade própria, e o Diego é categórico — *"ele listou o jogador,
@@ -954,7 +955,7 @@ export interface EscState {
   careerColetiva?: Record<number, import('./coletiva').ColetivaSave> // 🎙️ COLETIVA DE IMPRENSA (19/10): por clube (mgrId). Histórico das respostas, promessas, fama, arquirrival e os efeitos pendentes (moral no próximo jogo / clássico). Só carreira solo. Ausente = nunca deu coletiva.
   // 🌐 CARREIRA ONLINE v2 (19/10, só conta do Diego): este aparelho roda a carreira SOLO do próprio clube e os outros clubes de gente chegam pelas gavetas (`carreira-online-v2.ts`). Ausente = carreira solo de sempre (nada muda).
   // `comanda` = este aparelho conduz as fases de TODOS (leilão etc.: o dono, ou o vice no dia dele); `espelho` = este aparelho só ASSISTE o leilão do dono (o que ele aperta vai pro dono).
-  co2?: { sala: string; assento: number; gavetas: import('./carreira-online-v2').GavetaPublica[]; comanda?: boolean; espelho?: boolean; minha?: import('./carreira-online-v2').GavetaPublica; congeladoAte?: number; /** 🔄 26/11 virada: temporada em que ESTE aparelho fechou o próprio clube (a gaveta leva o `fechamento`) */ fechou?: number; /** 🔄 virada: o meu estado de antes do leilão de todos, guardado só na memória enquanto eu espelho o leilão do dono (volta junto no fim, `co2JuntaVirada`) */ base?: EscState; /** 🔄 virada: clubes de gente que NÃO fecharam a temporada (fora do leilão; contrato vencido renova sozinho) */ fora?: number[] }
+  co2?: { sala: string; assento: number; gavetas: import('./carreira-online-v2').GavetaPublica[]; comanda?: boolean; espelho?: boolean; minha?: import('./carreira-online-v2').GavetaPublica; congeladoAte?: number; /** 🔄 26/11 virada: temporada em que ESTE aparelho fechou o próprio clube (a gaveta leva o `fechamento`) */ fechou?: number; /** 🔄 virada: o meu estado de antes do leilão de todos, guardado só na memória enquanto eu espelho o leilão do dono (volta junto no fim, `co2JuntaVirada`) */ base?: EscState; /** 🔄 virada: clubes de gente que NÃO fecharam a temporada (fora do leilão; contrato vencido renova sozinho) */ fora?: number[]; /** 🕵️ 27/11: quem sondou cada carta (cardId → mgrId), juntado dos fechamentos pelo dono */ sondou?: Record<string, number>; /** 🕵️ titulares de cada clube de gente (o sondar de amigo só pega reserva) */ tit?: Record<number, string[]> }
   /** ⚽🧠 MOTOR NOVO NA CARREIRA (20/10, só a conta do Diego por enquanto): a partir de qual temporada/rodada (0-based, o próximo
    *  jogo) o SEU jogo é decidido pelo motor v2. Rodada já jogada nunca muda. Ausente = simulação de sempre, byte a byte. */
   motor2Desde?: { season: number; round: number }

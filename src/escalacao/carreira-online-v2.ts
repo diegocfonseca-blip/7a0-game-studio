@@ -7,7 +7,8 @@
 // Este arquivo é a ponte: tira as entradas do MEU clube pra gaveta e mistura as dos OUTROS nas entradas do motor.
 // Puro (sem React, sem banco). Trava: `npm run carreira-online`.
 import type { RoundTactics, RoundLineups, RoundMods, RoundCardMods, RoundHalftime, RoundPenalty, SimTecnicos } from './pyramidseason'
-import type { Manager, EscState, WonCard, LedgerEntry } from './types'
+import type { Manager, EscState, WonCard, LedgerEntry, Card } from './types'
+import { FORMATIONS } from './types'
 
 /** Tudo que o motor precisa de UM clube de gente, rodada a rodada. Chaves = número da rodada (como na solo). */
 export type EntradasSim = {
@@ -44,6 +45,8 @@ export type Fechamento = {
   listados: string[]
   soltar: string[]
   sondados: string[]
+  /** 🕵️ 27/11: os ids dos TITULARES do clube (o sondar de amigo só pega reserva) */
+  titulares?: string[]
 }
 
 /** O que o aparelho já monta pra solo (os mesmos mapas que vão pro `simulatePyramid`). */
@@ -153,6 +156,7 @@ export function co2Fechamento(s: EscState): Fechamento | null {
   if (!me || !s.co2) return null
   const minhas = new Set(me.squad.map(c => String(c.id)))
   return {
+    titulares: [...titularesDoClube(me.squad, me.formation, s.careerLineup?.[me.id])],
     temporada: s.seasonNo ?? 1,
     caixa: s.careerCoins?.[me.id] ?? 0,
     squad: me.squad as WonCard[],
@@ -168,7 +172,7 @@ export function co2Fechamento(s: EscState): Fechamento | null {
  * contrato vencido renova sozinho no leilão (regra do Diego: *"se não escolher, renova automático"*). Puro: devolve
  * os campos novos, quem chama aplica.
  */
-export function aplicaFechamentos(s: EscState, fechamentos: Record<number, Fechamento | undefined>): Pick<EscState, 'managers' | 'careerCoins' | 'reserveListed' | 'contratoRelease' | 'aliciarJogadores'> & { fora: number[] } {
+export function aplicaFechamentos(s: EscState, fechamentos: Record<number, Fechamento | undefined>): Pick<EscState, 'managers' | 'careerCoins' | 'reserveListed' | 'contratoRelease' | 'aliciarJogadores'> & { fora: number[]; sondou: Record<string, number>; tit: Record<number, string[]> } {
   const meuId = s.managers[s.youIdx]?.id
   const temporada = s.seasonNo ?? 1
   const coins = { ...(s.careerCoins ?? {}) }
@@ -176,6 +180,13 @@ export function aplicaFechamentos(s: EscState, fechamentos: Record<number, Fecha
   const soltar = new Set(s.contratoRelease ?? [])
   const sondados = new Set(s.aliciarJogadores ?? [])
   const fora: number[] = []
+  const sondou: Record<string, number> = {}
+  const tit: Record<number, string[]> = {}
+  if (meuId != null) {
+    for (const id of s.aliciarJogadores ?? []) sondou[String(id)] = meuId
+    const eu = s.managers.find(m => m.id === meuId)
+    if (eu) tit[meuId] = [...titularesDoClube(eu.squad, eu.formation, s.careerLineup?.[meuId])]
+  }
   const managers = s.managers.map(m => {
     if (!m.isHuman || m.id === meuId) return m
     const f = fechamentos[m.id]
@@ -189,10 +200,11 @@ export function aplicaFechamentos(s: EscState, fechamentos: Record<number, Fecha
     coins[m.id] = Number.isFinite(f.caixa) ? f.caixa : (coins[m.id] ?? 0)
     listed[m.id] = (f.listados ?? []).filter(id => ids.has(String(id)))
     for (const id of f.soltar ?? []) if (ids.has(String(id))) soltar.add(id)
-    for (const id of f.sondados ?? []) sondados.add(id)
+    for (const id of f.sondados ?? []) { sondados.add(id); if (sondou[String(id)] == null) sondou[String(id)] = m.id }
+    tit[m.id] = f.titulares ?? [...titularesDoClube(f.squad, m.formation)]
     return { ...m, squad: f.squad.map(c => ({ ...c })) }
   })
-  return { managers, careerCoins: coins, reserveListed: listed, contratoRelease: [...soltar], aliciarJogadores: [...sondados], fora }
+  return { managers, careerCoins: coins, reserveListed: listed, contratoRelease: [...soltar], aliciarJogadores: [...sondados], fora, sondou, tit }
 }
 
 /**
@@ -233,5 +245,23 @@ export function co2JuntaVirada(base: EscState, cmd: EscState, meuId: number, fal
   out.careerLedgers = undefined
   out.isHost = true
   out.co2 = { ...(base.co2 ?? { sala: cmd.co2?.sala ?? '', gavetas: [] }), sala: cmd.co2?.sala ?? base.co2?.sala ?? '', assento: meuId, comanda: false, espelho: false, base: undefined, fora: undefined, gavetas: base.co2?.gavetas ?? [] }
+  return out
+}
+
+/**
+ * 🕵️ SONDAR DE AMIGO (Diego, 26/11: *"só reserva… titular protegido"*): os TITULARES de um clube de gente = a última escalação
+ * que ele salvou (a mesma que vai na gaveta); sem escalação salva, os melhores da formação. A tela e o motor usam ESTA conta.
+ */
+export function titularesDoClube(squad: readonly Card[], formation: Manager['formation'] | undefined, xi?: Record<number, string[]>): Set<string> {
+  let bestK = -1, ids: string[] | null = null
+  for (const k in xi ?? {}) { const kn = +k; if (kn > bestK && Array.isArray(xi![kn])) { bestK = kn; ids = xi![kn] } }
+  const tem = new Set(squad.map(c => String(c.id)))
+  if (ids && ids.filter(id => tem.has(String(id))).length === 11) return new Set(ids.map(String))
+  const need = FORMATIONS[formation ?? '4-3-3'] ?? FORMATIONS['4-3-3']
+  const out = new Set<string>()
+  for (const pos of Object.keys(need) as (keyof typeof need)[]) {
+    const daPos = squad.filter(c => c.pos === pos && !c.fake).sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))
+    for (const c of daPos.slice(0, need[pos])) out.add(String(c.id))
+  }
   return out
 }

@@ -57,7 +57,14 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
 - ✅ (27/11) notícia de todo jogador que um clube de gente tirou de bot ("🔨 X levou Y do Z por N") · 🎬 ⚡ Dinâmica: anúncio de cinema
   (opção C) na ESTREIA de cada temporada, 60 s de aviso, só o dono segue (confirma antes do tempo). Foto `scripts/mockups/co2-anuncio-estreia.png`.
 - ✅ (27/11) anúncio da estreia fecha no ✕ e vira faixa fininha (cada um livre nas abas) · ⚙️ dono escolhe os TEMPOS (pausas e rodada da Livre: 30 s–3 min) na largada e muda depois (`Co2TemposDono`, só fora do jogo rolando).
-- ⏳ falta: sondar de amigo, anúncio C também nas copas (hoje a copa do fim roda em cada aparelho), dia dos contratos, teste com 2 contas.
+- ✅ (27/11) 🕵️ SONDAR DE AMIGO (regra do Diego de 26/11): no Sondar aparecem os clubes dos amigos (🤝), só os RESERVAS (titular =
+  última escalação salva; `titularesDoClube`/`reservaDeAmigoCo2`, mesma conta na tela e no motor). Gasta a sondagem de jogador · vai
+  pro leilão de todos com mínimo = valor · dono não dá lance · dinheiro pro dono · ninguém pagou = volta pro dono com o mesmo contrato ·
+  quem sondou e deu lance IGUALA o maior lance dos outros automaticamente (se tiver caixa e vaga). Teste cobre os 2 caminhos
+  (`LANCE_SONDA=1` = ele leva; sem = volta pro dono). ⚠️ "igualar" é automático (deu lance = quer igualar); se o Diego quiser
+  a pergunta na hora, é uma tela a mais.
+- ⚠️ (27/11) o teste da Copa do fim falhou 1 vez em ~20 rodadas (Copa diferente entre aparelhos, semente aleatória). Não reproduziu em 18 seguidas; o teste agora imprime a semente quando falhar — investigar antes de liberar.
+- ⏳ falta: anúncio C também nas copas (hoje a copa do fim roda em cada aparelho), dia dos contratos, teste com 2 contas.
 - Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).
 - Testes da v2 verdes depois da publicação do Codex (`npm run carreira-online` e `npm run carreira-online-fluxo`).
 
