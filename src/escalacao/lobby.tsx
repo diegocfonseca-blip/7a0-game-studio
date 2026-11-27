@@ -77,7 +77,7 @@ const AVISO_TROCA_LIGA = false
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useTurnoUnicoLiberado, useEuroLiberada, useAmericaLiberada, useLibertaSalaLiberada, useSuperMundialLiberado, CHAMPIONS_SALA_GERAL, useCarreiraOnline2, useCampo2DLiberado, useTroca2DSala, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
-import { Co2Painel, Co2Criar, Co2Espera } from './co2-telas'
+import { Co2Painel, Co2Criar, Co2Espera, type Co2LayoutProps } from './co2-telas'
 import { co2Fechar } from './co2'
 import { montaCarry, type EntradaLiga } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
@@ -4402,15 +4402,24 @@ export function EscLobby() {
         const proxSec = () => ++secN // 🔢 os blocos numeram na ordem em que aparecem (cada modo mostra os seus)
         // 🌐 27/11 (Diego: *"padrão de criação de sala igual as outras… igual liga draft"*): a carreira online escolhida em "O jogo"
         // mostra os blocos DELA (mesmo Section das salas) e o botão no pé — nada das salas daqui muda.
-        if (co2Aberta && co2On && !nbaSala) return (
+        if (co2Aberta && co2On && !nbaSala) {
+          // o MESMO esqueleto da Sala Rápida (blocos que abrem/fecham + faixa "SUA CARREIRA" presa embaixo) quando ele está ligado
+          const co2Layout = createV01 ? (p: Co2LayoutProps) => (
+            <OnlineCreateLayout enabled modes={modeChooser} rows={p.rows} summaries={p.summaries} name={p.name} button={p.button} rotulo={tr('SUA CARREIRA', 'YOUR CAREER')}
+              responsibility={null} errorKey={p.erro} error={p.erro && <p>{p.erro}</p>} notice={p.notice}>
+              <div className="cs-claro space-y-3">{p.children}</div>
+            </OnlineCreateLayout>
+          ) : undefined
+          return (
           <ClaroCtx.Provider value>
           <style>{CRIAR_CLARO_CSS}</style>
-          <div className="cs-claro space-y-3" style={{ maxWidth: desk ? 760 : undefined, margin: desk ? '0 auto' : undefined }}>
-            {modeChooser}
-            <Co2Criar nomeClube={stripEmoji(nameOf()).trim()} Secao={Section} Opcoes={Seg as unknown as Parameters<typeof Co2Criar>[0]['Opcoes']} primeiro={criar2 ? 2 : 1} onAbre={id => setCo2Espera(id)} />
+          <div className="cs-claro space-y-3" style={!createV01 && desk ? { maxWidth: 760, margin: '0 auto' } : undefined}>
+            {!createV01 && modeChooser}
+            <Co2Criar nomeClube={stripEmoji(nameOf()).trim()} Secao={Section} Opcoes={Seg as unknown as Parameters<typeof Co2Criar>[0]['Opcoes']} Layout={co2Layout} primeiro={criar2 ? 2 : 1} onAbre={id => setCo2Espera(id)} />
           </div>
           </ClaroCtx.Provider>
-        )
+          )
+        }
         return (
         <ClaroCtx.Provider value>
         <style>{CRIAR_CLARO_CSS}</style>

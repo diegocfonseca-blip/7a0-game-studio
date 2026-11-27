@@ -199,8 +199,10 @@ export function Co2Regras({ cfg }: { cfg?: Co2Cfg | null }) {
 
 type SecaoProps = { num: number; title: string; icon: string; sub?: string; children: React.ReactNode }
 // as mesmas opções de "Criar sala" (o `Seg` do lobby), passadas de lá pra não duplicar o visual
+/** 27/11: o "esqueleto" de Criar sala do lobby (blocos que abrem/fecham + faixa presa embaixo). Sem ele, o resumo vai no fim da página. */
+export type Co2LayoutProps = { name: string; rows: [string, string][]; summaries: Record<string, string>; button: React.ReactNode; notice: string; erro: string; children: React.ReactNode }
 type SegProps = { options: [string, string][]; value: string; onSet: (v: string) => void; selos?: Partial<Record<string, string>>; travados?: string[] }
-export function Co2Criar({ nomeClube, Secao, Opcoes, primeiro, onAbre }: { nomeClube: string; Secao: (p: SecaoProps) => React.ReactElement | null; Opcoes: (p: SegProps) => React.ReactElement | null; primeiro: number; onAbre: (id: string) => void }) {
+export function Co2Criar({ nomeClube, Secao, Opcoes, Layout, primeiro, onAbre }: { nomeClube: string; Secao: (p: SecaoProps) => React.ReactElement | null; Opcoes: (p: SegProps) => React.ReactElement | null; Layout?: (p: Co2LayoutProps) => React.ReactElement | null; primeiro: number; onAbre: (id: string) => void }) {
   const [nome, setNome] = useState('')
   const [clube, setClube] = useState(nomeClube)
   const [cfg, setCfg] = useState<Co2Cfg>(CFG_PADRAO)
@@ -223,8 +225,10 @@ export function Co2Criar({ nomeClube, Secao, Opcoes, primeiro, onAbre }: { nomeC
     onAbre(r.id)
   }
   let n = primeiro
-  return (
-    <>
+  const chips = [tr('🪜 Tradicional', '🪜 Classic'), `🌐 ${nomeFinal}`, cfg.baralho === 'br' ? tr('🇧🇷 Só Brasil', '🇧🇷 Brazil only') : tr('🌎 BR + Europa + Mundo', '🌎 BR + Europe + World'), `🛡️ ${clube.trim() || nomeClube}`, cfg.bots ? `🤖 ${cfg.bots} bots` : tr('🤖 sem bots', '🤖 no bots'), cfg.modo === 'dinamica' ? tr('⚡ Dinâmica', '⚡ Dynamic') : tr('🧭 Livre', '🧭 Free'), tr('até 20 clubes', 'up to 20 clubs')]
+  const botaoCriar = podeCriar === false ? null : <button type="button" disabled={indo || podeCriar === null} onClick={() => void criar()} style={{ ...botao(GOLD), opacity: indo ? .7 : 1 }}><span>{indo ? tr('Criando…', 'Creating…') : tr('Criar carreira →', 'Create career →')}</span></button>
+  const travaTxt = tr('🔒 Criar carreira online é só pra quem tem plano. Você pode entrar na de um amigo pelo código, no último bloco.', '🔒 Creating an online career needs a plan. You can join a friend\'s with the code, in the last block.')
+  const secoes = <>
       {/* 🪜 27/11 (Diego: *"por enquanto somente carreira tradicional c clubes feitos pela galera… oficial Brasil e global somente futuramente"*) */}
       <Secao num={n++} title={tr('O modo', 'The mode')} icon="🪜" sub={tr('Que carreira vocês vão jogar', 'Which career you are playing')}>
         <Opcoes options={[['tradicional', tr('🪜 Tradicional', '🪜 Classic')], ['oficial', tr('🇧🇷 Brasil Oficial', '🇧🇷 Official Brazil')], ['global', tr('🌍 Global', '🌍 Global')]]} value="tradicional" onSet={() => {}}
@@ -251,10 +255,25 @@ export function Co2Criar({ nomeClube, Secao, Opcoes, primeiro, onAbre }: { nomeC
       <Secao num={n++} title={tr('As regras', 'The rules')} icon="📜" sub={tr('Elas aparecem também em cima da sala de espera', 'They also show at the top of the waiting room')}>
         <Co2Regras cfg={cfg} />
       </Secao>
+</>
+  const suas = <>      <Secao num={n++} title={tr('Suas carreiras e convites', 'Your careers and invites')} icon="🔑" sub={tr('Voltar pra uma carreira ou entrar com o código de um amigo', 'Go back to a career or join with a friend\'s code')}>
+        <Co2Painel nomeClube={clube.trim() || nomeClube} onAbre={onAbre} semCriar />
+      </Secao>
+</>
+  // chamado como FUNÇÃO (não como <Layout>): o lobby recria a função a cada render e o campo de texto perderia o foco
+  if (Layout) return Layout({
+    name: nomeFinal, erro, button: botaoCriar, notice: travaTxt,
+    rows: [[tr('Modo', 'Mode'), tr('🪜 Tradicional', '🪜 Classic')], [tr('Carreira', 'Career'), nomeFinal], [tr('Seu clube', 'Your club'), clube.trim() || nomeClube], [tr('Baralho', 'Deck'), chips[2]], [tr('Leilão', 'Auction'), chips[4]], [tr('Ritmo', 'Pace'), chips[5]], [tr('Clubes de gente', 'Human clubs'), tr('até 20', 'up to 20')]],
+    summaries: { [tr('O modo', 'The mode')]: tr('Tradicional', 'Classic'), [tr('A carreira', 'The career')]: `${nomeFinal} · ${clube.trim() || nomeClube}`, [tr('O baralho', 'The deck')]: chips[2], [tr('O leilão', 'The auction')]: chips[4], [tr('O ritmo', 'The pace')]: chips[5] },
+    children: <>{secoes}{suas}</>,
+  })
+  return (
+    <>
+      {secoes}
       <div style={{ background: INK, borderRadius: 18, padding: 12 }}>
         <p style={{ ...OSWALD, fontSize: 12, letterSpacing: '.08em', color: GOLD, margin: '0 0 8px', textTransform: 'uppercase' }}>📋 {tr('Sua carreira', 'Your career')}</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-          {[tr('🪜 Tradicional', '🪜 Classic'), `🌐 ${nomeFinal}`, cfg.baralho === 'br' ? tr('🇧🇷 Só Brasil', '🇧🇷 Brazil only') : tr('🌎 BR + Europa + Mundo', '🌎 BR + Europe + World'), `🛡️ ${clube.trim() || nomeClube}`, cfg.bots ? `🤖 ${cfg.bots} bots` : tr('🤖 sem bots', '🤖 no bots'), cfg.modo === 'dinamica' ? tr('⚡ Dinâmica', '⚡ Dynamic') : tr('🧭 Livre', '🧭 Free'), tr('até 20 clubes', 'up to 20 clubs')].map(t => (
+          {chips.map(t => (
             <span key={t} style={{ ...OSWALD, fontSize: 11, background: '#2b241a', color: CREAM, borderRadius: 7, padding: '3px 7px', textTransform: 'uppercase' }}>{t}</span>
           ))}
         </div>

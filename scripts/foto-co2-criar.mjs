@@ -6,7 +6,7 @@ const OUT = arg('out', 'scripts/mockups'), PORTA = '5266'
 const vite = spawn('npx', ['vite', '--port', PORTA], { env: { ...process.env, DEPLOY_BASE: '/' }, stdio: 'ignore', detached: true })
 for (let i = 0; i < 60; i++) { try { const r = await fetch(`http://localhost:${PORTA}/`); if (r.ok) break } catch { /* subindo */ } await new Promise(r => setTimeout(r, 500)) }
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-for (const tela of ['criar', 'espera']) {
+for (const tela of ['criar', 'criar-v01', 'espera']) {
   const ctx = await b.newContext({ viewport: { width: 420, height: 900 }, deviceScaleFactor: 2 })
   await ctx.addInitScript(() => { try { localStorage.setItem('bl_lang', 'pt'); localStorage.setItem('esc-co2-cfg', JSON.stringify({ sala: 's1', bots: 2, modo: 'dinamica', tempos: { pausa: 60, rodada: 60 } })) } catch {} })
   const p = await ctx.newPage(); p.on('pageerror', e => console.error('💥', e.message))
@@ -28,7 +28,12 @@ for (const tela of ['criar', 'espera']) {
         h('span', null, h('b', { style: { display: 'block', fontFamily: 'Oswald', fontSize: 17, textTransform: 'uppercase' } }, icon + ' ' + title), h('small', { style: { color: '#6b6250', fontWeight: 600 } }, sub))),
       h('div', { style: { display: 'grid', gap: 12 } }, children))
     const Opcoes = ({ options, value, onSet, selos, travados }) => h('div', { style: { display: 'grid', gridTemplateColumns: options.length >= 4 ? '1fr 1fr' : 'repeat(' + options.length + ', 1fr)', gap: 6 } }, options.map(([v, l]) => h('button', { key: v, onClick: () => onSet(v), disabled: travados?.includes(v), style: { border: '2.5px solid #0C0C0C', borderRadius: 10, padding: '9px 6px', fontFamily: 'Oswald', fontWeight: 700, textTransform: 'uppercase', background: value === v ? '#FFC400' : '#fff', opacity: travados?.includes(v) ? .5 : 1 } }, l, selos?.[v] ? ' · ' + selos[v] : '')))
-    if (${JSON.stringify(tela)} === 'criar') createRoot(root).render(h(S.EscProvider, null, h(T.Co2Criar, { nomeClube: 'Neymarzetti', Secao, Opcoes, primeiro: 2, onAbre(){} })))
+    if (${JSON.stringify(tela)} === 'criar-v01') {
+      const O = await import('/src/escalacao/online-create-layout.tsx')
+      root.id = 'root'; root.style.padding = '14px 14px 120px'
+      const Layout = p => h(O.OnlineCreateLayout, { enabled: true, modes: h('div', { style: { padding: 10, border: '3px solid #000', borderRadius: 14, background: '#fff', fontFamily: 'Oswald' } }, '1 · O JOGO (cartões)'), rows: p.rows, summaries: p.summaries, name: p.name, button: p.button, rotulo: 'SUA CARREIRA', responsibility: null, errorKey: p.erro, error: null, notice: p.notice }, h('div', { className: 'cs-claro space-y-3' }, p.children))
+      createRoot(root).render(h(S.EscProvider, null, h(T.Co2Criar, { nomeClube: 'Neymarzetti', Secao: O.OnlineCreateSection, Opcoes, Layout, primeiro: 2, onAbre(){} })))
+    } else if (${JSON.stringify(tela)} === 'criar') createRoot(root).render(h(S.EscProvider, null, h(T.Co2Criar, { nomeClube: 'Neymarzetti', Secao, Opcoes, primeiro: 2, onAbre(){} })))
     else { createRoot(root).render(h(S.EscProvider, null, h(T.Co2Espera, { salaId: 's1', onSair(){} }))); await new Promise(r=>setTimeout(r,1500)); C._bancadaCo2({ uid: 'u0', aqui: ['u0'] }) }
     await new Promise(r=>setTimeout(r,1500))
   })()`)
