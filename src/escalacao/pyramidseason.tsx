@@ -52,7 +52,7 @@ import { MENSAIS } from './planos-regras'
 import { assinarMensal } from './vendria-checkout'
 import { PixMP } from './pix-mp'
 import { Co2Temporada, useCo2FimDaVirada, Co2FecharTemporada, Co2ViradaEspera, Co2CopaMundo } from './co2-telas' // 🌐 carreira online v2 (19/10)
-import { Co2Turma, Co2Tuiter } from './co2-turma' // 🌐🧑‍🤝‍🧑 27/11: resumo da turma + TUITER na Central da carreira online
+import { Co2Tuiter } from './co2-turma' // 🐤 27/11: TUITER na Central da carreira online (o resumo da turma saiu: "muita informação")
 import { useCo2, co2Agora, co2Mundo } from './co2'
 import { mesclaEntradas, congelaMeu, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import {useAssistindoCampo} from './presidencia-campo-observacao'
@@ -15459,7 +15459,7 @@ export function PyramidSeasonScreen() {
           <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>
           <button onClick={() => { setDaCentral(true); setClubeSub('estadio'); escolheAba('estadio'); setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) }}
             style={{ width: '100%', margin: '0 0 12px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: '#F4ECD6', color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('📍 Ver no mapa ao vivo', '📍 Watch it live on the map')}</button>
-        </>}{renderCentral()}{state.co2 && <><Co2Turma tables={tables} matches={shown.matches} scorers={scorersAll} round={revealed} /><Co2Tuiter tables={tables} matches={shown.matches} round={revealed} /></>}</> : tab === 'mercado' && mercadoOn && me ? <MercadoAba dealFocus={dealFocus} onClearDeal={()=>setDealFocus(undefined)} mgr={state.managers[state.youIdx]} ordem={(me ? tables[me.div] ?? [] : []).map(t => t.name)} /> : tab === 'estadio' ? (
+        </>}{renderCentral()}{state.co2 && <Co2Tuiter tables={tables} matches={shown.matches} round={revealed} />}</> : tab === 'mercado' && mercadoOn && me ? <MercadoAba dealFocus={dealFocus} onClearDeal={()=>setDealFocus(undefined)} mgr={state.managers[state.youIdx]} ordem={(me ? tables[me.div] ?? [] : []).map(t => t.name)} /> : tab === 'estadio' ? (
           <>
             {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência.
                 Agora tudo (Estádio · Finanças · Agência) vale online também,
