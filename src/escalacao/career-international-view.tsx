@@ -372,7 +372,7 @@ type PoolCard = Card
 const fechaForm = (cards: { pos: string; name: string; club: string; year: number }[], form: Shape) => sections.every(pos => new Set(cards.filter(c => c.pos === pos).map(internationalCardKey)).size >= needs[form][pos])
 /** o clube tem jogadores no baralho pra fechar um time? (72 dos 72 desde o Lote 40) */
 export const clubeFechaTime = (clube: string) => { const cs = internationalClubCards(clube); return fechaForm(cs, '4-3-3') || fechaForm(cs, '4-4-2') }
-/** ⭐ a força do clube = a média do melhor 4-3-3 das lendas dele no baralho (o que aparece no mural de convites da carreira online) */
+/** ⭐ a força do clube = a média do melhor 4-3-3 das lendas dele no baralho (só ORDENA o mural de convites da carreira online — o número não aparece, Diego 27/11) */
 export function forcaDoClube(clube: string): number {
   const cs = internationalClubCards(clube), xi: number[] = []
   for (const pos of sections) xi.push(...cs.filter(c => c.pos === pos).map(c => (c.lo + c.hi) / 2).sort((a, b) => b - a).slice(0, needs['4-3-3'][pos]))
@@ -392,7 +392,7 @@ function MuralConvites({ convites, champsOk, season, onVer }: { convites: Convit
             <SeloClube clube={cv.club} size={30} />
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: 'block', fontWeight: 900, fontSize: 12, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cv.club}</span>
-              <span style={{ display: 'block', fontSize: 10, fontWeight: 800, color: '#6c604a' }}>{cv.renova ? tr('🔁 quer renovar', '🔁 wants to renew') : `⭐ ${forcaDoClube(cv.club)} · ✉️`}</span>
+              <span style={{ display: 'block', fontSize: 10, fontWeight: 800, color: '#6c604a' }}>{cv.renova ? tr('🔁 quer renovar', '🔁 wants to renew') : tr('✉️ te convidou', '✉️ invited you')}</span>
             </span>
           </button>)}
         </div>}
@@ -403,7 +403,7 @@ function MuralConvites({ convites, champsOk, season, onVer }: { convites: Convit
       <span style={kicker}>{tr('Temporada', 'Season')} {season} · O MARTELO · {tr('edição extra', 'special edition')}</span>
       <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 22, margin: '4px 0 4px', textAlign: 'center', lineHeight: 1.05, color: INK }}>✉️ {tr('Todos esses clubes querem você', 'All these clubs want you')}</h2>
       <p style={{ fontFamily: 'Georgia, serif', fontSize: 13.5, lineHeight: 1.4, textAlign: 'center', margin: 0, color: INK }}>{tr('Por qual você vai brigar pelo título?', 'Which one will you fight for the title with?')}</p>
-      <p style={{ ...hint, marginTop: 6 }}>{tr('Você escolhe antes de quem ficou abaixo — e o clube que você aceitar sai da lista deles. ⭐ = força do elenco de lendas.', 'You pick before those who finished below — and the club you accept leaves their list. ⭐ = strength of the legends squad.')}</p>
+      <p style={{ ...hint, marginTop: 6 }}>{tr('Você escolhe antes de quem ficou abaixo — e o clube que você aceitar sai da lista deles.', 'You pick before those who finished below — and the club you accept leaves their list.')}</p>
     </div>
     {bloco('libertadores')}
     {bloco('champions')}
