@@ -173,7 +173,7 @@ import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira, 
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado, useIntlT1 } from './sport'
 import {DesktopRankSummary} from './desktop-layout'
 import { CentralCarreira, FaixaSalvar } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
@@ -10562,7 +10562,8 @@ export function PyramidSeasonScreen() {
   // 🌍 27/11: na carreira online a Liberta/Champions/Mundial vai ser UMA só pra turma (em construção) — até lá, a campanha individual
   // fica desligada lá (senão dois amigos seriam campeões da mesma Libertadores)
   const intlEnabled = useInternacionalCarreiraLiberada() // 🌎 27/11: na carreira online também (única pra todos, desde a T1)
-  const intlDesde = intlDesdeDe(state) // 🔓 Diego 27/11: *"que temporada 40 o quê… desde o início já"* — tradicional e online desde a T1 (Brasil Oficial: 40)
+  const intlT1 = useIntlT1()
+  const intlDesde = intlDesdeDe(state, intlT1) // 🔓 Diego 27/11: *"que temporada 40 o quê… desde o início já"* — tradicional e online desde a T1 (Brasil Oficial: 40)
   // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
   // nova, pra montar o rank travado na temporada de quem olha (anti-spoiler — ver
   // `esc_pyramid_rank` no banco). Só carreira com Agência 2.0, offline, e só 1×
@@ -14891,7 +14892,7 @@ export function PyramidSeasonScreen() {
                         de leitura (que não é passo, é só informação). */}
                     <span data-passos-virada style={{ display: 'block', scrollMarginTop: 70 }} />
                     <MasterBanner semCopa={!!state.oficial} cinematic={privateCareer} div={me.div} seasonNo={sn}
-                      contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId} intl={masterIntlAberto(sn, state.onlineMode === 'online', !!state.oficial)}
+                      contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId} intl={masterIntlAberto(sn, state.onlineMode === 'online', !!state.oficial, intlT1 || !!state.co2)}
                       onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })}
                       onRenovar={() => dispatch({ type: 'MASTER_RENOVAR', mgrId: youId })}
                       onMercado={() => dispatch({ type: 'MASTER_MERCADO', mgrId: youId })} />
@@ -15154,7 +15155,7 @@ export function PyramidSeasonScreen() {
               onArtilheiro={(nome, gols, meu) => { dispatch({ type: 'AGENCIA_COMISSAO_MUNDO', nome, gols, season: state.seasonNo ?? 1 }); if (meu) dispatch({ type: 'ARTILHEIRO_MUNDO_PREMIO', mgrId: principalId, nome, gols, season: state.seasonNo ?? 1 }) }}
               onStats={linhas => dispatch({ type: 'COPA_MUNDO_STATS', season: state.seasonNo ?? 1, linhas })}
               onMural={entries => dispatch({ type: 'COPA_MUNDO_MURAL_SYNC', entries })} />
-            return <CopaMundoGate muralGuardado={state.copaMundoMural} anchor={cmAncora} ciclo={cmCiclo} convite={!!state.oficial} seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
+            return <CopaMundoGate muralGuardado={state.copaMundoMural} anchor={cmAncora} ciclo={cmCiclo} convite={!!state.oficial} seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} intlT1={intlT1} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}

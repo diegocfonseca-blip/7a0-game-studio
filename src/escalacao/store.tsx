@@ -1264,7 +1264,7 @@ import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIn
 import { supabase } from '../lib/supabase'
 import { setModoEspectador } from './espectador'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
-import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
+import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida, intlT1Liberado } from './sport'
 import { salaDormindo, marcaMovimento, marcaTela, aoAcordar } from './sala-dorme' // 💤 sala parada 20 min na tela de fim para de perguntar ao banco
 import { radioPedacoLiberado } from './sport' // 📡✂️ rádio em pedaços (10/11): por enquanto só nas salas do Diego
 import { criaEmissor, criaReceptor, type PacoteCheio, type PacotePedaco } from './radio-pedaco'
@@ -8718,7 +8718,7 @@ export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
 // (regra de ouro contra botão mudo, 19/09). Devolve null quando a campanha pode começar.
 export function motivoRecusaInternacional(s: EscState, c: InternationalCampaign): string | null {
   if (!internacionalCarreiraLiberada()) return 'liberacao'
-  if (!s.careerOnline || s.onlineMode === 'online' || s.seasonNo < intlDesdeDe(s)) return 'modo' // 🔓 27/11: desde a T1 (Brasil Oficial: 40)
+  if (!s.careerOnline || s.onlineMode === 'online' || s.seasonNo < intlDesdeDe(s, intlT1Liberado())) return 'modo' // 🔓 27/11: desde a T1 (Brasil Oficial: 40)
   if (s.copaDoneSeason !== s.seasonNo) return 'copa'
   if (s.careerInternational?.season === s.seasonNo) return 'ja-comecou'
   if (c.season !== s.seasonNo) return 'temporada'
@@ -11753,7 +11753,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 📞💔 17/10: com a ligação de renovação na mesa, primeiro decide ela (RENOVAR ou OUVIR O MERCADO); e a marca que
       // você recusou ou que rescindiu não volta nesta virada — as MESMAS regras que a tela usa (master-historia.ts)
       const ant = s.careerMaster?.[id]
-      const intl = masterIntlAberto(season, s.onlineMode === 'online', !!s.oficial)
+      const intl = masterIntlAberto(season, s.onlineMode === 'online', !!s.oficial, intlT1Liberado() || !!s.co2)
       if (masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, intl, !!s.oficial)) return s
       if (masterMarcaFora(ant, season) === prazo.brandId) return s
       const mt = masterMetaOferta(s.seed ?? 0, season, id, prazo.brandId, div, intl, !!s.oficial)
@@ -11766,7 +11766,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
       const season = s.seasonNo ?? 1
       const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
-      const of = masterOfertaRenovacao(s.careerMaster?.[id], season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online', !!s.oficial), !!s.oficial)
+      const of = masterOfertaRenovacao(s.careerMaster?.[id], season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online', !!s.oficial, intlT1Liberado() || !!s.co2), !!s.oficial)
       if (!of) return s
       s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { brandId: of.brandId, anos: of.anos, div, desde: season, porTemporada: of.porTemporada, meta: of.meta, bonus: of.bonus, renovado: true } }
       return s
@@ -11778,7 +11778,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const season = s.seasonNo ?? 1
       const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
       const ant = s.careerMaster?.[id]
-      if (!ant || !masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online', !!s.oficial), !!s.oficial)) return s
+      if (!ant || !masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online', !!s.oficial, intlT1Liberado() || !!s.co2), !!s.oficial)) return s
       s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { ...ant, recusouRenovar: true } }
       return s
     }
@@ -14141,7 +14141,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'REAUCTION_ONLINE': {
-      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && !s.co2 && s.seasonNo >= intlDesdeDe(s) && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
+      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && !s.co2 && s.seasonNo >= intlDesdeDe(s, intlT1Liberado()) && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       s.simV = 8 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
@@ -14195,7 +14195,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
       if (s.co2 && (action.mesmo || s.co2.espelho)) return s // 🌐 v2 (26/11): cada aparelho fecha o PRÓPRIO clube aqui; "mesmo time" não existe na carreira online (o leilão é de todos)
-      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && !s.co2 && s.seasonNo >= intlDesdeDe(s) && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
+      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && !s.co2 && s.seasonNo >= intlDesdeDe(s, intlT1Liberado()) && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       // 🧯 ANTI-TOQUE-DUBLADO (bug 10/08): tocar 2× rápido no "Abrir leilão"/"Mesmo
       // time" rodava este case DE NOVO — creditava prêmio/bilheteria/patrocínio 2×,
       // cobrava a folha 2× e pulava a temporada de 2 em 2 (o guard de applySeasonMoney
