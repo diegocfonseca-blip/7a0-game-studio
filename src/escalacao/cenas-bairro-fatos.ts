@@ -1,9 +1,10 @@
+import {clubCanon} from './data'
 import type {EscState,Manager} from './types'
 import type {AtorCena,AcaoBairro} from './cenas-bairro-model'
 export type FatoBairro={id:string;acao:AcaoBairro;vista:string;prioridade:number;ator?:AtorCena;chapeu:[string,string];titulo:[string,string];texto:[string,string]}
 /** Adapts saved/revealed facts. No simulations, extra draws, reconstructed honours or career writes. */
 export function fatosDoBairro(s:EscState,m:Manager,revealedGame=false):FatoBairro[]{
- const season=s.seasonNo??1,round=s.round??0,out:FatoBairro[]=[],actor=(id:string)=>{const c=m.squad.find(c=>c.id===id);return c?{id:c.id,nome:c.name,club:c.club,year:c.year}:undefined}
+ const season=s.seasonNo??1,round=s.round??0,out:FatoBairro[]=[],actor=(id:string)=>{const c=m.squad.find(c=>c.id===id||`${c.name}|${clubCanon(c.club)}`===id);return c?{id:c.id,nome:c.name,club:c.club,year:c.year}:undefined}
  const ev=s.eventoTemporada
  if(ev?.season===season&&ev.mgrId===m.id&&ev.tipo==='lesao'&&ev.status==='banco'){
   const retorno=round===(ev.volta??-1),recuperando=round<(ev.volta??-1)
@@ -16,16 +17,21 @@ export function fatosDoBairro(s:EscState,m:Manager,revealedGame=false):FatoBairr
  }
  const coach=s.careerTecnicos?.[m.teamName],since=s.careerTecnicosDesde?.[m.teamName]
  if(coach&&since?.t===season&&since.r===round&&(season>1||round>0))out.push({id:`tecnico:${season}:${round}:${coach}`,acao:'tecnico',vista:'campinho',prioridade:74,ator:{nome:coach},chapeu:['🧢 Nova comissão','🧢 New coaching staff'],titulo:[`${coach} comanda o treino`,`${coach} leads training`],texto:['O técnico contratado começa o trabalho com o elenco. As formações disponíveis continuam as da categoria dele.','Your appointed coach begins work with the squad. Available formations still follow his category.']})
- const press=s.careerColetiva?.[m.id]?.feitas.at(-1)
+ const press=s.careerColetiva?.[m.id]?.feitas?.at(-1)
  if(press?.t===season&&press.r===round&&press.estilo!=='pulou'&&press.frase)out.push({id:`coletiva:${season}:${round}:${press.sit}`,acao:'coletiva',vista:'entrance',prioridade:62,chapeu:['🎙️ Saiu na coletiva','🎙️ From the press conference'],titulo:['A palavra do presidente','The president speaks'],texto:press.frase})
  const master=s.careerMaster?.[m.id]
  if(master?.renovado&&master.desde===season&&round===0)out.push({id:`master:${season}:${master.brandId}`,acao:'patrocinio',vista:'entrance',prioridade:73,chapeu:['🤝 Acordo renovado','🤝 Deal renewed'],titulo:['A parceria continua','The partnership continues'],texto:['A renovação do patrocinador Master está registrada no contrato do clube.','The Master sponsorship renewal is recorded in the club’s contract.']})
  if(revealedGame){
-  const memory=s.careerMemory?.[m.id],last=memory?.recent.at(-1)
+  const memory=s.careerMemory?.[m.id],last=memory?.recent?.at(-1)
+  if(last?.season===season)for(const h of last.highlights??[]){
+   const c=m.squad.find(c=>c.id===h.id||`${c.name}|${clubCanon(c.club)}`===h.id);if(!c||c.fake||c.cria)continue
+   const gols=h.goals>=2
+   out.push({id:`protagonista:${last.id}:${h.id}`,acao:'marca',vista:'entrance',prioridade:75,ator:actor(h.id),chapeu:['⭐ Protagonista em campo','⭐ Match standout'],titulo:gols?[`${h.name} deixou a marca no jogo`,`${h.name} made a mark on the match`]:[`${h.name} fez o time jogar`,`${h.name} brought the team to life`],texto:gols?[`${h.goals} gols no confronto registrado contra ${last.opponent}. A conversa no clube agora é sobre o que ele fez com a bola.`,`${h.goals} goals in the recorded match against ${last.opponent}. The talk at the club is about what he did with the ball.`]:[`${h.assists} assistências no confronto registrado contra ${last.opponent}. O passe também tem seu momento de destaque.`,`${h.assists} assists in the recorded match against ${last.opponent}. The pass deserves its moment too.`]})
+  }
   if(last?.season===season)for(const [id,p] of Object.entries(memory?.players??{})){
-   const c=m.squad.find(c=>c.id===id);if(!c)continue
+   const c=m.squad.find(c=>c.id===id||`${c.name}|${clubCanon(c.club)}`===id);if(!c)continue
    // Only games counted since this feature began. Never claims a historic club total.
-   if(p.games>0&&[10,25,50,100].includes(p.games)&&last.id===memory?.seen.at(-1))out.push({id:`marca:${id}:jogos:${p.games}`,acao:'marca',vista:'entrance',prioridade:72,ator:actor(id),chapeu:['📚 Memória da carreira','📚 Career memory'],titulo:[`${p.name}: ${p.games} jogos registrados`,`${p.name}: ${p.games} recorded games`],texto:['Marca contada desde o início deste registro no clube.','Milestone counted from the start of this club record.']})
+   if(p.games>0&&[10,25,50,100].includes(p.games)&&last.id===memory?.seen?.at(-1))out.push({id:`marca:${id}:jogos:${p.games}`,acao:'marca',vista:'entrance',prioridade:72,ator:actor(id),chapeu:['📚 Memória da carreira','📚 Career memory'],titulo:[`${p.name}: ${p.games} jogos registrados`,`${p.name}: ${p.games} recorded games`],texto:['Marca contada desde o início deste registro no clube.','Milestone counted from the start of this club record.']})
    if([10,25,50,100].includes(p.goals))out.push({id:`marca:${id}:gols:${p.goals}`,acao:'marca',vista:'entrance',prioridade:73,ator:actor(id),chapeu:['⚽ Memória da carreira','⚽ Career memory'],titulo:[`${p.name}: ${p.goals} gols registrados`,`${p.name}: ${p.goals} recorded goals`],texto:['Gols contados desde o início deste registro no clube.','Goals counted from the start of this club record.']})
    if(c.cria&&p.games===1)out.push({id:`base-estreia:${id}`,acao:'base',vista:'campinho',prioridade:77,ator:actor(id),chapeu:['🌱 Base em campo','🌱 Academy player on the pitch'],titulo:[`${p.name} ganha espaço no time`,`${p.name} gets a chance in the team`],texto:['Primeira participação contabilizada neste registro da carreira.','First appearance counted in this career record.']})
   }

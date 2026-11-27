@@ -1,3 +1,4 @@
+import type {RivalStory} from './career-living-model'
 import {useQuadroCena} from './cenas-bairro-playback'
 import {repetirCenaCentral,useCenaCentral} from './cena-central-playback'
 import {pedidoCena,DURACAO_CENA} from './cenas-bairro-model'
@@ -176,6 +177,8 @@ export type CentralProps = {
   sede?: CentralSede | null
   /** 📍 abre o mapa já no lugar da cena */
   onSedeMapa?: (vista?: string) => void
+  rivalHistory?:RivalStory|null
+  momentos?:ReactNode
   seasonNo: number
   round: number
   divName: string
@@ -487,6 +490,17 @@ export function CentralCarreira(p: CentralProps) {
           {p.onSedeRever&&<button type="button" className="ll-central-link" onClick={p.onSedeRever}>{t('↻ Rever momentos desta semana','↻ Revisit this week’s moments')}</button>}
           {p.sede && !p.direta && <CartaoSede s={p.sede} quantidade={p.sedeQuantidade} aoAssistir={p.onSedeAssistiu} aoPular={p.onSedeSeguir} pularTodos={p.onSedePularTodos} janela={p.sedeJanela} cls="ll-c-sede-cel" onElenco={() => p.onTab('elenco')} onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
+          {visualV2&&p.rivalHistory&&<section className="ll-central-card" style={{gridColumn:'1/-1',background:CREME,color:INK}} data-career-rival-story>
+           <Cabecalho titulo={t('⚔️ Este clássico tem história','⚔️ This derby has history')} sub={p.rivalHistory.opponent}/>
+           <div style={{padding:14}}><p style={{margin:'0 0 8px',fontWeight:800}}>{t(`No último confronto registrado: ${p.euNome} ${p.rivalHistory.last.gf} × ${p.rivalHistory.last.ga} ${p.rivalHistory.opponent}.`,`Last recorded meeting: ${p.euNome} ${p.rivalHistory.last.gf} × ${p.rivalHistory.last.ga} ${p.rivalHistory.opponent}.`)}</p>
+            <details><summary style={{cursor:'pointer',fontWeight:800}}>{t('Relembrar os confrontos','Revisit the meetings')}</summary><p>{t(`${p.rivalHistory.games} confronto(s) disponíveis: ${p.rivalHistory.wins} vitórias, ${p.rivalHistory.draws} empates e ${p.rivalHistory.losses} derrotas.`,`${p.rivalHistory.games} available meeting(s): ${p.rivalHistory.wins} wins, ${p.rivalHistory.draws} draws and ${p.rivalHistory.losses} losses.`)}</p>
+             {p.rivalHistory.biggest&&<p>{t(`Uma goleada registrada: ${p.rivalHistory.biggest.gf} × ${p.rivalHistory.biggest.ga}.`,`A recorded big win: ${p.rivalHistory.biggest.gf} × ${p.rivalHistory.biggest.ga}.`)}</p>}
+             {!!p.rivalHistory.former.length&&<p>{t(`Negócios entre os clubes: ${p.rivalHistory.former.join(', ')}.`,`Transfers between the clubs: ${p.rivalHistory.former.join(', ')}.`)}</p>}
+             <small>{t('Somente partidas registradas nesta carreira. O histórico disponível pode não incluir temporadas antigas.','Only matches recorded in this career. Available history may not include older seasons.')}</small>
+            </details></div>
+          </section>}
+          {visualV2&&p.momentos}
+
           {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
           {/* 💾 23/11 (Diego: "não quero que tenha esse botão de salvar… já que já tem lá embaixo"): a faixa de Salvar saiu do topo da Central nova */}</div>}
           {!p.posJogo&&agendaCard('ll-c-agenda-cel')}

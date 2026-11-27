@@ -1309,6 +1309,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
 // padrão + listas com gols/valor + rodapé dourado) e abre o compartilhar nativo.
 export type ElencoPlayerRow = { pos: string; name: string; goals: number; paid: number; club?: string; year?: number }
 export type ElencoShareOpts = {
+  moment?:{title:string;detail:string}
   teamName: string; divName: string; tablePos: number; seasonNo: number; formation: string
   titles: number; squadValue: number; coins: number; color: string
   // 🎨 manto do tier de apoio (apoio.tsx): degradê CSS + intensidade do brilho.
@@ -1426,11 +1427,11 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
   }
   x.textAlign = 'left'
   x.fillStyle = manto ? GOLD_HEX : (claro ? 'rgba(0,0,0,0.60)' : GOLD_HEX); x.font = `800 25px ${OSW}`
-  x.fillText(tr('🔨 LEILÃO LEGENDS · MEU ELENCO', '🔨 LEILÃO LEGENDS · MY SQUAD'), tx0, 60)
+  x.fillText(cortar(o.moment?.title??tr('🔨 LEILÃO LEGENDS · MEU ELENCO', '🔨 LEILÃO LEGENDS · MY SQUAD'),`800 25px ${OSW}`,W-tx0-44), tx0, 60)
   x.fillStyle = escCor; x.font = `900 60px ${OSW}`
   x.fillText(cortar(o.teamName, `900 60px ${OSW}`, W - tx0 - 44), tx0, 122)
   x.fillStyle = manto ? 'rgba(255,255,255,0.9)' : (claro ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.85)'); x.font = `800 25px ${ARI}`
-  x.fillText(`${o.divName} · ${getLang() === 'en' ? ordinal(o.tablePos) : `${o.tablePos}º lugar`} · ${tr('Temporada', 'Season')} ${o.seasonNo} · ${rotuloFormacao(o.formation)}`, tx0, 164)
+  x.fillText(cortar(o.moment?.detail??`${o.divName} · ${getLang() === 'en' ? ordinal(o.tablePos) : `${o.tablePos}º lugar`} · ${tr('Temporada', 'Season')} ${o.seasonNo} · ${rotuloFormacao(o.formation)}`,`800 25px ${ARI}`,W-tx0-44), tx0, 164)
   const chips = [
     `🏆 ${o.titles} ${o.titles === 1 ? tr('título', 'title') : tr('títulos', 'titles')}`,
     `🏷️ ${tr('Elenco vale', 'Squad worth')} ${o.squadValue} 💵`,
@@ -1627,13 +1628,14 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
 }
 export async function shareElenco(o: ElencoShareOpts) {
   const blob = await buildElencoBlob(o)
-  const txt = `Meu elenco no Leilão Legends: ${o.teamName} (${o.divName}) 🔨 Monta o teu: https://leilaolegends.com`
+  const txt = o.moment?`${o.moment.title} · ${o.moment.detail} · https://leilaolegends.com`:`Meu elenco no Leilão Legends: ${o.teamName} (${o.divName}) 🔨 Monta o teu: https://leilaolegends.com`
   if (blob) {
-    const file = new File([blob], 'meu-elenco.png', { type: 'image/png' })
-    const sd = { files: [file], title: 'Meu elenco — Leilão Legends', text: txt }
-    if (navigator.canShare?.(sd)) { try { await navigator.share(sd) } catch { /* cancelou */ } return }
+    const filename=o.moment?'momento-da-carreira.png':'meu-elenco.png'
+    const file = new File([blob], filename, { type: 'image/png' })
+    const sd = { files: [file], title: o.moment?.title??tr('Meu elenco — Leilão Legends','My squad — Leilão Legends'), text: txt }
+    try{if(navigator.canShare?.(sd)){try{await navigator.share(sd);return}catch(error){if((error as Error).name==='AbortError')return}}}catch{/* unsupported sharing falls back to downloading */}
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a'); a.href = url; a.download = 'meu-elenco.png'; a.click()
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click()
     setTimeout(() => URL.revokeObjectURL(url), 4000)
     return
   }
