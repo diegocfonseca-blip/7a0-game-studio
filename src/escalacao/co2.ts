@@ -164,6 +164,23 @@ export async function co2SaidaAplicada(mgr: number): Promise<void> {
   if (!canalSala) return
   await supabase.rpc('esc_carr_saida_aplicada', { p_sala: canalSala, p_mgr: mgr }).then(() => {}, () => {})
 }
+// 🐤 27/11 (Diego): TUITER — a rede da turma. Posts de gente ficam no banco (80 letras, sem link nem palavrão); os automáticos
+// (O Martelo, copas, bots) cada aparelho monta pelo mundo da carreira. Leitura só com o TUITER aberto (a cada 60 s).
+export type Co2Tuite = { id: number; user_id: string; nome: string; texto: string; resp: number | null; em: string; reacoes: Record<string, number>; minhas: string[]; respostas: number }
+export async function co2Tuites(): Promise<Co2Tuite[] | null> {
+  if (!canalSala) return null
+  const { data, error } = await supabase.rpc('esc_carr_tuites', { p_sala: canalSala })
+  return error || !Array.isArray(data) ? null : (data as Co2Tuite[])
+}
+export async function co2Tuitar(texto: string, resp: number | null): Promise<{ id?: number; erro?: string }> {
+  if (!canalSala) return { erro: 'sala' }
+  const { data, error } = await supabase.rpc('esc_carr_tuitar', { p_sala: canalSala, p_texto: texto, p_resp: resp })
+  return error ? { erro: 'rede' } : (data as { id?: number; erro?: string })
+}
+export async function co2TuiteReagir(id: number, emoji: string): Promise<string> {
+  const { data, error } = await supabase.rpc('esc_carr_tuite_reagir', { p_tuite: id, p_emoji: emoji })
+  return error ? 'erro' : String(data ?? 'erro')
+}
 export async function co2MinhasSalas(): Promise<(Co2Sala & { assento: number; meuClube: string })[]> {
   const uid = await meuUid()
   if (!uid) return []
