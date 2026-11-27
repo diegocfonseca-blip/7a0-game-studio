@@ -73,3 +73,7 @@ Publicação autorizada via PR503; registrar o resultado do deploy depois de con
 ## Reversão
 
 Primeiro commit de correções: `d5551dcb`. Protocolo da partida em commit separado. `CO2_TROCAS_HABILITADAS = false` em `co2-jogo-model.ts` impede novas trocas, mantendo o leitor, o relógio e decisões já aceitas. Não apagar fotografias/comandos nem voltar um jogo já compartilhado à simulação sem essas entradas. Suporte SQL pode permanecer sem novos clientes; não exige apagar progresso. Modos solo, salas rápidas, basquete, F1 e Liga Draft não recebem este protocolo.
+
+## Conferência de versões antes da ativação
+
+Complemento de publicação: `esc_carr_jogo_compativel` só permite iniciar o protocolo na próxima temporada quando todos os participantes têm autorização vigente de um cliente compatível. Cliente anterior não cria essa autorização. A consulta antiga de capacidade devolve0, impedindo que uma versão sem essa conferência ligue as regras novas. A consulta nova não troca o host, não reinicia uma rodada nem recarrega telas. Migração aditiva `carreira_online_compatibilidade_clientes_20261127`, fonte `docs/sql/carreira-online-versao-20261127.sql`. Teste cobre colega anterior, todos atualizados e autorização expirada.

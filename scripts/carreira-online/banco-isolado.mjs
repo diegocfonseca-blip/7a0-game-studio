@@ -17,5 +17,6 @@ export async function bancoCo2(){
  await db.exec(readFileSync('docs/sql/carreira-online-aparelho-sinais-20261127.sql','utf8'))
  await db.exec(readFileSync('docs/sql/carreira-online-copas-20261127.sql','utf8'))
  await db.exec(readFileSync('docs/sql/carreira-online-clinica-20261127.sql','utf8'))
+ await db.exec(readFileSync('docs/sql/carreira-online-versao-20261127.sql','utf8'))
  return db
 }
