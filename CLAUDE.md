@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## Carreira online: sincronização — 27/11/2026
+
+Diego autorizou corrigir o envio/PRONTO, retomada e salvamento automático da carreira online. Dinâmica/Livre permanece. Fila Co2 serializa mudanças e repete falhas; consulta falha não equivale a lista vazia; respostas da conexão anterior não entram na carreira nova. Save privado acompanha gestão na mesma rodada; retomada consulta nuvem e compara progresso/data, validando clube/conta. **Não afirmar que trocas/lesões ao vivo ou o escritor único em dois aparelhos já foram portados**: continuam pendentes do protocolo compartilhado. Sem SQL nem publicação automática. Escopo, provas e pendências: `docs/auditorias/carreira-online-sincronia-20261127.md`.
+
 ## Pós-jogo da liga na Central — 26/11/2026
 
 Diego pediu retorno direto à Central depois da liga: resumo de classificação no padrão da agenda, agenda abaixo e avanço explícito antes da escolha placar/2D/3D. **Jogos + Tabela permanece no mesmo lugar**, com detalhes e acesso manual. Reutilizar visual aprovado da agenda. Revisão não joga rodada, pausa calendário e respeita intervalo/pênalti/coletiva; C/D usam grupo/fase corretos. Só futebol solo no fluxo novo, ambas as carreiras. Preservar copas e encerramento de temporada. Regras/testes/limites: `docs/auditorias/central-pos-jogo-20261126.md`.

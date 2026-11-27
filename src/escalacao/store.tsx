@@ -1,3 +1,5 @@
+import { useCo2Envio } from './co2-envio'
+import { co2Contexto, co2SalvaPrivado, co2AvisoSave } from './co2'
 import {eventoDepoisDaLesao,type LesaoPartida} from './lesao-partida'
 import {reservasDoEvento,escalaSemLesionado,escalaIntegraPreparo} from './evento-preparo'
 import {marcarCena,registrarVendas,type AcaoBairro} from './cenas-bairro-model'
@@ -16,7 +18,7 @@ import {retornoDeSalaLocal,acaoDaSalaLocal,acaoRemotaDaSalaPermitida} from './on
 import {investirMuseu} from './museu-clube'
 import {organizarMoveisNaCasa} from './presidencia-carreira'
 import { iniciarCriteriosDaTemporada } from './criterios-carreira'
-import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, lazy, Suspense } from 'react'
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, useMemo, lazy, Suspense } from 'react'
 import { VEL2D_SALA_VALORES, VEL2D_SOLO_VALORES } from './vel2d-regra'
 import { travaCarreiraGratis, marcaGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
 import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings, simulaGolsKings } from './kings-liga'
@@ -15754,20 +15756,25 @@ const CO2_ACOES_DE_FORA = new Set<string>(['SUBMIT_ENVELOPE', 'SUBMIT_TIEBREAK',
 // guarda com folga de 1,5s (o estado da carreira é grande: comprimir a cada toque travaria o celular)
 let co2GuardaTimer: ReturnType<typeof setTimeout> | null = null
 function co2GuardaLocal(st: EscState): void {
+  const uid = co2Agora().uid
   if (co2GuardaTimer) clearTimeout(co2GuardaTimer)
   co2GuardaTimer = setTimeout(() => {
     co2GuardaTimer = null
-    try { localStorage.setItem(CO2_LOCAL_KEY, JSON.stringify({ sala: st.co2?.sala, at: Date.now(), z: pack(sanitize(st)) })) } catch { /* cota cheia: a nuvem do jogo guarda */ }
+    try { localStorage.setItem(CO2_LOCAL_KEY, JSON.stringify({ sala: st.co2?.sala, uid, at: Date.now(), z: pack(sanitize(st)) })) } catch { /* cota cheia: a nuvem do jogo guarda */ }
   }, 1500)
 }
-export function co2LeLocal(sala: string): EscState | null {
+export function co2LeLocalInfo(sala: string): { state: EscState; at: number } | null {
   try {
     const r = localStorage.getItem(CO2_LOCAL_KEY)
     if (!r) return null
-    const o = JSON.parse(r) as { sala?: string; z?: string }
-    return o.sala === sala && o.z ? unpack<EscState>(o.z) : null
+    const o = JSON.parse(r) as { sala?: string; uid?: string; at?: number; z?: string }
+    if (o.sala !== sala || !o.z) return null
+    const sn = co2Agora(), st = unpack<EscState>(o.z), meuId = st.managers?.[st.youIdx]?.id
+    if (st.co2?.sala !== sala || !sn.uid || (o.uid && o.uid !== sn.uid) || meuId == null || sn.mundo?.ordem[meuId] !== sn.uid) return null
+    return { state: st, at: Number.isFinite(o.at) ? o.at! : 0 }
   } catch { return null }
 }
+export function co2LeLocal(sala: string): EscState | null { return co2LeLocalInfo(sala)?.state ?? null }
 // 🧹 FAXINA DA CAIXA ao abrir uma carreira (Diego 20/08, caso do "−9999").
 // Ela só mata o que NÃO É NÚMERO: texto, NaN, infinito. Nada mais.
 //
@@ -16580,6 +16587,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // 🔄 26/11 VIRADA — quem perdeu o leilão de todos (faltou, ou estava assistindo e a última foto não chegou): quando a sala já
   // voltou pra temporada nova, busca a FOTO da virada no banco e junta com o próprio clube. Uma tentativa por temporada.
   const co2Sn = useCo2()
+  // Cada dono de clube guarda automaticamente seu estado privado, também após gestão na mesma rodada.
+  // Comprimir só ao enviar (folga de 1,5 s); falha mantém a pendência e tenta de novo.
+  const co2Privado = state.co2 && state.co2.sala === co2Sn.sala?.id && co2Sn.mundo?.ordem[state.managers[state.youIdx]?.id] === co2Sn.uid && !state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby' ? state : null
+  const co2SaveSeq = useRef(0)
+  const co2SaveKey = useMemo(() => String(++co2SaveSeq.current), [co2Privado])
+  const co2Save = useCo2Envio(co2Contexto(), co2SaveKey, co2Privado, async st => st.co2?.sala === co2Agora().sala?.id && co2SalvaPrivado({ z: pack(sanitize(st)), at: Date.now(), t: st.seasonNo, r: st.round }), 1500)
+  useEffect(() => { co2AvisoSave(co2Save.falhou) }, [co2Save.falhou])
+
   const alcancaRef = useRef('')
   useEffect(() => {
     const st = stateRef.current
@@ -16590,16 +16605,19 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (!temporada || (!st.co2.espelho && !fechado) || !sala || sala.temporada !== temporada || (sala.fase !== 'preparo' && sala.fase !== 'jogando')) return
     const chave = `${sala.id}:${temporada}`
     if (alcancaRef.current === chave) return
-    alcancaRef.current = chave
     const meuId = co2Sn.uid && co2Sn.mundo ? co2Sn.mundo.ordem.indexOf(co2Sn.uid) : -1
     if (meuId < 0) return
+    const contexto = co2Contexto()
+    alcancaRef.current = chave
     void co2LeVirada(temporada).then(z => {
+      if (contexto !== co2Contexto() || stateRef.current.co2?.sala !== sala.id) return
       if (!z) { alcancaRef.current = ''; return }
       let next: EscState
-      try { next = unpack<EscState>(z) } catch { return }
+      try { next = unpack<EscState>(z) } catch { alcancaRef.current = ''; return }
+      if (next.co2?.sala !== sala.id || next.seasonNo !== temporada) { alcancaRef.current = ''; return }
       const agora = stateRef.current
       rawDispatch({ type: agora.co2?.espelho ? 'CO2_ASSUME' : 'CO2_ALCANCA', newState: next, meuId })
-    })
+    }).catch(() => { if (contexto === co2Contexto()) alcancaRef.current = '' })
   }, [co2Sn.sala, state.screen, state.co2?.espelho, state.co2?.fechou]) // eslint-disable-line react-hooks/exhaustive-deps
   // quem comanda manda o estado do leilão (com folga de 0,4s) e, quando a fase de todos acaba, manda a última foto
   const co2TelaRef = useRef<string>('')
