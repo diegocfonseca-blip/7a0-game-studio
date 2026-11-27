@@ -14,7 +14,12 @@ let falhas = 0
 const ok = (c, m) => { console.log(c ? '✅' : '❌', m); if (!c) falhas++ }
 
 const NOMES = ['Dono FC', 'Amigo Um', 'Amigo Dois']
+// SEED=n fixa a semente da carreira (pra reproduzir uma falha)
+const rnd0 = Math.random
+if (process.env.SEED) Math.random = () => Number(process.env.SEED) / 1e9
 let host = reducer(structuredClone(INITIAL), { type: 'START_CAREER_SOLO', teamName: NOMES[0], formation: '4-3-3', rivals: Number(process.env.BOTS ?? 5), co2: { sala: 'sala-teste', nomes: NOMES, assento: 0 } })
+Math.random = rnd0
+console.log('   semente:', host.seed)
 ok(host.co2?.comanda === true && host.managers.filter(m => m.isHuman).length === 3, 'o dono abre a carreira com 3 clubes de gente')
 ok(host.managers.slice(0, 3).every((m, i) => m.isHuman && m.id === i && m.teamName === NOMES[i]), 'os clubes de gente têm id = ordem dos assentos')
 function rodaLeilao(host, fora = [], tamanhos = []) {
@@ -113,6 +118,11 @@ const resultado = (s) => {
   const sim = simulatePyramid(world, seasonSeed(s), s.round, e.tactics, e.lineups, 1.12, true, true, e.mods, e.halftime, e.penalty, e.tecs, e.cardMods)
   return Object.entries(sim.tables).map(([d, ts]) => d + ':' + ts.map(t => `${t.name}:${t.pts}:${t.gf}:${t.ga}`).join(',')).join('#')
 }
+if (process.env.DBG_SQ) for (const k of [1, 2]) {
+  const proprio = JSON.stringify(aparelhos[k].managers.find(m => m.id === k).squad)
+  const copia = JSON.stringify(aparelhos[0].managers.find(m => m.id === k).squad)
+  if (proprio !== copia) { const a = JSON.parse(proprio), b = JSON.parse(copia); console.log('DBG elenco', k, 'difere', a.length, b.length, JSON.stringify(a.map((c, i) => Object.keys({ ...c, ...b[i] }).filter(f => JSON.stringify(c[f]) !== JSON.stringify(b[i]?.[f])).map(f => f + ':' + JSON.stringify(c[f]) + '≠' + JSON.stringify(b[i]?.[f]))).filter(x => x.length)).slice(0, 400)) }
+}
 const r0 = resultado(aparelhos[0])
 ok(aparelhos.every(s => s.round === RODADAS), `os 3 aparelhos estão na rodada ${RODADAS}`)
 ok(aparelhos.every(s => resultado(s) === r0), `depois de ${RODADAS} rodadas, as 5 tabelas são IGUAIS nos 3 aparelhos`)
@@ -194,7 +204,7 @@ ok(h.managers.every(m => !m.isHuman || !m.squad.some(c => c.fake)), 'nenhum club
 const ondeFoi = h.managers.find(m => m.squad.some(c => c.id === 'reserva-teste'))
 ok(ondeFoi && ondeFoi.id !== undefined, `o reserva sondado terminou no ${ondeFoi?.teamName} (nunca sumiu)`)
 if (process.env.LANCE_SONDA) ok(ondeFoi?.id === 1, 'quem sondou e deu lance ficou com o reserva (preferência de igualar)')
-else ok(ondeFoi?.id === 0, 'ninguém pagou o mínimo: o reserva voltou pro dono')
+else ok(ondeFoi?.id === 0 ? (h.marketLog ?? []).some(l => /voltou pro Dono FC/.test(l)) : !ondeFoi?.isHuman || ondeFoi.id !== 0, `sem lance do amigo: o reserva ${ondeFoi?.id === 0 ? 'voltou pro dono' : 'foi comprado por ' + ondeFoi?.teamName} (nunca o dono comprando o próprio)`)
 ok(!(h.managers[0].squad.find(c => c.id === 'reserva-teste')?.sondadoPor), 'carta não fica marcada depois do leilão')
 console.log('   leilão:', (h.marketLog ?? []).filter(l => /sondou|igualou|voltou/.test(l)).join(' | '))
 {

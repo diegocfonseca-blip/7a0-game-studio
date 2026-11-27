@@ -312,6 +312,13 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   }, [round, sala?.fase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!sala) return null
+  const copaChegou = !!sn.mundo?.fim && state.copaXiSeason === state.seasonNo
+  if (seasonOver && !copaChegou) return (
+    <div style={{ ...caixa('#FFF3C4'), padding: 12, marginBottom: 10 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: '0 0 4px', textTransform: 'uppercase' }}>⏳ {tr('Preparando a copa', 'Getting the cup ready')}</p>
+      <p style={{ fontWeight: 800, fontSize: 12, margin: 0 }}>{comanda ? tr('Fechando a escalação de todo mundo pra copa…', 'Locking everyone\'s lineup for the cup…') : tr('Esperando o dono fechar a escalação da copa. Ela é igual pra todo mundo e aparece aqui sozinha.', 'Waiting for the owner to lock the cup lineups. It\'s the same for everyone and shows up here by itself.')}</p>
+    </div>
+  )
   if (seasonOver) return (
     <div style={{ ...caixa('#FFF3C4'), padding: 12, marginBottom: 10 }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: '0 0 4px', textTransform: 'uppercase' }}>🏁 {tr('Fim de temporada', 'End of season')}</p>

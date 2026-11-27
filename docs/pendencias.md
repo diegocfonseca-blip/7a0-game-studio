@@ -63,6 +63,7 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
   quem sondou e deu lance IGUALA o maior lance dos outros automaticamente (se tiver caixa e vaga). Teste cobre os 2 caminhos
   (`LANCE_SONDA=1` = ele leva; sem = volta pro dono). ⚠️ "igualar" é automático (deu lance = quer igualar); se o Diego quiser
   a pergunta na hora, é uma tela a mais.
+- ✅ (27/11) auditoria das competições no co2 (tabela em `docs/carreira-online-virada-plano.md`): copa só com escalação+regra do dono, mundo refaz com elenco de amigo. ⏳ DECIDIR com o Diego: Copa do Mundo e Liberta/Champions/Mundial hoje são de cada aparelho (2 amigos podem ser campeões juntos).
 - ⚠️ (27/11) o teste da Copa do fim falhou 1 vez em ~20 rodadas (Copa diferente entre aparelhos, semente aleatória). Não reproduziu em 18 seguidas; o teste agora imprime a semente quando falhar — investigar antes de liberar.
 - ⏳ falta: anúncio C também nas copas (hoje a copa do fim roda em cada aparelho), dia dos contratos, teste com 2 contas.
 - Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).

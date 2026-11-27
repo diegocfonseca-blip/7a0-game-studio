@@ -29,3 +29,16 @@ Teste `node scripts/carreira-online/testa-fluxo.mjs` cobre: 38 rodadas → copa 
 T2 com mesma pirâmide/bots → quem faltou alcança pela foto (sem perder o clube, caixa = o dele + o do leilão) → 5 rodadas da T2 iguais.
 Ainda não coberto: contrato vencido de quem faltou (na T1→T2 ninguém vence; testar numa T3), rodadas que quem faltou perdeu
 (alcançar rodada a rodada), relógio da Dinâmica na virada, sondar de amigo, bots 0–5.
+
+## 🏆 Auditoria das competições na carreira online (27/11, Diego: *"isso não pode ocorrer… diversos torneios… supercopa libertadores champions mundial… analise tudo com base na tradicional"*)
+| Competição (tradicional) | Como roda no co2 | Igual em todo aparelho? |
+|---|---|---|
+| Liga (V, D, C, B, A) | todo aparelho simula com as gavetas congeladas | ✅ teste 38 rodadas + T2 (140+ carreiras sem diferença) |
+| Copa do Brasil / Copa Legends + Supercopa | escalação congelada pelo DONO (`mundo.copaXi`) + regra do dono (`mundo.fim`) | ✅ e agora **trava**: sem os dois carimbos a copa nem é calculada e a temporada não fecha (`copaCo2Pronta`) |
+| Copa do Mundo (convite, a cada 4 temporadas desde a T1) | ⚠️ cada aparelho joga a SUA (convite pessoal) | ❌ dois amigos podem ser campeões na mesma temporada — decidir com o Diego |
+| Libertadores / Champions / Mundial (T40+, convite) | ⚠️ cada aparelho joga a SUA campanha | ❌ idem — decidir com o Diego |
+| Playoff B, estaduais, Liberta/Sula/Intercontinental reais | só Brasil Oficial (o co2 não é Oficial) | — |
+Consertos de 27/11: o mundo da tela refaz quando o elenco de um amigo muda (antes só olhava QUANTOS clubes); copa só com a escalação
+do dono; carreira antiga sem carimbo ganha o carimbo do dono na hora de congelar. Motor novo: a versão "recepção" e os critérios novos
+já ficam DESLIGADOS no co2 (dependiam da conta) — todos usam a mesma versão.
+Falha de 1 vez em ~20 da copa (26/11): não reproduziu em 140+ carreiras; o teste imprime a semente se voltar.

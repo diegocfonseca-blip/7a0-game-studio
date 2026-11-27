@@ -10290,7 +10290,10 @@ export function PyramidSeasonScreen() {
   // 🏛️ `state.youIdx` entra nas dependências (07/09): ao passar o comando pro 2º
   // clube, o `you` do mundo continuava no clube antigo até outra coisa mexer —
   // "minha colocação", "minha divisão" e o desfecho descreviam o clube errado.
-  const worldVivo = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🌐 27/11 carreira online: o elenco dos AMIGOS chega pelas gavetas no meio da temporada — o mundo tem que refazer quando ele muda,
+  // senão este aparelho simula com o elenco velho e a tabela sai diferente da dos outros. Solo: assinatura vazia, nada muda.
+  const co2Elencos = state.co2 ? state.managers.filter(m => m.isHuman).map(m => `${m.id}:${m.formation}:${m.squad.map(c => c.id).join(',')}`).join('|') : ''
+  const worldVivo = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx, co2Elencos]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🧊 DEPOIS DO APITO, O PASSADO NÃO MUDA MAIS (conserto 24/09 — caso do Futpoint FC).
   // A tela REFAZ as 38 rodadas a partir do elenco de AGORA, e a janela de empréstimo
   // fica nesta mesma tela: trazer um jogador da SAF mexia em `cpuSquads`, a conta era
@@ -10780,7 +10783,7 @@ export function PyramidSeasonScreen() {
     const fonteXi = state.co2 ? entradasSim.lineups : careerLineup
     for (const m of state.managers) if (m.isHuman) xi[m.id] = lineupAt(fonteXi, m.id, 38, m.squad, m.formation).map(c => c.id)
     dispatch({ type: 'FREEZE_COPA_XI', season: state.seasonNo ?? 1, xi })
-    if (state.co2?.comanda) { const mm = co2Agora().mundo; if (mm) void co2Mundo('virada', state.seasonNo ?? 1, 38, { ...mm, copaXi: { season: state.seasonNo ?? 1, xi } }) }
+    if (state.co2?.comanda) { const mm = co2Agora().mundo; if (mm) void co2Mundo('virada', state.seasonNo ?? 1, 38, { ...mm, copaXi: { season: state.seasonNo ?? 1, xi }, ...(mm.fim ? {} : { fim: { copaBR: cbUnlockedConta } }) }) } // 🛡️ carreira que começou sem o carimbo da regra: o dono carimba aqui
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done, state.seasonNo, state.copaXiSeason, mundoCo2?.copaXi?.season])
   // 🏆🇧🇷 COPA DO BRASIL LEGENDS (em construção, 15/08): só a conta liberada
@@ -10795,6 +10798,9 @@ export function PyramidSeasonScreen() {
   // 🌐🏆 26/11: na carreira online a copa do fim tem que ser a MESMA em todo aparelho — vale o que o dono carimbou no mundo
   const co2Fim = mundoCo2?.fim
   const cbUnlocked = state.co2 && co2Fim ? co2Fim.copaBR : cbUnlockedConta
+  // 🌐🛡️ 27/11 (Diego: *"isso não pode ocorrer"*): na carreira online a copa do fim só existe quando a regra do dono (`mundo.fim`) e a
+  // escalação congelada (`copaXi`) já chegaram neste aparelho. Antes disso não se calcula NADA de copa — nem placar, nem prêmio.
+  const copaCo2Pronta = !state.co2 || (!!co2Fim && state.copaXiSeason === state.seasonNo)
   // 🗑️ 18/11: abrir/jogar a carreira conta como "jogou" na regra dos 5 dias de quem não tem plano (o save pode estar travado)
   useEffect(() => { if (state.onlineMode !== 'online') marcaCarreiraJogada(state.seed) }, [state.seed, state.seasonNo, round, state.onlineMode])
   // 🛒 aba Mercado (18/11): nasceu no Brasil Oficial e foi levada pra carreira de sempre (*"pode fazer tudo daí"*) — por enquanto só na
@@ -10823,11 +10829,11 @@ export function PyramidSeasonScreen() {
   }, [state.oficial, state.seasonNo, state.oficialCampeoes, state.oficialEstaduais, worldBase, state.seed, capElite, realGoals])
   // 🇧🇷 no Brasil Oficial a Copa do Brasil é a REAL (126 clubes, 9 fases — `entradasCopaBrasilOficial`), sem esperar desbloqueio
   const copaBR = useMemo(() => {
-    if (!(done || copaMid)) return null
+    if (!(done || copaMid) || !copaCo2Pronta) return null
     const base = copaMid ? world : tables
     if (state.oficial) { const ent = entradasCopaBrasilOficial(base, state.seed, ctxCopaOficial); return ent ? computeCopaBrasil(base, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, ent) : null }
     return cbUnlocked ? computeCopaBrasil(base, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa) : null
-  }, [state.oficial, done, copaMid, world, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, ctxCopaOficial])
+  }, [state.oficial, done, copaMid, world, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, ctxCopaOficial, copaCo2Pronta])
   // 🏆🔵 SUPERCOPA LEGENDS: campeão da Série A × campeão da Copa do Brasil,
   // jogo único, logo depois que a Copa do Brasil termina (docs/conceito-
   // copa-brasil.md § 5). Já sai calculada junto (é determinística — não
@@ -10847,9 +10853,10 @@ export function PyramidSeasonScreen() {
     // Legends? Esse modo são copas originais"*. Até a Copa do Brasil REAL entrar, a temporada do modo não tem copa nacional.
     if (state.oficial) return copaBR ? copaBrasilAsCopaResult(copaBR, null) : null // só a Copa do Brasil REAL (a Supercopa real ainda não entrou)
     if (!done && !copaMid) return null
+    if (!copaCo2Pronta) return null // 🌐 carreira online: esperando a regra/escalação do dono
     if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
     return computeCopa(copaMid ? world : tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa)
-  }, [state.oficial, done, copaMid, world, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa])
+  }, [state.oficial, done, copaMid, world, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, copaCo2Pronta])
   // 🇧🇷 BRASIL OFICIAL · PLAYOFF DA SÉRIE B NA TELA: terminou a 38ª entre o 3º e o 6º da B, o playoff (3º×6º e 4º×5º, ida e volta)
   // entra como mais uma página da esteira pós-temporada — a MESMA da Supercopa (placar, Manual, campinho, intervalo). É este
   // resultado (e não o simulado de fundo) que decide quem sobe; a tabela só mostra o playoff depois de ele ser jogado.
@@ -11156,7 +11163,7 @@ export function PyramidSeasonScreen() {
     dispatch({ type: 'ESTADUAL_FEITO', premios, estadual: { temporada: state.seasonNo ?? 1, nome: r ? estadualNome! : '', campeao: r?.campeao ?? '', vice: r?.vice ?? '', caem: r?.caem ?? [], classificacao: r?.classificacao ?? [] } })
     setEstadualOn(false); setCopaRound(0)
   }, [estadualOn, preRounds, copaRound]) // eslint-disable-line react-hooks/exhaustive-deps
-  const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  const copaFinished = done && copaCo2Pronta && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds) // 🌐 carreira online: sem a copa do dono, a temporada não fecha
   // 💰 18/11 (Diego: *"vai sendo eliminado mas ganha alguma coisa… sempre deixando claro pro usuário"*): no Brasil Oficial, quando a
   // ÚLTIMA página do seu clube numa copa já passou na tela (caiu, ou a copa acabou), um aviso diz quanto aquela campanha rendeu. Mesma
   // régua do caixa (`economia-oficial.ts`); o dinheiro entra no fechamento da temporada. Fechou o aviso, não volta (`fechaAviso`).
