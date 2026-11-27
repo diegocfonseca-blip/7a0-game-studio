@@ -16,12 +16,14 @@ const casos = [
   { nome: 'virada-espera-dono', fase: 'virada', temporada: 1, tela: 'virada', w: 420 },
   { nome: 'virada-espera-dono-pc', fase: 'virada', temporada: 1, tela: 'virada', w: 1280 },
   { nome: 'anuncio-estreia', fase: 'preparo', temporada: 1, tela: 'anuncio', w: 420 },
+  { nome: 'anuncio-faixa', fase: 'preparo', temporada: 1, tela: 'faixa', w: 420 },
 ]
 for (const c of casos) {
   const ctx = await b.newContext({ viewport: { width: c.w, height: 900 }, deviceScaleFactor: 2 })
   await ctx.addInitScript(() => { try { localStorage.setItem('bl_lang', 'pt') } catch {} })
+  if (c.tela === 'faixa') await ctx.addInitScript(() => { try { for (let i = 0; i < 1; i++) localStorage.setItem('esc-aviso-x-co2-anuncio:s1:1', '1') } catch {} })
   const p = await ctx.newPage(); p.on('pageerror', e => console.error('💥', e.message))
-  const sala = { id: 's1', codigo: 'K7Q2ZP', nome: 'A Pirâmide dos Amigos', dono: DONO, vice: null, versao: '', temporada: c.temporada, rodada: c.tela === 'anuncio' ? 0 : c.temporada ? 38 : 0, fase: c.fase, prazo: c.fase === 'virada' ? new Date(Date.now() + 42000).toISOString() : null, inicio_rodada: null, auto: true, velocidade: 1, pausado: false, comandante: DONO }
+  const sala = { id: 's1', codigo: 'K7Q2ZP', nome: 'A Pirâmide dos Amigos', dono: DONO, vice: null, versao: '', temporada: c.temporada, rodada: ['anuncio','faixa'].includes(c.tela) ? 0 : c.temporada ? 38 : 0, fase: c.fase, prazo: c.fase === 'virada' ? new Date(Date.now() + 42000).toISOString() : null, inicio_rodada: null, auto: true, velocidade: 1, pausado: false, comandante: DONO }
   await p.route('**/rest/v1/esc_carr_sala?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('mundo') ? { mundo: c.temporada ? { ordem: ORDEM, v: 1, modo: 'dinamica' } : null } : sala) }))
   await p.route('**/rest/v1/esc_carr_clube?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(clubes) }))
   await p.route('**/rest/v1/rpc/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '"ok"' }))
@@ -39,7 +41,7 @@ for (const c of casos) {
       createRoot(root).render(h(S.EscProvider, null, h(T.Co2Espera, { salaId: 's1', onSair(){} })))
     } else {
       await C.co2Abrir('s1')
-      const V = () => { const { state, dispatch } = S.useEsc(); window.__d = dispatch; return state.co2 ? (${JSON.stringify(c.tela)} === 'anuncio' ? h('div', { style: { padding: 14 } }, h(T.Co2Anuncio, { restante: 47, comanda: true, onEscalacao(){}, onSeguir(){} })) : h(T.Co2ViradaEspera)) : null }
+      const V = () => { const { state, dispatch } = S.useEsc(); window.__d = dispatch; return state.co2 ? (['anuncio','faixa'].includes(${JSON.stringify(c.tela)}) ? h('div', { style: { padding: 14 } }, h(T.Co2Anuncio, { restante: 47, comanda: true, onSeguir(){} })) : h(T.Co2ViradaEspera)) : null }
       createRoot(root).render(h(S.EscProvider, null, h(V)))
       await new Promise(r=>setTimeout(r,800))
       window.__d({ type: 'START_CAREER_SOLO', teamName: 'Neymarzetti', formation: '4-3-3', rivals: 3, co2: { sala: 's1', nomes: ${JSON.stringify(NOMES)}, assento: 0 } })

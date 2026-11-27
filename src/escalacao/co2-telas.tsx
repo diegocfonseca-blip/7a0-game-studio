@@ -13,6 +13,7 @@ import {
 } from './co2'
 import { minhaGaveta, co2Fechamento, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
 import { useMotor2Carreira, copaBrasilLiberada } from './sport'
+import { avisoFechado, fechaAviso } from './avisos-fechados'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -323,7 +324,7 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   return (
     <div style={{ display: 'grid', gap: 10, marginBottom: 10 }}>
       {sala.fase === 'preparo' && dinamica && sala.rodada === 0 && (
-        <Co2Anuncio restante={restante} comanda={comanda} onEscalacao={onEscalacao} onSeguir={() => { comecouRef.current = sala.rodada; void co2Comecar() }} />
+        <Co2Anuncio restante={restante} comanda={comanda} onSeguir={() => { comecouRef.current = sala.rodada; void co2Comecar() }} />
       )}
       {sala.fase === 'preparo' && dinamica && sala.rodada > 0 && (
         <div style={{ ...caixa('#FFF8DC'), padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -491,8 +492,12 @@ export function Co2ViradaEspera() {
 // mundo mexer no time. Troféu + nome, os clubes da turma (o seu em dourado), relógio grande, Escalação/Tática. O relógio é AVISO:
 // quem segue é o dono (pergunta se for antes do tempo). Hoje: a estreia de cada temporada (a liga).
 const NOME_DIV: Record<string, [string, string]> = { A: ['SÉRIE A', 'SERIE A'], B: ['SÉRIE B', 'SERIE B'], C: ['SÉRIE C', 'SERIE C'], D: ['SÉRIE D', 'SERIE D'], V: ['VÁRZEA', 'AMATEUR LEAGUE'] }
-export function Co2Anuncio({ restante, comanda, onEscalacao, onSeguir }: { restante: number | null; comanda: boolean; onEscalacao: () => void; onSeguir: () => void }) {
+export function Co2Anuncio({ restante, comanda, onSeguir }: { restante: number | null; comanda: boolean; onSeguir: () => void }) {
   const { state } = useEsc()
+  // 27/11 (Diego: *"algo simples… pro cara ficar livre p usar as abas dele"*): o anúncio aparece UMA vez e fecha no ✕ (não volta —
+  // regra dos avisos); depois fica só a faixa fininha com o relógio. Mexer no time é pelas abas de sempre.
+  const chave = `co2-anuncio:${state.co2?.sala ?? ''}:${state.seasonNo ?? 1}`
+  const [fechado, setFechado] = useState(() => avisoFechado(chave))
   const meuId = state.managers[state.youIdx]?.id
   const divDe = (id: number) => state.careerPlacements?.[`m${id}`] ?? 'V'
   const minhaDiv = meuId != null ? divDe(meuId) : 'V'
@@ -503,8 +508,19 @@ export function Co2Anuncio({ restante, comanda, onEscalacao, onSeguir }: { resta
     if (restante != null && restante > 0 && !window.confirm(tr(`Ainda faltam ${restante} s pra turma mexer no time. Começar agora?`, `There are still ${restante} s for everyone to tweak their team. Start now?`))) return
     onSeguir()
   }
+  const botaoDono = comanda && <button onClick={seguir} style={{ ...botao(GOLD), fontSize: 14, padding: '9px 10px' }}>▶️ {tr('Começar a temporada pra todos', 'Start the season for everyone')}</button>
+  if (fechado) return (
+    <div style={{ ...caixa(INK), color: '#fff', padding: '9px 12px', display: 'grid', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 20, color: GOLD, minWidth: 52 }}>{mm}</span>
+        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13.5, flex: 1, textTransform: 'uppercase' }}>🏆 {tr(`Começa a ${pt}`, `${en} kicks off`)} <span style={{ fontWeight: 700, color: 'rgba(255,255,255,.65)', textTransform: 'none', fontSize: 11.5 }}>· {comanda ? tr('você começa quando quiser', 'you start whenever you want') : tr('o dono começa', 'the owner starts it')}</span></span>
+      </div>
+      {botaoDono}
+    </div>
+  )
   return (
-    <div style={{ background: 'radial-gradient(ellipse at top, #2C7A45 0%, #14482A 55%, #0C2A18 100%)', border: `4px solid ${INK}`, borderRadius: 22, boxShadow: `5px 5px 0 ${INK}`, padding: '18px 14px 16px', color: '#fff', textAlign: 'center' }}>
+    <div style={{ position: 'relative', background: 'radial-gradient(ellipse at top, #2C7A45 0%, #14482A 55%, #0C2A18 100%)', border: `4px solid ${INK}`, borderRadius: 22, boxShadow: `5px 5px 0 ${INK}`, padding: '18px 14px 16px', color: '#fff', textAlign: 'center' }}>
+      <button aria-label={tr('Fechar', 'Close')} onClick={() => { fechaAviso(chave); setFechado(true) }} style={{ position: 'absolute', top: 8, right: 10, width: 34, height: 34, borderRadius: 999, border: `2.5px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 16, cursor: 'pointer' }}>✕</button>
       <div style={{ fontSize: 46, lineHeight: 1 }}>🏆</div>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, letterSpacing: 2, margin: '8px 0 0', color: 'rgba(255,255,255,.75)' }}>{tr(`COMEÇA A TEMPORADA ${state.seasonNo ?? 1}`, `SEASON ${state.seasonNo ?? 1} KICKS OFF`)}</p>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 38, margin: '0 0 2px', color: GOLD, lineHeight: 1.05, textTransform: 'uppercase' }}>{tr(pt, en)}</p>
@@ -522,10 +538,8 @@ export function Co2Anuncio({ restante, comanda, onEscalacao, onSeguir }: { resta
         })}
       </div>
       <div style={{ display: 'inline-block', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${GOLD}`, padding: '4px 18px', ...OSWALD, fontWeight: 900, fontSize: 34 }}>{mm}</div>
-      <p style={{ fontWeight: 800, fontSize: 12.5, margin: '10px 0 12px', color: 'rgba(255,255,255,.85)' }}>{restante === 0 ? tr('O tempo acabou. Quem começa é o dono.', 'Time is up. The owner kicks it off.') : tr('Mexa no time antes da estreia. Quem segue é o dono.', 'Tweak your team before kick-off. The owner moves it on.')}</p>
-      {/* 27/11 (Diego: *"escalação já engloba táticas"*): um botão só */}
-      <button onClick={onEscalacao} style={{ ...botao('#fff'), fontSize: 15 }}>🧩 {tr('Escalação', 'Lineup')}</button>
-      {comanda && <button onClick={seguir} style={{ ...botao(GOLD), marginTop: 10 }}>▶️ {tr('Seguir', 'Go')}</button>}
+      <p style={{ fontWeight: 800, fontSize: 12.5, margin: '10px 0 12px', color: 'rgba(255,255,255,.85)' }}>{tr('Dá tempo de arrumar o time nas abas. ', 'There\'s time to sort your team in the tabs. ')}{comanda ? tr('Você começa a temporada quando quiser.', 'You start the season whenever you want.') : tr('Quem começa é o dono.', 'The owner starts it.')}</p>
+      {botaoDono}
     </div>
   )
 }
