@@ -254,6 +254,15 @@ export function co2JuntaVirada(base: EscState, cmd: EscState, meuId: number, fal
   return out
 }
 
+/** 🙋 27/11 (Diego: *"ele entra no lugar desse bot… sempre na 4ª divisão… com o nome dele, o escudo dele… só pega os jogadores, valor,
+ *  tudo desse time"*): as vagas de quem entra na virada — bots da máquina (nunca rival do leilão), primeiro os da Série D, depois Várzea,
+ *  C, B e A; empate pelo id. Mesma conta em todo aparelho. */
+export function vagasDeNovos(managers: readonly Manager[], placements: Readonly<Record<string, string>> | undefined, n: number): number[] {
+  const ordemDiv = ['D', 'V', 'C', 'B', 'A']
+  const div = (id: number) => { const i = ordemDiv.indexOf(placements?.[`m${id}`] ?? 'V'); return i < 0 ? 9 : i }
+  return managers.filter(m => !m.isHuman && !m.rival && !m.auctionOnly).sort((a, b) => div(a.id) - div(b.id) || a.id - b.id).slice(0, Math.max(0, n)).map(m => m.id)
+}
+
 /** ✍️ 27/11 (Diego, 26/11: *"pra quem não estava, um recado discreto ao voltar"*): quem faltou na virada e teve contrato vencido
  *  renovado sozinho no leilão de todos — os nomes, pra a linha miúda "enquanto você estava fora, renovamos…". */
 export function renovadosNaVirada(antes: readonly Card[], depois: readonly Card[], temporada: number): { season: number; nomes: string[] } {

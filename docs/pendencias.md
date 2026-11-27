@@ -114,8 +114,9 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
   fica DESLIGADA no co2 e a virada da T40+ não espera por ela).
 - ✅ (27/11) 🌐 CARREIRA ONLINE — os 4 que faltavam (Diego: *"faça tudo"*):
   · 🙋 ENTRAR DEPOIS DE COMEÇAR: só com plano (`esc_pago_uid`) → vira PEDIDO; o dono vê "🙋 Pedidos pra entrar" (temporada e espera da virada),
-    escolhe o clube da MÁQUINA que a pessoa assume e aceita/recusa; ela entra na VIRADA (`CO2_ABRE_VIRADA` com `novos`: o clube vira dela, caixa
-    de largada 100, fica fora daquele leilão; o dono grava o lugar no `mundo.ordem` e o banco cria o clube com `esc_carr_pedido_efetiva`). O
+    só ACEITA ou RECUSA (🔁 Diego 27/11: *"ele entra sempre com o clube dele… no lugar desse bot… na 4ª divisão… só pega os jogadores, valor,
+    tudo"*); na VIRADA a pessoa entra com o NOME/ESCUDO dela no lugar de um bot da máquina da Série D (`vagasDeNovos`: D, depois V, C, B, A) e fica
+    com o elenco, o valor e o CAIXA do bot (`CO2_ABRE_VIRADA` com `novos`), fora daquele leilão; o dono grava o lugar no `mundo.ordem` e o banco cria o clube com `esc_carr_pedido_entra`). O
     aparelho dela carrega a carreira pela foto da virada (`CO2_NOVO`, sem o extrato/internacional do dono). Antes de começar continua de graça.
     Fechou também a brecha: entre uma noite e outra a sala ficava em 'espera' e deixava ENTRAR NO MEIO da carreira.
     ⚠️ A caixa da carreira online ainda só aparece pra quem está em `CO2_TESTERS` (Diego, conta 2, Futpoint) — gente de fora não acha onde pedir.

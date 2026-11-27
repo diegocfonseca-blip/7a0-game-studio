@@ -10,9 +10,9 @@ import {
   useCo2, co2Abrir, co2Fechar, co2Criar, co2Entrar, co2MinhasSalas, co2Continuar, co2Mundo, co2Envia, co2PodeCriar,
   co2LeGavetas, co2Gaveta, co2Pronto, co2Comecar, co2Apito, co2Ritmo, co2EncerrarDia, co2SalvaPrivado, co2LePrivado, co2Agora,
   type Co2Sala, type Co2Mundo, TEMPOS_OPCOES, tempoPausa, tempoRodada,
-  co2Pedidos, co2PedidoDecide, co2PedidoEfetiva, co2MeusPedidos, co2LeVirada, type Co2Pedido,
+  co2Pedidos, co2PedidoDecide, co2PedidoEntra, co2MeusPedidos, co2LeVirada, type Co2Pedido,
 } from './co2'
-import { minhaGaveta, co2Fechamento, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
+import { minhaGaveta, co2Fechamento, vagasDeNovos, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
 import { useMotor2Carreira, copaBrasilLiberada, internacionalCarreiraLiberada } from './sport'
 import { avisoFechado, fechaAviso } from './avisos-fechados'
 import { CMModal, ConvocacaoScreen, CupScreen, simulaCopaMundo, loadCopaSave, bandeiraDe, countryPool, bestXI, formationFits, xiStrength, type CopaSave, type Formation, type CMStatCarta } from './copa-mundo'
@@ -102,36 +102,26 @@ export function Co2PedidosDono() {
   const { state } = useEsc()
   const sn = useCo2()
   const [lista, setLista] = useState<Co2Pedido[]>([])
-  const [escolha, setEscolha] = useState<Record<string, number>>({})
   const [msg, setMsg] = useState('')
   const recarrega = () => { void co2Pedidos().then(setLista) }
   useEffect(() => { recarrega(); const t = setInterval(recarrega, 60000); return () => clearInterval(t) }, [sn.sala?.id])
   if (!state.co2?.comanda || !lista.length) return null
-  const tomados = new Set(lista.filter(p => p.status === 'aceito' && p.mgr != null).map(p => p.mgr as number))
-  const livres = state.managers.filter(m => !m.isHuman && !m.rival && !m.auctionOnly)
-  const divDe = (id: number) => state.careerPlacements?.[`m${id}`] ?? 'V'
-  const decide = async (p: Co2Pedido, mgr: number | null) => {
+  const decide = async (p: Co2Pedido, aceita: boolean) => {
     setMsg('')
-    const r = await co2PedidoDecide(p.user_id, mgr)
-    setMsg(r === 'ok' ? '' : r === 'ocupado' ? tr('Esse clube já foi pra outra pessoa.', 'That club already went to someone else.') : tr('Não deu agora. Tenta de novo.', 'Didn\'t work. Try again.'))
+    const r = await co2PedidoDecide(p.user_id, aceita ? -1 : null)
+    if (r !== 'ok') setMsg(tr('Não deu agora. Tenta de novo.', 'Didn\'t work. Try again.'))
     recarrega()
   }
   return (
     <div style={{ ...caixa('#EAF3FF'), padding: 12 }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 4px', textTransform: 'uppercase' }}>🙋 {tr('Pedidos pra entrar', 'Requests to join')}</p>
-      <p style={{ fontWeight: 700, fontSize: 11, margin: '0 0 8px', color: 'rgba(0,0,0,.6)' }}>{tr('Você escolhe o clube da máquina que a pessoa assume (com o elenco dele). Ela entra na virada da temporada.', 'You pick the computer club the person takes over (with its squad). They join at the season turnover.')}</p>
+      <p style={{ fontWeight: 700, fontSize: 11, margin: '0 0 8px', color: 'rgba(0,0,0,.6)' }}>{tr('Aceitou, ele entra na virada da temporada com o nome e o escudo dele, no lugar de um clube da máquina da Série D (fica com os jogadores, o valor e o caixa desse clube).', 'Once accepted, they join at the season turnover with their own name and crest, taking a computer club\'s place in Série D (keeping that club\'s players, value and cash).')}</p>
       {lista.map(p => (
-        <div key={p.user_id} style={{ display: 'grid', gap: 6, borderTop: '1px solid rgba(0,0,0,.12)', padding: '8px 0' }}>
-          <span style={{ fontWeight: 900, fontSize: 13.5 }}>{p.nome}{p.status === 'aceito' ? ` · ✅ ${tr('entra na virada', 'joins at the turnover')} (${state.managers.find(m => m.id === p.mgr)?.teamName ?? '?'})` : ''}</span>
+        <div key={p.user_id} style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid rgba(0,0,0,.12)', padding: '8px 0' }}>
+          <span style={{ fontWeight: 900, fontSize: 13.5, flex: 1 }}>{p.nome}{p.status === 'aceito' ? ` · ✅ ${tr('entra na virada', 'joins at the turnover')}` : ''}</span>
           {p.status === 'pedido' && <>
-            <select value={escolha[p.user_id] ?? ''} onChange={e => setEscolha(x => ({ ...x, [p.user_id]: Number(e.target.value) }))} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 8px', fontWeight: 800, fontSize: 13, background: '#fff', color: INK }}>
-              <option value="">{tr('Escolha o clube que ele assume…', 'Pick the club they take over…')}</option>
-              {livres.filter(m => !tomados.has(m.id)).map(m => <option key={m.id} value={m.id}>{divDe(m.id)} · {m.teamName}</option>)}
-            </select>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button disabled={escolha[p.user_id] == null} onClick={() => void decide(p, escolha[p.user_id] ?? null)} style={{ ...botao(escolha[p.user_id] == null ? '#eee' : GREEN, escolha[p.user_id] == null ? 'rgba(0,0,0,.4)' : '#fff'), fontSize: 13, padding: '7px 10px' }}>✅ {tr('Aceitar', 'Accept')}</button>
-              <button onClick={() => { if (window.confirm(tr(`Recusar o pedido de ${p.nome}?`, `Decline ${p.nome}'s request?`))) void decide(p, null) }} style={{ ...botao('#fff'), fontSize: 13, padding: '7px 10px' }}>{tr('Recusar', 'Decline')}</button>
-            </div>
+            <button onClick={() => void decide(p, true)} style={{ ...botao(GREEN, '#fff'), width: 'auto', fontSize: 12.5, padding: '6px 10px' }}>✅ {tr('Aceitar', 'Accept')}</button>
+            <button onClick={() => { if (window.confirm(tr(`Recusar o pedido de ${p.nome}?`, `Decline ${p.nome}'s request?`))) void decide(p, false) }} style={{ ...botao('#fff'), width: 'auto', fontSize: 12.5, padding: '6px 10px' }}>{tr('Recusar', 'Decline')}</button>
           </>}
         </div>
       ))}
@@ -561,16 +551,18 @@ export function Co2ViradaEspera() {
     if (restante != null && restante > 0 && fora.length && !window.confirm(tr(`Ainda faltam ${restante} s no relógio. Abrir o leilão agora?`, `There are still ${restante} s on the clock. Open the auction now?`))) return
     if (fora.length && !window.confirm(tr(`${fora.join(', ')} ainda não fechou. Vai ficar fora do leilão e os contratos vencidos renovam sozinhos. Abrir mesmo assim?`, `${fora.join(', ')} hasn't closed yet. They'll sit out the auction and expired contracts renew by themselves. Open anyway?`))) return
     // 🙋 os pedidos aceitos entram AGORA: o clube da máquina vira deles, o lugar no mundo é anotado e o banco ganha o clube
-    const aceitos = (await co2Pedidos()).filter(p => p.status === 'aceito' && p.mgr != null && state.managers.some(m => m.id === p.mgr && !m.isHuman))
-    dispatch({ type: 'CO2_ABRE_VIRADA', fechamentos: f, novos: aceitos.map(p => ({ mgr: p.mgr as number, nome: p.nome })) })
-    if (aceitos.length) {
+    const aceitos = (await co2Pedidos()).filter(p => p.status === 'aceito')
+    const vagas = vagasDeNovos(state.managers, state.careerPlacements as Record<string, string> | undefined, aceitos.length)
+    const novos = aceitos.slice(0, vagas.length).map((p, i) => ({ ...p, mgr: vagas[i] }))
+    dispatch({ type: 'CO2_ABRE_VIRADA', fechamentos: f, novos: novos.map(p => ({ mgr: p.mgr, nome: p.nome })) })
+    if (novos.length) {
       const mm = co2Agora().mundo ?? sn.mundo
       if (mm) {
         const ordem = [...mm.ordem]
-        for (const p of aceitos) ordem[p.mgr as number] = p.user_id
+        for (const p of novos) ordem[p.mgr] = p.user_id
         await co2Mundo('virada', null, null, { ...mm, ordem })
       }
-      for (const p of aceitos) await co2PedidoEfetiva(p.user_id)
+      for (const p of novos) await co2PedidoEntra(p.user_id, p.mgr)
     }
   }
   return (

@@ -180,10 +180,15 @@ ok(fech1 && fech1.temporada === 2 && fech1.squad.length >= 11, 'o fechamento do 
 ok(reducer(aparelhos[1], { type: 'RESERVE_AUCTION_ONLINE' }) === aparelhos[1] || reducer(aparelhos[1], { type: 'RESERVE_AUCTION_ONLINE' }).screen === 'reserveList', 'quem não é dono não abre o leilão de todos')
 const expiradosAus = aparelhos[0].managers.find(m => m.id === 2).squad.filter(c => c.contratoAte != null && c.contratoAte < 2).length
 // 🙋 27/11: um amigo novo (pedido aceito pelo dono) entra NA VIRADA assumindo um clube da máquina
-const botNovo = aparelhos[0].managers.find(m => !m.isHuman && !m.rival && !m.auctionOnly)
+const { vagasDeNovos } = await vite.ssrLoadModule('/src/escalacao/carreira-online-v2.ts')
+const vagaNovo = vagasDeNovos(aparelhos[0].managers, aparelhos[0].careerPlacements, 1)[0]
+const botNovo = aparelhos[0].managers.find(m => m.id === vagaNovo)
+ok(botNovo && ['D', 'V'].includes(aparelhos[0].careerPlacements?.[`m${botNovo.id}`] ?? 'V'), `a vaga do amigo novo é um bot da máquina lá de baixo (${aparelhos[0].careerPlacements?.[`m${botNovo?.id}`]})`)
+const caixaBot = aparelhos[0].careerCoins?.[botNovo?.id] ?? botNovo?.money
 let h = reducer(aparelhos[0], { type: 'CO2_ABRE_VIRADA', fechamentos: { 1: fech1 }, novos: botNovo ? [{ mgr: botNovo.id, nome: 'Amigo Novo' }] : [] })
 ok(!!botNovo && h.managers.find(m => m.id === botNovo.id)?.isHuman && h.managers.find(m => m.id === botNovo.id)?.teamName === 'Amigo Novo', `o amigo novo assume o clube da máquina na virada (${botNovo?.teamName} → Amigo Novo)`)
 ok(!!botNovo && (h.co2?.fora ?? []).includes(botNovo.id), 'o amigo novo fica de fora do leilão da virada (não fechou nada)')
+ok((h.marketLog ?? []).some(l => l.includes('Amigo Novo chegou na carreira no lugar do')), 'a notícia diz no lugar de qual clube ele entrou')
 ok(h.screen !== 'reserveList', `o dono abre o leilão de todos (${h.screen}/${h.phase})`)
 ok((h.co2?.fora ?? []).includes(2) && !(h.co2?.fora ?? []).includes(1), 'quem não fechou fica fora do leilão')
 ok(h.careerCoins?.[1] === caixa1, `caixa do 1 no leilão = o caixa que o aparelho dele fechou (${h.careerCoins?.[1]} = ${caixa1})`)

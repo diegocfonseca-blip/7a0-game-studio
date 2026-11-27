@@ -142,9 +142,9 @@ export async function co2PedidoDecide(user: string, mgr: number | null): Promise
   const { data, error } = await supabase.rpc('esc_carr_pedido_decide', { p_sala: canalSala, p_user: user, p_mgr: mgr })
   return error ? 'erro' : String(data ?? 'erro')
 }
-export async function co2PedidoEfetiva(user: string): Promise<string> {
+export async function co2PedidoEntra(user: string, mgr: number): Promise<string> {
   if (!canalSala) return 'erro'
-  const { data, error } = await supabase.rpc('esc_carr_pedido_efetiva', { p_sala: canalSala, p_user: user })
+  const { data, error } = await supabase.rpc('esc_carr_pedido_entra', { p_sala: canalSala, p_user: user, p_mgr: mgr })
   return error ? 'erro' : String(data ?? 'erro')
 }
 export async function co2MinhasSalas(): Promise<(Co2Sala & { assento: number; meuClube: string })[]> {

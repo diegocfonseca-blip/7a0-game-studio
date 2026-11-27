@@ -9950,24 +9950,29 @@ function reducerBase(state: EscState, action: Action): EscState {
     // roda o MESMO leilão de reservas da carreira solo (RESERVE_AUCTION_ONLINE).
     case 'CO2_ABRE_VIRADA': {
       if (!s.co2?.comanda || s.co2.espelho || s.screen !== 'reserveList' || s.co2.fechou !== s.seasonNo) return s
-      // 🙋 27/11 (Diego 26/11: depois de começar, só com plano + convite aceito, e entra na virada): o clube da máquina que o
-      // dono escolheu vira do amigo (com o elenco que tinha; caixa de largada). Fica de fora deste leilão (não fechou nada) e
-      // o contrato vencido renova sozinho, como quem faltou.
+      // 🙋 27/11 (Diego 26/11: depois de começar, só com plano + convite aceito, e entra na virada): o amigo entra com o nome/escudo
+      // DELE no lugar de um bot da máquina (Série D primeiro, `vagasDeNovos`) e fica com o elenco, o valor e o caixa do bot. Fica de
+      // fora deste leilão (não fechou nada) e o contrato vencido renova sozinho, como quem faltou.
+      const chegadas: string[] = []
       for (const n of action.novos ?? []) {
         const m = s.managers.find(x => x.id === n.mgr)
         const nome = (n.nome ?? '').trim()
         if (!m || m.isHuman || m.rival || m.auctionOnly || nome.length < 2) continue
         m.isHuman = true; m.teamName = nome
-        s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: Math.max(100, Math.round(s.careerCoins?.[m.id] ?? 0)) }
+        // fica com os jogadores, o valor e o CAIXA do bot (Diego 27/11: "só vai pegar as coisas do time… jogadores, valor, tudo")
+        const antigo = m.teamName
+        s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: Math.max(0, Math.round(s.careerCoins?.[m.id] ?? m.money ?? 100)) }
         m.money = s.careerCoins[m.id]
-        ;(s.marketLog = s.marketLog ?? []).push(`🙋 ${nome} chegou na carreira e assumiu o clube da máquina`)
+        chegadas.push(`🙋 ${nome} chegou na carreira no lugar do ${antigo}`)
       }
       s.humanCount = s.managers.filter(m => m.isHuman).length
       const f = aplicaFechamentos(s, action.fechamentos ?? {})
       s.managers = f.managers; s.careerCoins = f.careerCoins; s.reserveListed = f.reserveListed
       s.contratoRelease = f.contratoRelease; s.aliciarJogadores = f.aliciarJogadores
       s.co2 = { ...s.co2, fora: f.fora, sondou: f.sondou, tit: f.tit }
-      return reducer(s, { type: 'RESERVE_AUCTION_ONLINE', co2Abre: true })
+      const aberto = reducer(s, { type: 'RESERVE_AUCTION_ONLINE', co2Abre: true })
+      if (chegadas.length) aberto.marketLog = [...(aberto.marketLog ?? []), ...chegadas] // (a notícia entra depois: o leilão começa com o mural limpo)
+      return aberto
     }
     case 'CO2_GAVETAS': {
       if (!s.co2) return s

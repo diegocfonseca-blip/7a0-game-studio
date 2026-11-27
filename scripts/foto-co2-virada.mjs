@@ -29,7 +29,7 @@ for (const c of casos) {
   const sala = { id: 's1', codigo: 'K7Q2ZP', nome: 'A Pirâmide dos Amigos', dono: DONO, vice: null, versao: '', temporada: c.temporada, rodada: ['anuncio','faixa'].includes(c.tela) ? 0 : c.temporada ? 38 : 0, fase: c.fase, prazo: c.fase === 'virada' ? new Date(Date.now() + 42000).toISOString() : null, inicio_rodada: null, auto: true, velocidade: 1, pausado: false, comandante: DONO }
   await p.route('**/rest/v1/esc_carr_sala?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('mundo') ? { mundo: c.temporada ? { ordem: ORDEM, v: 1, modo: 'dinamica' } : null } : sala) }))
   await p.route('**/rest/v1/esc_carr_clube?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(clubes) }))
-  if (c.pedidos) await p.route('**/rest/v1/rpc/esc_carr_pedidos', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ user_id: 'u9', nome: 'Real Madruga FC', mgr: null, status: 'pedido' }, { user_id: 'u8', nome: 'Sport Clube Zoeira', mgr: 7, status: 'aceito' }]) }))
+  if (c.pedidos) await p.route('**/rest/v1/rpc/esc_carr_pedidos', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ user_id: 'u9', nome: 'Real Madruga FC', mgr: null, status: 'pedido' }, { user_id: 'u8', nome: 'Sport Clube Zoeira', mgr: null, status: 'aceito' }]) }))
   await p.route('**/rest/v1/rpc/**', r => (c.pedidos && r.request().url().includes('esc_carr_pedidos')) ? r.fallback() : r.fulfill({ status: 200, contentType: 'application/json', body: '"ok"' }))
   await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
   await p.evaluate(`(async()=>{
