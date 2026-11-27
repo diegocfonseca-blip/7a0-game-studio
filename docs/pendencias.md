@@ -6,6 +6,12 @@ Correção da disputa dos controles entre a liga e a copa aberta: táticas, nave
 
 Nome corrigido de Arena de Pernambuco para **Arruda**, a pedido de Diego, no catálogo compartilhado por agenda e estádio do Brasil Oficial. Consulta `estadioDoClube("Santa Cruz")` conferida; sem alteração de saves.
 
+## 27/11 — 📋 LIGA DRAFT: BARALHO TODOS POR PADRÃO + AVISO DO BARALHO NO DRAFT (Diego: *"deixe sempre marcado padrão c todos"*)
+- Conferido: o draft já obedecia o baralho escolhido (Brasil = 773 cartas só do Brasil · Europa = 1.353 só da Europa · Todos = 2.631).
+- Agora a Liga Draft nasce com 🌎 Todos marcado; na criação, o aviso diz o que vale ("🇧🇷 Brasil: no leilão E no draft só cartas do Brasil"
+  e o mesmo pra Europa/Todos; com 🧱 Clubes o baralho é sempre Todos). Na tela "Como é o draft" a liga de Brasil/Europa mostra o aviso em verde.
+- Diego confirmou ficar só com Brasil · Europa · Todos (sem "só Mundo": 505 cartas não fecham uma liga de 20 com jogador único).
+
 ## 26/11 — 🎽 CORES ERRADAS DOS CLUBES DE VERDADE NO CAMPO 2D (print do Diego, Libertadores da sala: Flamengo verde × Palmeiras vermelho)
 - Causa: as copas convocadas (Libertadores, Super Mundial, Champions e regionais da sala) mandavam o verde/vermelho FIXO de casa × fora pro
   `LiveScoreCard`. Conserto (no branch, esperando o OK pra publicar): `cores-clubes-reais.ts` → `corDoClubeReal` (selos do Leilão de Clubes →
