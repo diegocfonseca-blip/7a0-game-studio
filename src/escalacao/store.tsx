@@ -12343,6 +12343,14 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.screen !== 'cerimonia') return s
       s.cerimoniaDeadline = null
       if (s.co2?.fora) s.co2 = { ...s.co2, fora: undefined } // 🔄 a virada acabou: ninguém mais fica de fora
+      // 🤖📰 26/11 carreira online (Diego: *"tem q ser sempre avisado"*): todo jogador que um clube de gente tirou de um bot vira notícia
+      if (s.co2) {
+        const bots = new Set(s.managers.filter(m => !m.isHuman).map(m => m.teamName))
+        const gente = new Set(s.managers.filter(m => m.isHuman).map(m => m.id))
+        const avisos = (s.careerTransferHistory ?? []).filter(t => t.season === s.seasonNo && gente.has(t.teamId) && t.from && bots.has(t.from))
+          .map(t => `🔨 ${t.team} levou ${t.name} do ${t.from}${t.paid ? ` por ${t.paid} 🪙` : ''}.`)
+        if (avisos.length) s.news = [...avisos.slice(0, 10), ...(s.news ?? [])].slice(0, 20)
+      }
       // FAKE DÁ LUGAR: bot que contratou jogador REAL e estourou o teto da posição
       // dispensa o incógnito mais fraco (nunca um real) até caber no elenco.
       if (s.careerOnline) for (const m of s.managers) {
@@ -12389,7 +12397,7 @@ function reducerBase(state: EscState, action: Action): EscState {
               const saiu = s.co2 ? s.managers.filter(h => h.isHuman).flatMap(h => h.squad as WonCard[]).find(c => c.seller === m.id && c.pos === pos && !usados.has(`repo-aviso|${c.id}`)) : undefined
               const parecido = saiu ? [...livres].sort((a, b) => Math.abs((a.lo + a.hi) - (saiu.lo + saiu.hi)) - Math.abs((b.lo + b.hi) - (saiu.lo + saiu.hi)))[0] : undefined
               if (saiu) usados.add(`repo-aviso|${saiu.id}`)
-              if (saiu && parecido) s.news = [`🤖 ${m.teamName} perdeu ${saiu.name} no leilão e repôs com ${parecido.name} (${parecido.club ?? ''}${parecido.year ? ' ' + parecido.year : ''}).`, ...(s.news ?? [])].slice(0, 20)
+              if (saiu && parecido) s.news = [`🤖 ${m.teamName} repôs ${saiu.name} com ${parecido.name} (${parecido.club ?? ''}${parecido.year ? ' ' + parecido.year : ''}).`, ...(s.news ?? [])].slice(0, 20)
               let pick = parecido ?? shuffle(livres.filter(c => !escDv || escadaAllows(escDv, c)), rngR)[0]
                 ?? shuffle(livres.filter(c => (c.fame ?? 1) <= 3 && !c.promessa), rngR)[0]
                 ?? (m.rival ? fraco(livres) : undefined)

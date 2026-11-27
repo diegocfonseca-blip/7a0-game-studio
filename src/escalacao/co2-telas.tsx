@@ -291,6 +291,8 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
     const todos = humanos > 0 && prontos >= humanos
     // ⚡ Dinâmica: o banco guarda prazo mínimo de 15 s, mas o dono segue 3 s depois do apito (o respiro pra ver o placar)
     const respiroDin = dinamica && !!sala.prazo && agora >= new Date(sala.prazo).getTime() - (PRAZO_DINAMICA_S - 3) * 1000
+    // 🎬 26/11: na estreia da temporada (Dinâmica) o relógio é só AVISO — quem começa é o dono, pelo anúncio
+    if (dinamica && sala.rodada === 0) return
     const acabou = (sala.auto && restante === 0) || respiroDin
     if (!todos && !acabou) return
     comecouRef.current = sala.rodada
@@ -320,7 +322,10 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   const mm = restante != null ? `${Math.floor(restante / 60)}:${String(restante % 60).padStart(2, '0')}` : '–'
   return (
     <div style={{ display: 'grid', gap: 10, marginBottom: 10 }}>
-      {sala.fase === 'preparo' && dinamica && (
+      {sala.fase === 'preparo' && dinamica && sala.rodada === 0 && (
+        <Co2Anuncio restante={restante} comanda={comanda} onEscalacao={onEscalacao} onTatica={onTatica} onSeguir={() => { comecouRef.current = sala.rodada; void co2Comecar() }} />
+      )}
+      {sala.fase === 'preparo' && dinamica && sala.rodada > 0 && (
         <div style={{ ...caixa('#FFF8DC'), padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, flex: 1, textTransform: 'uppercase' }}>{sala.pausado ? `⏸ ${tr('Pausado pelo dono', 'Paused by the owner')}` : `⚡ ${tr(`Rodada ${sala.rodada + 1} já já`, `Round ${sala.rodada + 1} coming up`)}`}</span>
           <button onClick={onEscalacao} style={{ ...botao('#fff'), width: 'auto', fontSize: 12, padding: '6px 10px' }}>🧩 {tr('Escalação', 'Lineup')}</button>
@@ -385,7 +390,7 @@ export function useCo2FimDaVirada() {
     const poeM2 = m2Liberado && !!mm && mm.m2 == null
     const poeFim = !!mm && !mm.fim // 🏆 26/11: a regra da copa do fim de temporada sai do DONO, igual pra todo aparelho
     const carimbo = mm && (poeM2 || poeFim) ? { ...mm, ...(poeM2 ? { m2: state.seasonNo ?? 1 } : {}), ...(poeFim ? { fim: { copaBR: copaBrasilLiberada() } } : {}) } : null
-    void co2Mundo('preparo', state.seasonNo ?? 1, 0, carimbo, 90)
+    void co2Mundo('preparo', state.seasonNo ?? 1, 0, carimbo, mm?.modo === 'dinamica' ? 60 : 90) // ⚡ Dinâmica: 60 s de anúncio na estreia (aviso; o dono segue)
   }, [state.co2?.comanda, state.screen, sn.sala?.fase, state.seasonNo, m2Liberado, state.round])
 }
 
@@ -481,6 +486,51 @@ export function Co2ViradaEspera() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// 🎬 ANÚNCIO DE CINEMA (26/11, Diego escolheu a opção C): na ⚡ Dinâmica, quando começa competição nova a carreira para pra todo
+// mundo mexer no time. Troféu + nome, os clubes da turma (o seu em dourado), relógio grande, Escalação/Tática. O relógio é AVISO:
+// quem segue é o dono (pergunta se for antes do tempo). Hoje: a estreia de cada temporada (a liga).
+const NOME_DIV: Record<string, [string, string]> = { A: ['SÉRIE A', 'SERIE A'], B: ['SÉRIE B', 'SERIE B'], C: ['SÉRIE C', 'SERIE C'], D: ['SÉRIE D', 'SERIE D'], V: ['VÁRZEA', 'AMATEUR LEAGUE'] }
+export function Co2Anuncio({ restante, comanda, onEscalacao, onTatica, onSeguir }: { restante: number | null; comanda: boolean; onEscalacao: () => void; onTatica: () => void; onSeguir: () => void }) {
+  const { state } = useEsc()
+  const meuId = state.managers[state.youIdx]?.id
+  const divDe = (id: number) => state.careerPlacements?.[`m${id}`] ?? 'V'
+  const minhaDiv = meuId != null ? divDe(meuId) : 'V'
+  const gente = state.managers.filter(m => m.isHuman).sort((a, b) => (a.id === meuId ? -1 : b.id === meuId ? 1 : 'ABCDV'.indexOf(divDe(a.id)) - 'ABCDV'.indexOf(divDe(b.id))))
+  const [pt, en] = NOME_DIV[minhaDiv] ?? NOME_DIV.V
+  const mm = restante != null ? `${Math.floor(restante / 60)}:${String(restante % 60).padStart(2, '0')}` : '–'
+  const seguir = () => {
+    if (restante != null && restante > 0 && !window.confirm(tr(`Ainda faltam ${restante} s pra turma mexer no time. Começar agora?`, `There are still ${restante} s for everyone to tweak their team. Start now?`))) return
+    onSeguir()
+  }
+  return (
+    <div style={{ background: 'radial-gradient(ellipse at top, #2C7A45 0%, #14482A 55%, #0C2A18 100%)', border: `4px solid ${INK}`, borderRadius: 22, boxShadow: `5px 5px 0 ${INK}`, padding: '18px 14px 16px', color: '#fff', textAlign: 'center' }}>
+      <div style={{ fontSize: 46, lineHeight: 1 }}>🏆</div>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, letterSpacing: 2, margin: '8px 0 0', color: 'rgba(255,255,255,.75)' }}>{tr(`COMEÇA A TEMPORADA ${state.seasonNo ?? 1}`, `SEASON ${state.seasonNo ?? 1} KICKS OFF`)}</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 38, margin: '0 0 2px', color: GOLD, lineHeight: 1.05, textTransform: 'uppercase' }}>{tr(pt, en)}</p>
+      <p style={{ fontWeight: 800, fontSize: 12.5, margin: '0 0 12px', color: 'rgba(255,255,255,.8)' }}>{tr('os clubes da turma', 'the crew\'s clubs')}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 8, marginBottom: 14 }}>
+        {gente.map(m => {
+          const eu = m.id === meuId
+          return (
+            <div key={m.id} style={{ border: `2.5px solid ${eu ? GOLD : 'rgba(255,255,255,.35)'}`, background: eu ? 'rgba(255,196,0,.22)' : 'rgba(255,255,255,.08)', borderRadius: 12, padding: '8px 4px' }}>
+              <div style={{ fontSize: 22 }}>🛡️</div>
+              <div style={{ fontWeight: 900, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.teamName}</div>
+              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 10.5, color: 'rgba(255,255,255,.7)' }}>{tr(...(NOME_DIV[divDe(m.id)] ?? NOME_DIV.V))}</div>
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ display: 'inline-block', background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${GOLD}`, padding: '4px 18px', ...OSWALD, fontWeight: 900, fontSize: 34 }}>{mm}</div>
+      <p style={{ fontWeight: 800, fontSize: 12.5, margin: '10px 0 12px', color: 'rgba(255,255,255,.85)' }}>{restante === 0 ? tr('O tempo acabou. Quem começa é o dono.', 'Time is up. The owner kicks it off.') : tr('Mexa no time antes da estreia. Quem segue é o dono.', 'Tweak your team before kick-off. The owner moves it on.')}</p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={onEscalacao} style={{ ...botao('#fff'), fontSize: 14 }}>🧩 {tr('Escalação', 'Lineup')}</button>
+        <button onClick={onTatica} style={{ ...botao('#fff'), fontSize: 14 }}>🎯 {tr('Tática', 'Tactic')}</button>
+      </div>
+      {comanda && <button onClick={seguir} style={{ ...botao(GOLD), marginTop: 10 }}>▶️ {tr('Seguir', 'Go')}</button>}
     </div>
   )
 }

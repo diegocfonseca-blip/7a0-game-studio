@@ -54,7 +54,9 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
   clube de gente repõe com a carta REAL livre de over mais perto de quem saiu, com aviso nas notícias.
 - ✅ (27/11, Diego: *"Sim"*) com 0 bots NINGUÉM de máquina dá lance (envelope, Tocaia, Monte, nem o dono do sondado) — `semBotsCo2`.
   Teste: 5 bots = 57 compras de máquina na virada · 0 bots = 0. O bot que perde jogador repõe com sobra real de over parecido.
-- ⏳ falta: sondar de amigo, aviso do bot que perdeu jogador mesmo sem repor, anúncio de competição nova (pausa C), teste com 2 contas.
+- ✅ (27/11) notícia de todo jogador que um clube de gente tirou de bot ("🔨 X levou Y do Z por N") · 🎬 ⚡ Dinâmica: anúncio de cinema
+  (opção C) na ESTREIA de cada temporada, 60 s de aviso, só o dono segue (confirma antes do tempo). Foto `scripts/mockups/co2-anuncio-estreia.png`.
+- ⏳ falta: sondar de amigo, anúncio C também nas copas (hoje a copa do fim roda em cada aparelho), dia dos contratos, teste com 2 contas.
 - Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).
 - Testes da v2 verdes depois da publicação do Codex (`npm run carreira-online` e `npm run carreira-online-fluxo`).
 

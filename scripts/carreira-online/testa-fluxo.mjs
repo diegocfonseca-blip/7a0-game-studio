@@ -176,7 +176,8 @@ ok(!aus.squad.some(c => c.contratoAte != null && c.contratoAte < 2), `quem falto
 ok(h.managers.every(m => !m.isHuman || !m.squad.some(c => c.fake)), 'nenhum clube de gente com jogador fake')
 {
   const compraBot = (h.careerTransferHistory ?? []).filter(t => t.season === 2 && !h.managers.find(m => m.id === t.teamId)?.isHuman)
-  ok(process.env.BOTS !== '0' || compraBot.length === 0, `com 0 bots, nenhum clube de máquina comprou no leilão da virada (${compraBot.length})`)
+  console.log('   notícias:', (h.news ?? []).filter(n => /levou|repôs/.test(n)).slice(0, 3).join(' | ') || '(nenhuma)')
+ok(process.env.BOTS !== '0' || compraBot.length === 0, `com 0 bots, nenhum clube de máquina comprou no leilão da virada (${compraBot.length})`)
 }
 // o 2 FALTOU: volta depois, fecha o clube dele e alcança pela FOTO da virada (a que o dono grava no banco)
 let a2 = { ...aparelhos[2], careerTorcida: { ...(aparelhos[2].careerTorcida ?? {}), marca2: 55 } }
