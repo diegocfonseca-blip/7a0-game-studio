@@ -85,7 +85,14 @@ function WaitingTarget({name}:{name:Slot}) {
  const ref=useCallback((node:HTMLDivElement|null)=>ctx.target(name,node),[ctx.target,name])
  return <div className={`ow-target ow-${name}`} ref={ref}/>
 }
-export function OwnerWaitingLayout({children,canTheme,chatEnabled,hasRules}:{children:ReactNode;canTheme:boolean;chatEnabled:boolean;hasRules:boolean}) {
+/** 💬 28/11 (print do Diego, sala do "História do Futebol"): no computador o chat da sala de espera abria FLUTUANDO por cima da coluna
+ * das regras. Agora ele mora DENTRO da coluna da direita, embaixo das regras (o mesmo encaixe do chat no jogo). Celular segue igual. */
+function WaitingChatTarget({room}:{room:string}){
+ const cleanup=useRef<(()=>void)|undefined>(undefined)
+ const ref=useCallback((node:HTMLDivElement|null)=>{cleanup.current?.();cleanup.current=node&&room?registerFootballChatDock(room,node):undefined},[room])
+ return <div className="ow-chat-target" ref={ref}/>
+}
+export function OwnerWaitingLayout({children,canTheme,chatEnabled,hasRules,room}:{children:ReactNode;canTheme:boolean;chatEnabled:boolean;hasRules:boolean;room?:string}) {
  const theme=useRef<HTMLDetailsElement>(null)
  const showTheme=()=>{if(!theme.current)return;theme.current.open=true;theme.current.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});theme.current.querySelector('summary')?.focus()}
  return <div className="ow-layout">
@@ -101,6 +108,7 @@ export function OwnerWaitingLayout({children,canTheme,chatEnabled,hasRules}:{chi
    </main>
    <aside className="ow-aside">
     {hasRules&&<section className="ow-rules"><h2>{tr('REGRAS COMBINADAS','ROOM RULES')}</h2><WaitingTarget name="wait-rules"/></section>}
+    {chatEnabled&&room&&<WaitingChatTarget room={room}/>}
     {canTheme&&<details ref={theme} className="ow-themes"><summary>{tr('PERSONALIZE A SALA','PERSONALIZE THE ROOM')}<span aria-hidden="true">＋</span></summary><WaitingTarget name="wait-themes"/></details>}
    </aside>
   </div>

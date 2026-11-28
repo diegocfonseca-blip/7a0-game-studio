@@ -1,3 +1,4 @@
+import { memoizaPorRodada } from './simulacao-por-rodada'
 import { entradasJogoCo2, type Co2Entrada } from './co2-jogo-model'
 import {leFotoCo2} from './co2-jogo-model'
 import { usePartidaCo2 } from './co2-jogo'
@@ -10524,11 +10525,11 @@ export function PyramidSeasonScreen() {
   const m2Copa = m2Desde != null && (copaMid ? m2Desde < 5 : m2Desde < 38)
   const recepcaoCopa = versaoComCriterios(versaoRecepcaoNaCopa(recepcaoDesde, copaMid ? 5 : 38), criteriosDaTemporada(state))
   // 🇧🇷 Brasil Oficial: a temporada no formato REAL de cada série (B com playoff, C em fases, D com 96) — ano = 2025 + temporada
-  const simulaAte = useCallback((ate: number): ReturnType<typeof simulatePyramid> & { oficial?: FasesOficiais } => {
+  const simulaAte = useMemo(() => memoizaPorRodada((ate: number): ReturnType<typeof simulatePyramid> & { oficial?: FasesOficiais } => {
     const regras = { criterios: criteriosDaTemporada(state), disputadas: round, intervaloAberto: state.booksSeason !== state.seasonNo, online: co2Entradas }
     if (state.oficial) return simulaTemporadaOficial(world, seasonSeed, ate, 2025 + (state.seasonNo ?? 1), entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde, regras)
     return simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde, regras)
-  },
+  }),
     [state.oficial, world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, recepcaoDesde, co2Entradas, state.criteriosCarreiraDesde, state.criteriosCarreiraAte, state.onlineMode, state.co2, state.careerOnline, state.sport, state.seasonNo, state.booksSeason, round])
   // 💾 os resultados do motor novo que o SAVE já tem (antes de simular) — e, depois de cada tela, o que foi calculado agora vai pro save
   carregaGuardados(state.m2Res, state.seasonNo ?? 1, `${loggedEmail() ?? 'local'}:${state.seed}`)
@@ -12492,7 +12493,15 @@ export function PyramidSeasonScreen() {
   const minutoJogo=partidaAoVivo.active?partidaAoVivo.minute:copaPlaying?cupMatchMinute(copaPos,cupLegIndex):(scoreClock.round===state.round?scoreClock.minute:-1)
   const liveInput=partidaAoVivo.active&&partidaAoVivo.game?leFotoCo2(partidaAoVivo.game)?.partidas[partidaAoVivo.slot?.partida??cupInput?.partidaId??'']:copaPlaying?cupLive?.initial:myMatch?.m2
   const liveEligible=copaPlaying?(partidaAoVivo.active?!!partidaAoVivo.slot&&!partidaAoVivo.ready:!!cupLive&&!cupLive.finished&&!!cupInput):!!myMatch?.m2&&!!myMatch.you&&(privateLeagueClock&&!!stadiumMatch||partidaAoVivo.active&&!!partidaAoVivo.game)&&!done
-  const retomarDecisoesAte=Math.max(0,...aoVivoMeu.map(x=>x.t))*93/90
+  // Só as decisões que já existiam ao abrir este confronto são uma retomada.
+  // Uma ordem dada agora pode ser agendada alguns instantes à frente do relógio;
+  // tratá-la como save antigo fechava o painel e soltava a pausa sozinho.
+  const limiteDaRetomada=useRef<{chave:string;minuto:number}|null>(null)
+  const chaveDaRetomada=liveInput?.partidaId??`${state.seed}:${state.seasonNo}:${round}:${copaPlaying?cupLiveKey:'liga'}:${youId}`
+  if(liveInput&&liveEligible&&!partidaAoVivo.active&&limiteDaRetomada.current?.chave!==chaveDaRetomada){
+    limiteDaRetomada.current={chave:chaveDaRetomada,minuto:Math.max(0,...aoVivoMeu.map(x=>x.t))*93/90}
+  }
+  const retomarDecisoesAte=limiteDaRetomada.current?.chave===chaveDaRetomada?limiteDaRetomada.current.minuto:0
   const retomandoDecisoes=!partidaAoVivo.active&&liveEligible&&minutoJogo>=0&&minutoJogo+.05<retomarDecisoesAte
   const liveCanOpen=!retomandoDecisoes&&liveEligible&&!!liveInput&&(!state.co2||partidaAoVivo.canChange&&!!partidaAoVivo.slot)&&state.onlineMode!=='online'&&minutoJogo>0&&minutoJogo<89&&!(halftimeOpen&&halfMode)&&!(penaltyOpen&&penMode)
   const dadosSub=useMemo(()=>{

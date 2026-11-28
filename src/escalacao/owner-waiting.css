@@ -107,3 +107,7 @@
  #root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-actions>button{width:100%}
  #root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-status{text-align:left}
 }
+/* 💬 28/11: o chat da sala de espera encaixado na coluna da direita (computador), no lugar do painel flutuante que tampava as regras */
+.ow-chat-target:empty{display:none}
+.ow-chat-target .fp-chat-docked.pc-layer{position:static;inset:auto;z-index:auto;pointer-events:auto;width:100%}
+.ow-chat-target .fp-chat-docked .pc-chat{position:relative;inset:auto;right:auto;bottom:auto;width:100%;height:520px;max-height:none;box-sizing:border-box;margin:0;box-shadow:4px 4px #000;border-width:3px;border-radius:15px}

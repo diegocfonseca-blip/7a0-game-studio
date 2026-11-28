@@ -1,5 +1,6 @@
 ## 27/11 — Futebol: trocas sem seletor antigo e reposição clínica
 
+- ✅ **28/11 · Sala de espera online no computador: chat encaixado na coluna da direita** (print do Diego, sala do História do Futebol: o chat abria flutuando POR CIMA das Regras combinadas). Agora fica embaixo das regras (mesmo encaixe do chat no jogo); celular igual. Bancada nova: `node scripts/foto-sala-espera.mjs` (lobby real com servidor de mentira, várias larguras). ⏳ Falta passar a mesma bancada nas telas do jogo online (leilão, temporada, copas) no computador.
 - **27/11 · Carreira online: publicação autorizada (PR503).** Confirmação/repetição de saves, um aparelho por conta/carreira, leilão autenticado com envelopes privados, três trocas/táticas na liga e copas de clubes, relógio comum, lesão com reserva ou dez em campo, aviso para próximo XI e retorno após temporadas. Dinâmica/Livre, coroa e acesso privado preservados. Banco aditivo instalado, sem mexer em saves reais. Verificar deploy antes de declarar publicação. Convocações internacionais mantêm fluxo próprio. [Provas, limites e reversão](auditorias/carreira-online-sincronia-20261127.md).
 
 
