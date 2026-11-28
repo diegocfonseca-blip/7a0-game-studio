@@ -83,4 +83,4 @@ export function usePresidentPreview() {
 // Negociação de veículos tem trava própria, desligada enquanto a arte é revista.
 export const PRESIDENT_INTEGRATION_RELEASED:boolean=true
 type AcoesMapaCarreira={careerOnline?:boolean;onlineMode?:string;sport?:string;co2?:unknown}
-export const presidentWritesEnabled=(state?:AcoesMapaCarreira)=>PRESIDENT_INTEGRATION_RELEASED&&(presidentPreviewEnabled()||PRESIDENCY_STADIUM_RELEASED&&!!state?.careerOnline&&state.onlineMode==='cpu'&&state.sport!=='basquete'&&!state.co2)
+export const presidentWritesEnabled=(state?:AcoesMapaCarreira)=>PRESIDENT_INTEGRATION_RELEASED&&(presidentPreviewEnabled()||PRESIDENCY_STADIUM_RELEASED&&!!state?.careerOnline&&state.onlineMode==='cpu'&&state.sport!=='basquete') // 🗺️ 28/11: a carreira online também (cada aparelho mexe só no SEU clube; o estádio fica na gaveta privada)

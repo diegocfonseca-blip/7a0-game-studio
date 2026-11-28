@@ -1,3 +1,11 @@
+## 28/11 — 🗺️ CARREIRA ONLINE: O MAPA DO CLUBE LIGADO, SEM O JOGO 3D
+Diego: *"Deixa sem o jogo 3d mas o mapa deve funcionar obviamente… cada um cuidando das suas estruturas… igual tem na carreira individual"*.
+- Saiu o `!state.co2` de `presidentAvailable`, `mapaComoClube` (pyramidseason.tsx) e `presidentWritesEnabled` (presidente-acesso.ts): mapa, estrutura, negócios, museu, presidência e garagem iguais à solo.
+- Jogo 3D trancado na carreira online: `contextoLigaNoEstadio`, `stadiumContext` da copa e `pend3d` devolvem nada com `state.co2` (o calendário/fluxo da Central já ficavam fora).
+- Cada aparelho só mexe no PRÓPRIO clube (`podeAlterarPresidencia` = você); estádio/presidência vivem na gaveta PRIVADA (`privadoCo2` = estado inteiro). A simulação não lê `stadiums` → resultados iguais em todos os aparelhos.
+- Pendente: foto real do mapa numa carreira online (a bancada não monta a carreira online inteira com o 3D) — conferir no teste com o Futpoint.
+- Reverter: recolocar os três `!state.co2`.
+
 ## 27/11 — Futebol: trocas sem seletor antigo e reposição clínica
 
 - 🟡 **28/11 · Carreira online: espera na SALA NORMAL + senha + entrar consertado** (Diego: *"deve criar a sala normal, igual liga draft, igual sala rápido… tem que entrar com senha"*). Banco (APLICADO): `esc_carr_entrar`/`esc_carr_sair` usavam `temporada >= 1` como "começou" (a sala nasce 1) → convidado sem plano levava erro; agora `esc_carr_comecou` (mundo.ordem). Senha: `esc_carr_criar2`/`esc_carr_entrar2` + tabela fechada `esc_carr_senha`. `esc_carr_da_sala` (dono põe quem está na sala como clube). Cliente (no branch, esperando o "publica"): Criar carreira cria também uma sala `game_rooms` (`mode: 'carreira2'`, `co2Sala`, senha = a da carreira) e abre a sala de espera de sempre; o botão vira 🌐 Começar a carreira (≥2 na sala) → `esc_carr_da_sala` → `co2Iniciada` na sala → todos vão pra carreira (Co2Espera com `autoIniciar` no dono). SQL em `docs/sql/carreira-online-entrar-senha-20261128.sql` e `carreira-online-sala-espera-20261128.sql`. Bancada `node scripts/foto-sala-espera.mjs --carreira`. Falta: teste real com 2 contas até abrir o leilão.

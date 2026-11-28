@@ -10194,7 +10194,7 @@ export function PyramidSeasonScreen() {
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
   const presidentPending = usePresidentPreviewPending() && !mapaEstadioDisponivel(false) && mapaEstadioDisponivel(true) // espera só na conta candidata à prévia
-  const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && (presidentAccount||!state.co2&&mapaEstadioDisponivel(false)) && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
+  const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && (presidentAccount||mapaEstadioDisponivel(false)) /* 🗺️ 28/11: o mapa vale na carreira online também (Diego: "o mapa deve funcionar obviamente"), cada um no seu clube; o JOGO 3D não */ && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
   const stadiumMapAvailable = presidentAvailable && mapaEstadioDisponivel(presidentAccount)
   // A prévia V25 muda somente a apresentação. A simulação, o save, as Copas e
   // a autoridade do host continuam passando pelos mesmos caminhos abaixo.
@@ -10289,7 +10289,7 @@ export function PyramidSeasonScreen() {
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia' | 'veiculos' | 'arena' | 'museu' | 'estrutura' | 'negocios'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
   const clubeMapaApi=useRef<ControleComplexo|null>(null)
   const [mapaProntoN,setMapaProntoN]=useState(0)
-  const mapaComoClube = stadiumMapAvailable && state.onlineMode!=='online' && !state.co2
+  const mapaComoClube = stadiumMapAvailable && state.onlineMode!=='online'
 
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const lojaLib = useLojaLiberada() // 🛍️ Loja do Clube (liberada geral em 15/09; a porta de verdade é a OBRA da loja no estádio)
@@ -12441,7 +12441,7 @@ export function PyramidSeasonScreen() {
   // A apresentação e a partida usam o mesmo confronto e os mesmos XI.
   const contextoLigaNoEstadio = (sim: typeof live, r: number): ContextoPartidaEstadio | undefined => {
     const partida = myDiv ? sim.matches[myDiv]?.find(m => m.you) : undefined
-    if (!presidentAvailable || !partida) return undefined
+    if (!presidentAvailable || state.co2 || !partida) return undefined // 🏟️ 28/11: carreira online sem jogo 3D (só o mapa)
     const teams=Object.values(sim.tables).flat(),home=teams.find(t=>t.teamId===partida.hId),away=teams.find(t=>t.teamId===partida.aId)
     if(!home||!away)return undefined
     const xi=(t:SimTeam)=>t.human?lineupAt(entradasSim.lineups,t.teamId,r,t.squad,t.formation):botXI(t,r,botPlans)
@@ -12810,7 +12810,7 @@ export function PyramidSeasonScreen() {
   }, [fluxoCentral, centralDireta, calOn, tab, seasonOver, round, calFase, calLivre, copaPendente, meNaFaseCopa, copaMidOn, calI, calFim, calSn]) // eslint-disable-line react-hooks/exhaustive-deps
   // Só posiciona os XI antes do apito. Não avança rodada, relógio, gols ou tabela.
   const previa3d = useMemo<EstadoPartidaEstadio | null>(() => {
-    if (!pend3d || !presidentAvailable) return null
+    if (!pend3d || !presidentAvailable || state.co2) return null
     const eCopa = pend3d.tipo === 'copa' || pend3d.chave.endsWith(':c')
     if (eCopa) {
       const tie = myCopaTie
@@ -15063,7 +15063,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
-        {copaPlaying && myCopaTie && !copaSegura && <MyCopaMatch pensOrcamento={state.onlineMode === 'online' && copaPenMs ? copaPenMs / 1000 : undefined} onPenaltiesComplete={concluiuPensCampo} pausado={onlineCopa.active?onlineCopa.paused:pausaCentral||pausaFesta||subAberto} onFieldMinute={!state.co2&&copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
+        {copaPlaying && myCopaTie && !copaSegura && <MyCopaMatch pensOrcamento={state.onlineMode === 'online' && copaPenMs ? copaPenMs / 1000 : undefined} onPenaltiesComplete={concluiuPensCampo} pausado={onlineCopa.active?onlineCopa.paused:pausaCentral||pausaFesta||subAberto} onFieldMinute={!state.co2&&copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable&&!state.co2?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🏆 08/11 (Diego: *"a final deveria sempre aparecer no placar cinema ou no campo 2D… quando o usuário não tá participando"*):
             FINAL e SUPERCOPA de quem não está nelas — o mesmo placar grande/2D, neutro (sem "você"), no mesmo relógio da fase.
