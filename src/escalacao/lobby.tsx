@@ -4,6 +4,7 @@ import {CriacaoSala,ErroPrazoCriacao,leCriacaoPendente,gravaCriacaoPendente,limp
 import {PrivateRoomChat} from './private-room-chat'
 import {useOnlineRoomPresentation as useOwnerPresentation} from './presentation-release'
 import {OwnerOnlineHeader,OwnerOnlineProvider,OwnerSlot,OwnerWaitingLayout} from './owner-online-visual'
+import {useFootballChatDock} from './football-match-navigation'
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react'
 import { SeloCla } from './cla' // ⚔️ 21/10: clãs
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
@@ -176,9 +177,10 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend, pr
 }) {
   const [text, setText] = useState('')
   const [resp, setResp] = useState<ChatRe | null>(null)
+  const dockEspera = useFootballChatDock(roomId, privateChat) // 💬 28/11: no computador o chat entra na coluna da direita da sala de espera (não flutua por cima)
   useEffect(() => { const f = () => setOpen(false); window.addEventListener(EVENTO_PERFIL_ABERTO, f); return () => window.removeEventListener(EVENTO_PERFIL_ABERTO, f) }, [setOpen]) // 👥 abriu perfil pelo chat → fecha o chat
   const send = (t: string) => { if (!t.trim()) return; onSend(t, resp ?? undefined); setText(''); setResp(null) }
-  if(privateChat)return <PrivateRoomChat key={roomId} roomId={roomId} roomName={roomName||tr('Sala','Room')} people={people} open={open} setOpen={setOpen} unread={unread} messages={msgs} isMine={m=>!!myUid&&m.uid===myUid} onSend={onSend}/>
+  if(privateChat)return <PrivateRoomChat key={roomId} footballDock={dockEspera} roomId={roomId} roomName={roomName||tr('Sala','Room')} people={people} open={open} setOpen={setOpen} unread={unread} messages={msgs} isMine={m=>!!myUid&&m.uid===myUid} onSend={onSend}/>
   return (
     <>
       {!open && (
@@ -3528,7 +3530,7 @@ export function EscLobby() {
           <span className="text-xl leading-none">←</span> Home
         </button>
       )}
-      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`} onClickCapture={travaVisitante}>{ownerAccount&&!nbaSala&&phase==='waiting'?<><OwnerWaitingLayout hasRules={room?.game_state?.mode!=='mundo'&&room?.game_state?.mode!=='elenco'} canTheme={isHost&&meusTemas.length>0} chatEnabled={!room?.game_state?.chatOff}>{children}</OwnerWaitingLayout><div className="ow-shop"><OnlineLobbyFooter enabled><button type="button" onClick={()=>dispatch({type:'GO_LOBBY'})}>{tr('← Menu inicial','← Main menu')}</button></OnlineLobbyFooter></div></>:children}</div>
+      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`} onClickCapture={travaVisitante}>{ownerAccount&&!nbaSala&&phase==='waiting'?<><OwnerWaitingLayout hasRules={room?.game_state?.mode!=='mundo'&&room?.game_state?.mode!=='elenco'} canTheme={isHost&&meusTemas.length>0} chatEnabled={!room?.game_state?.chatOff} room={room?.id}>{children}</OwnerWaitingLayout><div className="ow-shop"><OnlineLobbyFooter enabled><button type="button" onClick={()=>dispatch({type:'GO_LOBBY'})}>{tr('← Menu inicial','← Main menu')}</button></OnlineLobbyFooter></div></>:children}</div>
     </div></OwnerOnlineProvider>
   )
 
