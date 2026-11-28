@@ -592,7 +592,7 @@ export function usePregaoNovo(): boolean {
 // competições novas da sala — Liga + Super Mundial (convoca clube do Mundial de 2025), Só Super Mundial (time do leilão) e
 // Liga + Champions (convoca clube da última Champions). Só eles VEEM e CRIAM; quem entrar na sala joga normal.
 // Liberar geral = SUPER_MUNDIAL_GERAL = true.
-const SUPER_MUNDIAL_GERAL = false
+const SUPER_MUNDIAL_GERAL = true // 🟢 28/11: liberado pra todos (Diego: "Sim")
 // ⭐ 26/11 (Diego: *"pode publicar já a Champions com a Liga… convocando… selo de novo"*): a LIGA + CHAMPIONS convocando sai da
 // trava e vale pra TODOS. O Super Mundial (os dois modos) segue só Diego + Futpoint. Desligar = false.
 export const CHAMPIONS_SALA_GERAL = true
