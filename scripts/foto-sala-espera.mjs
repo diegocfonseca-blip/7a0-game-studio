@@ -7,6 +7,7 @@ const LARG = arg('larguras', '390,1280,1440,1920').split(',').map(Number)
 const SOU_DONO = arg('dono', '1') === '1'
 const ABRE_CHAT = arg('abrechat', '1') === '1'
 const EMAIL = arg('email', 'teste@exemplo.com')
+const CARREIRA = process.argv.includes('--carreira') // 🏟️ 28/11: sala de espera da carreira online (mode carreira2)
 process.env.DEPLOY_BASE = '/'
 const { createServer } = await import('vite')
 const vite = await createServer({ server: { port: +PORTA, strictPort: true, watch: null, hmr: false } })
@@ -17,7 +18,8 @@ const nomes = ['História do Futebol', 'Dendele', 'Gui Sant\'ana FC', 'Brasil', 
 const uids = nomes.map((_, i) => i === 0 ? EU : `3333333${i}-3333-4333-8333-33333333333${i}`)
 const players = nomes.map((n, i) => ({ room_id: SALA, user_id: uids[i], player_index: i, manager_name: n, is_ready: i % 2 === 0, joined_at: new Date().toISOString() }))
 const room = { id: SALA, code: '53TG9T', host_id: SOU_DONO ? EU : uids[1], status: 'waiting', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), locked: false,
-  game_state: { __game: 'escalacao', roomName: 'Sala do História do Futebol', mode: 'rapido', copaMode: 'champions', chat: arg('chat', '1') === '1', manualRoom: true, clubes: true, turnoUnico: true, formation: '4-3-3', deckSala: 'todos', holandes: false } }
+  game_state: CARREIRA ? { __game: 'escalacao', roomName: 'Carreira do Neymarzetti', mode: 'carreira2', formation: '4-3-3', locked: true, pwHash: 'x', co2Sala: 's1', co2Codigo: 'C9403B', co2Cfg: { bots: 2, modo: 'dinamica', tempos: { pausa: 60, rodada: 60 }, baralho: 'todos' }, chat: true }
+    : { __game: 'escalacao', roomName: 'Sala do História do Futebol', mode: 'rapido', copaMode: 'champions', chat: arg('chat', '1') === '1', manualRoom: true, clubes: true, turnoUnico: true, formation: '4-3-3', deckSala: 'todos', holandes: false } }
 const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url')
 const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: EU, role: 'authenticated', exp: 4102444800, email: EMAIL })}.x`
 const user = { id: EU, aud: 'authenticated', role: 'authenticated', email: EMAIL, user_metadata: { name: nomes[0] }, app_metadata: {}, created_at: '2026-01-01T00:00:00Z' }
@@ -53,7 +55,7 @@ for (const w of LARG) {
   await p.waitForTimeout(5000)
   if (ABRE_CHAT) { const bt = p.locator('button[aria-label="Abrir chat da sala"]').first(); if (await bt.count()) { await bt.click(); await p.waitForTimeout(1200) } }
   const larg = await p.evaluate(() => document.documentElement.scrollWidth)
-  await p.screenshot({ path: `${OUT}/sala-espera-${w}${SOU_DONO ? '' : '-convidado'}${EMAIL.startsWith('diego') ? '-diego' : ''}.png`, fullPage: false })
+  await p.screenshot({ path: `${OUT}/${CARREIRA ? 'carreira-' : ''}sala-espera-${w}${SOU_DONO ? '' : '-convidado'}${EMAIL.startsWith('diego') ? '-diego' : ''}.png`, fullPage: false })
   console.log('📸', w, 'scrollWidth', larg)
   await ctx.close()
 }
