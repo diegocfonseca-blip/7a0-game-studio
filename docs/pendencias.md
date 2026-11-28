@@ -3,6 +3,9 @@ Diego: *"Deixa sem o jogo 3d mas o mapa deve funcionar obviamente… cada um cui
 - Saiu o `!state.co2` de `presidentAvailable`, `mapaComoClube` (pyramidseason.tsx) e `presidentWritesEnabled` (presidente-acesso.ts): mapa, estrutura, negócios, museu, presidência e garagem iguais à solo.
 - Jogo 3D trancado na carreira online: `contextoLigaNoEstadio`, `stadiumContext` da copa e `pend3d` devolvem nada com `state.co2` (o calendário/fluxo da Central já ficavam fora).
 - Cada aparelho só mexe no PRÓPRIO clube (`podeAlterarPresidencia` = você); estádio/presidência vivem na gaveta PRIVADA (`privadoCo2` = estado inteiro). A simulação não lê `stadiums` → resultados iguais em todos os aparelhos.
+- 🏛️ Museu liberado na carreira online (tirado o `state.co2` de `museu-clube.ts`/`museu-clube-ui.tsx`): sem ele o cartão aparecia e o botão ficava MUDO. Sem receita; `careerMuseums` fica no save privado e a virada guarda (não está em `DO_LEILAO`).
+- 🔒 SAF FECHADA na carreira online (tela com o porquê + `BUY_FILIAL`/`LOAN_TO_FILIAL`/`LOAN_FROM_FILIAL` recusam com `s.co2`). Motivo: o empréstimo põe o jogador no `cpuSquads` do bot SÓ neste aparelho → a simulação dos jogos daquele bot muda → tabelas diferentes entre aparelhos. Isso já existia (pela aba antiga) e o mapa deixaria à vista. Pra abrir: a SAF/empréstimos tem que ir na gaveta pública e todo aparelho aplicar no bot. Item do checklist "SAF clássica" segue aberto.
+- (Já existia, sem relação: `npm run saf2` reprova no preço da venda da SAF na A — 2000 × 2500 esperado — no main também.)
 - Pendente: foto real do mapa numa carreira online (a bancada não monta a carreira online inteira com o 3D) — conferir no teste com o Futpoint.
 - Reverter: recolocar os três `!state.co2`.
 

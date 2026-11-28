@@ -15,7 +15,7 @@ import './museu-clube.css'
 const Sala=lazy(()=>import('./museu-clube-sala'))
 export function MuseuMelhoria({state,mgrId,onOpen}:{state:EscState;mgrId:number;onOpen:()=>void}){
  const t=useT(),stage=etapasMuseu(state.careerMuseums?.[mgrId])
- if(!state.careerOnline||state.onlineMode==='online'||state.co2||state.sport==='basquete')return null
+ if(!state.careerOnline||state.onlineMode==='online'||state.sport==='basquete')return null
  return <section className="mc-museum mc-short"><div><small>{t('MELHORIA OPCIONAL','OPTIONAL IMPROVEMENT')}</small><h2>{t('Museu do clube','Club museum')}</h2><p>{stage===4?t('Sua casa de conquistas está aberta.','Your trophy hall is open.'):t('80 moedas · 4 etapas de 20. Requer a Loja do Clube.','80 coins · 4 stages of 20. Requires the Club Store.')}</p></div><button type="button" onClick={onOpen}>{stage===4?t('Entrar no museu →','Enter museum →'):t('Acervo e construção →','Collection and construction →')}</button></section>
 }
 export function MuseuClube({state,mgrId,member,color,onInvest,onStore}:{state:EscState;mgrId:number;member?:MeuSocio|null;color?:string;onInvest:(stage:number)=>void;onStore:()=>void}){

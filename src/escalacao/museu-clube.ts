@@ -17,7 +17,7 @@ export function etapasMuseu(value:MuseuClubeSave|undefined):number{
 }
 export function orcamentoMuseu(state:CarreiraMuseu,id:number,expectedStage=etapasMuseu(state.careerMuseums?.[id])){
  const saved=state.careerMuseums?.[id],stage=etapasMuseu(saved),coins=state.careerCoins?.[id]??0
- const reason=!state.careerOnline||state.onlineMode==='online'||state.co2||state.sport==='basquete'||state.managers[state.youIdx]?.id!==id||!state.managers[state.youIdx]?.isHuman?'modo':
+ const reason=!state.careerOnline||state.onlineMode==='online'||state.sport==='basquete'||state.managers[state.youIdx]?.id!==id||!state.managers[state.youIdx]?.isHuman?'modo':
   saved!==undefined&&(!saved||saved.version!==1||saved.etapas!==stage)?'progresso':stage>=MUSEU_ETAPAS?'concluido':expectedStage!==stage?'etapa':!hasExtra(state.stadiums?.[id],'loja')?'loja':!Number.isFinite(coins)||coins<MUSEU_ETAPA?'saldo':null
  return {ok:reason===null,reason,stage,cost:MUSEU_ETAPA,total:MUSEU_CUSTO,coins}
 }

@@ -14098,6 +14098,10 @@ export function PyramidSeasonScreen() {
   }
   const renderEstruturaDoClube=(insidePanel=false,business=false)=> (
           <>
+            {business && state.co2 && <div data-co2-saf-trava style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 0 ${INK}`, padding: '12px 14px', margin: '8px 0' }}>
+              <b style={{ ...OSWALD, fontSize: 15, textTransform: 'uppercase' }}>{tr('🔒 SAF em breve na carreira online', '🔒 SAF coming soon to online career')}</b>
+              <p style={{ fontFamily: 'system-ui', fontSize: 12.5, margin: '6px 0 0', lineHeight: 1.45 }}>{tr('A SAF mexe no elenco de um time da máquina, e na carreira online a tabela tem que ser igual pra todo mundo. Por isso ela fica fechada aqui por enquanto. Sua agência continua em "Minha agência".', 'An SAF changes a CPU team\'s squad, and in online career the table must be the same for everyone. So it stays closed here for now. Your agency is still under "My agency".')}</p>
+            </div>}
             {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início
                 de temporada (antes de "Começar a temporada") — aqui é só status/leitura.
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
@@ -14123,7 +14127,7 @@ export function PyramidSeasonScreen() {
                 for (const d of DIVS) { const i = tables[d].findIndex(t => t.name === fn); if (i >= 0) return { div: d, pos: i + 1 } }
                 return null
               })()}
-              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId, pagante: saf2Pagante })}
+              onBuyFilial={state.co2 ? undefined /* 🔒 28/11: SAF fechada na carreira online (empréstimo mudaria o time da máquina só neste aparelho) */ : team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId, pagante: saf2Pagante })}
               onSellFilial={saf2Ui ? undefined : () => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
               filialSale={myFilial && !saf2Ui ? filialSaleValue(state, myFilial) : undefined}
               saf2={saf2Ui ? {

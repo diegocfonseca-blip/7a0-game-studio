@@ -11900,6 +11900,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'BUY_FILIAL': {
+      if (s.co2) return s // 🔒 28/11: carreira online sem SAF por enquanto — mexeria no elenco de um bot só neste aparelho (tabelas diferentes)
       // 🏢 compra do clube-filial: só carreira OFFLINE, estádio 100% completo,
       // 2.000 de caixa, um por carreira, nunca um rival (nem o próprio time).
       if (s.onlineMode === 'online') {
@@ -12116,6 +12117,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'LOAN_TO_FILIAL': {
+      if (s.co2) return s // 🔒 28/11: carreira online sem SAF por enquanto — mexeria no elenco de um bot só neste aparelho (tabelas diferentes)
       // empresta um jogador SEU pra SAF: some do seu time, joga lá — mas
       // continua SEU (não é venda). Vagas crescem com a divisão (D1·C2·B3·A4).
       if (s.onlineMode === 'online') {
@@ -12163,6 +12165,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'LOAN_FROM_FILIAL': {
+      if (s.co2) return s // 🔒 28/11: carreira online sem SAF por enquanto — mexeria no elenco de um bot só neste aparelho (tabelas diferentes)
       // pega um jogador emprestado DA SAF: joga com você, mas continua sendo
       // dela — volta sozinho na virada. Vagas crescem com a divisão (D1·C2·B3·A4).
       if (s.onlineMode === 'online') {
