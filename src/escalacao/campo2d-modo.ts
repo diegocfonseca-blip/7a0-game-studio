@@ -71,7 +71,12 @@ export function useCampo2DLigado(): boolean {
   if (s && s.onlineMode === 'online') return doPasso ?? !!s.campo2d
   // 🏆 07/11 (Diego): na CARREIRA o 2D é de graça (*"o campo 2D liberado para ainda assim esse usuário decidir se ele quer o campo 2D ou o
   // placar cinema"*) — o Manual continua com o cadeado. Partida Rápida offline segue do plano. (A carreira OFFLINE tem careerOnline = true.)
-  return liberado && p && (pg || !!s?.careerOnline)
+  return liberado && p && (pg || !!s?.careerOnline || rapida2DGratis(s))
+}
+
+/** ⚡📺 28/11 (Diego: *"Sim"*): na PARTIDA RÁPIDA offline o 2D é de graça pra todo mundo, até sem conta. O Manual segue pago. */
+export function rapida2DGratis(s: { onlineMode?: string; roomId?: string | null; dinastia?: boolean; careerOnline?: boolean; co2?: unknown } | undefined | null): boolean {
+  return !!s && s.onlineMode === 'cpu' && !s.roomId && !s.dinastia && !s.careerOnline && !s.co2
 }
 
 /** 🏀📺 a carreira do basquete ONLINE ainda não existe (selo EM BREVE) — lá a quadra fica desligada. A carreira OFFLINE tem
