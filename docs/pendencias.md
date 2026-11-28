@@ -15870,3 +15870,8 @@ esconde, o banco recusa com 'antigo', e a virada não usa esse time nem como res
 - Diego: *"deixar isso só pro streamer q criou"*. Antes o cadeado 🔒 nos valores valia pra todo mundo da sala Stream; agora só no
   aparelho de quem criou (`streamEsconde = streamMode && isHost`, Envelope e EnvelopeUnico em screens.tsx). Os outros veem os próprios
   lances normal. Pacing/abertura do stream (dono dá o start) não mudou. Reverter = trocar `streamEsconde` de volta por `state.streamMode`.
+
+## 🌍 28/11 — Troféu do Super Mundial no formato REAL (aprovado: *"Ficou sim tá ótimo"*)
+- Pelas 2 fotos do Diego: aro largo, disco com rosácea, anel inclinado (passa atrás e na frente) e cúpula preta com aro dourado. Sem logo/letra.
+- Trocado em `competicoes-visual.tsx` (abertura/festa/túnel) e `trofeus-perfil.tsx` (taça do perfil); `trofeu-grande.png`, story e reels
+  regerados. Mockup `scripts/mockups/super-mundial/trofeu-novo-mockup.png`. ⏳ Falta o "publica" do Diego.
