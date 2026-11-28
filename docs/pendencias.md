@@ -15879,4 +15879,6 @@ esconde, o banco recusa com 'antigo', e a virada não usa esse time nem como res
 ## 🌍 28/11 — Troféu do Super Mundial no formato REAL (aprovado: *"Ficou sim tá ótimo"*)
 - Pelas 2 fotos do Diego: aro largo, disco com rosácea, anel inclinado (passa atrás e na frente) e cúpula preta com aro dourado. Sem logo/letra.
 - Trocado em `competicoes-visual.tsx` (abertura/festa/túnel) e `trofeus-perfil.tsx` (taça do perfil); `trofeu-grande.png`, story e reels
-  regerados. Mockup `scripts/mockups/super-mundial/trofeu-novo-mockup.png`. ⏳ Falta o "publica" do Diego.
+  regerados. Mockup `scripts/mockups/super-mundial/trofeu-novo-mockup.png`. ✅ Publicado 28/11 (+ "CLUB WORLD CUP" no alto do aro).
+- 🟢 28/11: **Super Mundial LIBERADO PRA TODOS** (*"Sim"*): `SUPER_MUNDIAL_GERAL = true`, selo NOVO nas duas opções e linha em novidades.
+  Publicado junto com o troféu novo. Desligar = voltar `SUPER_MUNDIAL_GERAL = false` (só some a opção de criar; sala em andamento termina).
