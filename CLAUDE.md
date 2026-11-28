@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## Pregão aberto público — 28/11/2026
+
+Após aprovar os vídeos de celular e computador, Diego autorizou expressamente: **“Pode publicar pra todos já tudo desktop e celular”**. A apresentação aprovada de uma/duas cartas passa a ser pública no pregão normal de futebol: virada na própria carta, carimbo do comprador, miniatura voando para as três últimas compras e próxima carta automática. Campinho aberto; celular com compras acima do campo, PC com faixa abaixo das mesas. Reutilizar Shell/CollectibleCard/YourPitch e ações/relógio da sala existentes. Não liberar por tabela prévias privadas nem redesenhar NBA, Vice City, pacotes, Kings ou Pokémon. Motor, identidade, economia e saves preservados. Escopo, verificações e reversão em `docs/auditorias/pregao-visual-publico-20261128.md`.
+
 ## Brasil Oficial — travamentos, correção local (28/11/2026)
 
 Diego pediu investigar relatos gerais, sem conta/etapa identificadas. Correção isolada: metadados M2/calendário/físico sem clonar elenco; cache curto de seis alturas da simulação por entradas; retomada de decisões capturada por confronto, para tática nova não fechar o painel/soltar pausa. Preservar resultados, regras, OVR, economia e saves; sem alteração de servidor ou da prévia Co2 pendente. Relatório/provas em `docs/auditorias/travas-brasil-oficial-20261128.md`. Não afirmar causa exata dos relatos sem reprodução do save afetado nem FPS físico. Ainda não publicado; não misturar com a aprovação visual Co2 do pedido anterior.

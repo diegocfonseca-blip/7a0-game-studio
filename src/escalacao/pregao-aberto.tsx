@@ -14,6 +14,8 @@ import { openSlots } from './store'
 import { agoraSala } from './relogio'
 import { getSport, usePregaoNovo } from './sport'
 import { POS_LABELS } from './sportcfg'
+import { usaPregaoVisualPublico } from './pregao-visual-policy'
+import { PregaoVisualPublico } from './pregao-visual'
 import { ViceCityFaixa, ViceCityMao, ViceDecor, VICE_TEMA_CSS, ViceOverlays } from './vice-city-ui'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
@@ -30,6 +32,7 @@ const tagPos = (p: string) => bbPA() && p in POS_LABELS.basquete ? POS_LABELS.ba
 export function PregaoAberto() {
   const { state } = useEsc()
   const novo = usePregaoNovo() || (!!state.pa && !state.pa.duplo)
+  if (usaPregaoVisualPublico(state, getSport() === 'basquete')) return <PregaoVisualPublico />
   return novo ? <PregaoAbertoNovo /> : <PregaoAbertoAntigo />
 }
 
