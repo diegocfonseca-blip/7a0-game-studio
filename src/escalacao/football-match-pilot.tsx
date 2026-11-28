@@ -5,6 +5,7 @@ import { tr } from './lang'
 import './football-match-pilot.css'
 import './football-classic-presentation.css'
 import {useFootballMatchNavigation} from './football-match-navigation'
+import {useEscTalvez} from './store'
 
 const preferenceKey = (email: string) => `esc-football-match-pilot-v2-off:${email||'public'}`
 const preferenceListeners=new Set<()=>void>()
@@ -71,12 +72,16 @@ type ViewOption = { value: string; label: string; disabled: boolean }
 export function FootballMatchPilotView({ children }: { children: ReactNode }) {
   const source = useRef<HTMLDivElement>(null)
   const [view, setView] = useState<{ value: string; options: ViewOption[]; note: string }>({ value: '', options: [], note: '' })
+  const [semSelect, setSemSelect] = useState(false) // ⚡ 28/11: na Partida Rápida sem plano vem o CADEADO (botão), não a escolha — aí mostra ele mesmo
+  const sala = useEscTalvez()?.state.onlineMode === 'online'
   useLayoutEffect(() => {
     const select = source.current?.querySelector('select')
+    setSemSelect(!select)
     if (!select) return
     const next = { value: select.value, options: Array.from(select.options, o => ({ value: o.value, label: o.text, disabled: o.disabled || select.disabled })), note: source.current?.querySelector('small')?.textContent ?? '' }
     setView(old => JSON.stringify(old) === JSON.stringify(next) ? old : next)
   }, [children])
+  if (semSelect) return <div ref={source}>{children}</div>
   return <div className="fp-view-picker">
     <div ref={source} className="fp-view-native">{children}</div>
     <div role="group" aria-label={tr('Visualização da partida', 'Match view')}>
@@ -88,6 +93,6 @@ export function FootballMatchPilotView({ children }: { children: ReactNode }) {
         select.dispatchEvent(new Event('change', { bubbles: true }))
       }}>{o.value === 'placar' ? tr('Placar cinema', 'Cinema scoreboard') : o.label}</button>)}
     </div>
-    <small>{view.note || tr('Vale a partir do próximo jogo, para toda a sala.', 'Applies from the next match, for the whole room.')}</small>
+    <small>{view.note || (sala ? tr('Vale a partir do próximo jogo, para toda a sala.', 'Applies from the next match, for the whole room.') : tr('Escolha como ver o seu jogo.', 'Choose how to watch your match.'))}</small>
   </div>
 }

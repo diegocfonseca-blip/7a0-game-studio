@@ -10,11 +10,14 @@ export type FootballMatchPilotScope = {
   sport?: string; onlineMode?: string; screen?: string
   careerOnline?: boolean; careerIntent?: boolean; co2?: unknown; pokeLiga?: unknown
   ligaDraft?:boolean;minhaLigaDraft?:boolean
-  copaSala?:boolean // 🌍 28/11: sala criada SÓ pra Copa do Mundo (convocando) — a transmissão dela também ganha o visual novo
+  copaSala?:boolean
+  dinastia?:boolean;roomId?:string // 🌍 28/11: sala criada SÓ pra Copa do Mundo (convocando) — a transmissão dela também ganha o visual novo
 }
 export function footballMatchPilotScope(state: FootballMatchPilotScope) {
   if (state.copaSala) return state.sport !== 'basquete'
-  return state.sport !== 'basquete' && state.onlineMode === 'online'
+  // ⚡ 28/11 (Diego, live do Dennoso): a PARTIDA RÁPIDA offline usa o MESMO visual das salas online (abas, placar/2D, ritmo)
+  const rapidaOffline = state.onlineMode === 'cpu' && !state.roomId && !state.dinastia
+  return state.sport !== 'basquete' && (state.onlineMode === 'online' || rapidaOffline)
     && !state.careerOnline && !state.careerIntent && !state.co2 && !state.pokeLiga
     && !state.ligaDraft&&!state.minhaLigaDraft
     && !!state.screen && ['season', 'liberta', 'champions','end'].includes(state.screen)
