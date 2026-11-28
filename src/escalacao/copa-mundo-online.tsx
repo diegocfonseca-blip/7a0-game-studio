@@ -1,7 +1,7 @@
 import {withCupPlans} from './copa-planos'
 import { QuemEJogador } from './quem-e-jogador'
 import {clockMinute} from './copa-clock-preview'
-import {useOwnerFootballAvailable} from './owner-online-visual'
+import {useOwnerFootballAvailable,OwnerOnlineProvider} from './owner-online-visual'
 // ─── 🌐 COPA DO MUNDO ONLINE — a Copa da TURMA ───────────────────────────────
 //
 // 🌐 POR QUE ESTE GLOBO E NÃO O 🌍: no seletor "Depois da liga" a Copa do Mundo
@@ -271,9 +271,11 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
 // escreve em `esc_results` — ver a trava lá dentro).
 const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: null }
 
-export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean }) {
+export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true, salaPropria=false }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean; salaPropria?:boolean }) {
   const cinematic = ONLINE_VISUAL_RELEASED
-  const cupFeatures=useOwnerFootballAvailable()
+  // 🌍 28/11 (Diego): a sala criada SÓ pra Copa do Mundo ficava com a tática antiga (3 botões). Ela ganha o mesmo visual novo
+  // da Copa que vem depois da liga — só dentro da transmissão (provider abaixo), a sala de espera não muda.
+  const cupFeatures=useOwnerFootballAvailable()||salaPropria
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
   // ⚔️ 23/10: o relógio pede o tempo dos pênaltis ao mundo JÁ com as táticas — por isso lê de uma ref, preenchida logo abaixo
   const worldRef=useRef<ReturnType<typeof simulaCopaMundo>|null>(null)
@@ -309,7 +311,7 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   // outra (foi exatamente esse o bug do "novo leilão" no ranking, em agosto).
   const online = { seasonKey: `mundo:${roomId}:${ficha.seed}:copamundo`, aoCampeao, clock: clockMostrado, tat: qual, taticaSlot }
   if(!visible)return null
-  return (
+  const tela=(
     <CMModal wide cinematic={cinematic} onlineBroadcast>
       {/* 📺⚡ todo placar da Copa desenha o 2D do PASSO que o banco carimbou (todo aparelho igual; a troca do dono entra no passo seguinte) */}
       <Campo2DDoPassoCtx.Provider value={doisDDoPasso(clockMostrado?.row)}>
@@ -318,6 +320,7 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
       </Campo2DDoPassoCtx.Provider>
     </CMModal>
   )
+  return salaPropria?<OwnerOnlineProvider enabled state={{managers:[],youIdx:0,quickCopa:null,onlineMode:'online',sport:'futebol',screen:'copa',roomId,copaSala:true}}>{tela}</OwnerOnlineProvider>:tela
 }
 
 // ─── 3) O PAINEL DO DONO — quem já está pronto e o botão de abrir a Copa ─────

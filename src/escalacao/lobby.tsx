@@ -6028,7 +6028,7 @@ export function EscLobby() {
         </button>
       )}
       {ehMundoSala && copaFicha && (copaAberta || privateOnline) && (
-        <CopaDaSala ficha={copaFicha} roomId={room.id} meuUid={user?.id} souDono={isHost} visible={copaAberta}
+        <CopaDaSala ficha={copaFicha} roomId={room.id} meuUid={user?.id} souDono={isHost} visible={copaAberta} salaPropria
           aoCampeao={(nome, pais) => {
             // 🏆 um grava, todos leem: o DONO escreve o troféu na estante da sala
             // (é ele que o banco deixa editar depois) e a lista relê pra todo mundo.

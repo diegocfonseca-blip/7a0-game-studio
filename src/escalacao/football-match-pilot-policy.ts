@@ -10,8 +10,10 @@ export type FootballMatchPilotScope = {
   sport?: string; onlineMode?: string; screen?: string
   careerOnline?: boolean; careerIntent?: boolean; co2?: unknown; pokeLiga?: unknown
   ligaDraft?:boolean;minhaLigaDraft?:boolean
+  copaSala?:boolean // 🌍 28/11: sala criada SÓ pra Copa do Mundo (convocando) — a transmissão dela também ganha o visual novo
 }
 export function footballMatchPilotScope(state: FootballMatchPilotScope) {
+  if (state.copaSala) return state.sport !== 'basquete'
   return state.sport !== 'basquete' && state.onlineMode === 'online'
     && !state.careerOnline && !state.careerIntent && !state.co2 && !state.pokeLiga
     && !state.ligaDraft&&!state.minhaLigaDraft
