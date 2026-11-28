@@ -236,7 +236,7 @@ export function Co2Criar({ nomeClube, Secao, Opcoes, Layout, primeiro, onAbre, o
   }
   let n = primeiro
   const chips = [tr('🪜 Tradicional', '🪜 Classic'), `🌐 ${nomeFinal}`, senha.trim() ? tr('🔒 com senha', '🔒 password set') : tr('🔒 falta a senha', '🔒 password missing'), cfg.baralho === 'br' ? tr('🇧🇷 Só Brasil', '🇧🇷 Brazil only') : tr('🌎 BR + Europa + Mundo', '🌎 BR + Europe + World'), `🛡️ ${clube.trim() || nomeClube}`, cfg.bots ? `🤖 ${cfg.bots} bots` : tr('🤖 sem bots', '🤖 no bots'), cfg.modo === 'dinamica' ? tr('⚡ Dinâmica', '⚡ Dynamic') : tr('🧭 Livre', '🧭 Free'), tr('até 20 clubes', 'up to 20 clubs')]
-  const botaoCriar = podeCriar === false ? null : <button type="button" disabled={indo || podeCriar === null} onClick={() => void criar()} style={{ ...botao(GOLD), opacity: indo ? .7 : 1 }}><span>{indo ? tr('Criando…', 'Creating…') : tr('Criar carreira →', 'Create career →')}</span></button>
+  const botaoCriar = podeCriar === false ? null : <button type="button" disabled={indo || podeCriar === null} onClick={() => void criar()} style={{ ...botao(GOLD), opacity: indo ? .7 : 1 }}><span>{indo ? tr('Criando…', 'Creating…') : tr('Criar sala →', 'Create room →')}</span></button>
   const travaTxt = tr('🔒 Criar carreira online é só pra quem tem plano. Você pode entrar na de um amigo pelo código e senha, em Testes e ferramentas.', '🔒 Creating an online career needs a plan. You can join a friend\'s with the code and password, in Tests and tools.')
   const secoes = <>
       {/* 🪜 27/11 (Diego: *"por enquanto somente carreira tradicional c clubes feitos pela galera… oficial Brasil e global somente futuramente"*) */}
@@ -288,7 +288,7 @@ export function Co2Criar({ nomeClube, Secao, Opcoes, Layout, primeiro, onAbre, o
         {podeCriar === false ? (
           <p style={{ fontWeight: 800, fontSize: 12.5, color: '#FFD9D2', margin: 0 }}>🔒 {tr('Criar carreira online é só pra quem tem plano. Você pode entrar na de um amigo pelo código, aqui embaixo.', 'Creating an online career needs a plan. You can join a friend\'s with the code, below.')}</p>
         ) : (
-          <button type="button" disabled={indo || podeCriar === null} onClick={() => void criar()} style={{ ...botao(GOLD), opacity: indo ? .7 : 1 }}>{indo ? tr('Criando…', 'Creating…') : tr('🌐 Criar carreira →', '🌐 Create career →')}</button>
+          <button type="button" disabled={indo || podeCriar === null} onClick={() => void criar()} style={{ ...botao(GOLD), opacity: indo ? .7 : 1 }}>{indo ? tr('Criando…', 'Creating…') : tr('🌐 Criar sala →', '🌐 Create room →')}</button>
         )}
         {erro && <p style={{ fontWeight: 800, fontSize: 12, color: '#FFB4A6', margin: '8px 0 0' }}>{erro}</p>}
       </div>
