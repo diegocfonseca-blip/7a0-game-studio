@@ -15865,3 +15865,8 @@ esconde, o banco recusa com 'antigo', e a virada não usa esse time nem como res
   "intervalo" da bancada está velho: o modo "só no intervalo" saiu do futebol em 8fdf5b9b. Pra rodar aqui, trocar o executablePath pra /opt/pw-browsers/chromium.
 - ⚠️ Não reproduzi o print na bancada (o código velho também passa nela). Se voltar: perguntar se ele estava em outra aba no apito, se tinha coletiva,
   e se o jogo estava aberto desde antes de 26/11 (publicar não recarrega ninguém).
+
+## 🎥 28/11 — Modo Stream: lances escondidos só pro DONO da sala
+- Diego: *"deixar isso só pro streamer q criou"*. Antes o cadeado 🔒 nos valores valia pra todo mundo da sala Stream; agora só no
+  aparelho de quem criou (`streamEsconde = streamMode && isHost`, Envelope e EnvelopeUnico em screens.tsx). Os outros veem os próprios
+  lances normal. Pacing/abertura do stream (dono dá o start) não mudou. Reverter = trocar `streamEsconde` de volta por `state.streamMode`.

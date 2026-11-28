@@ -5030,6 +5030,8 @@ function Holandes() {
 // passa da caixa (o motor confere de novo em `envelopeQueCabe`). Fantasma (👁️) vê tudo, sem os controles.
 function EnvelopeUnico() {
   const { state, dispatch } = useEsc()
+  // 🎥 28/11 (Diego): no Modo Stream só o DONO da sala (quem filma) tem os lances escondidos; os outros veem normal
+  const streamEsconde = !!state.streamMode && !!state.isHost
   const you = state.managers[state.youIdx]
   const sport: Sport = state.sport === 'basquete' ? 'basquete' : 'futebol'
   const lang: 'pt' | 'en' = getLang() === 'en' ? 'en' : 'pt'
@@ -5048,7 +5050,7 @@ function EnvelopeUnico() {
   const podeLance = precisaLacrar && !iSubmitted && !pending
   const total = Object.values(bids).reduce((a, b) => a + b, 0)
   const lancesNa = (p: string) => Object.keys(bids).filter(id => state.currentCards.find(c => c.id === id)?.pos === p).length
-  const masked = !!state.streamMode && !peek
+  const masked = streamEsconde && !peek
   function bump(c: Card, dir: 1 | -1) {
     if (!you || !podeLance) return
     const floor = (c as { paid?: number }).paid ?? 0
@@ -5172,7 +5174,7 @@ function EnvelopeUnico() {
                 <div className="min-w-0">
                   <p className="text-[13px] font-black text-white" style={OSWALD}>✉️ {tr('ENVELOPE', 'ENVELOPE')}: <span style={{ color: GOLD }}>{masked ? '🔒' : total} / {you?.money ?? 0}</span></p>
                   <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.7)' }}>{faltam.length ? `${tr('Faltam lances em', 'No bids yet in')}: ${faltam.join(' · ')}` : tr('Todas as posições com lance', 'Bids in every position')}</p>
-                  {state.streamMode && <button onClick={() => setPeek(v => !v)} className="text-[10px] font-black underline" style={{ color: GOLD }}>{peek ? tr('🙈 esconder meus lances', '🙈 hide my bids') : tr('👁️ ver meus lances', '👁️ show my bids')}</button>}
+                  {streamEsconde && <button onClick={() => setPeek(v => !v)} className="text-[10px] font-black underline" style={{ color: GOLD }}>{peek ? tr('🙈 esconder meus lances', '🙈 hide my bids') : tr('👁️ ver meus lances', '👁️ show my bids')}</button>}
                 </div>
                 <Btn onClick={seal} bg={RED}><span className="text-white whitespace-nowrap">{pending ? tr('ENVIANDO…', 'SENDING…') : tr('LACRAR TUDO 🔒', 'SEAL ALL 🔒')}</span></Btn>
               </div>
@@ -5189,6 +5191,8 @@ function EnvelopeUnico() {
 
 function Envelope() {
   const { state, dispatch, emote } = useEsc()
+  // 🎥 28/11 (Diego): no Modo Stream só o DONO da sala (quem filma) tem os lances escondidos; os outros veem normal
+  const streamEsconde = !!state.streamMode && !!state.isHost
   const [blLang] = useLang()
   const you = state.managers[state.youIdx]
   const pos = ordemSetores()[state.sectorIdx]
@@ -5498,7 +5502,7 @@ function Envelope() {
       ? <>💡 The card level is the <b>player's peak at that club and year</b>: Kaká · São Paulo 2003 is a prospect, Kaká · Milan 2007 is a legend. Mind the club and the year!</>
       : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>)
   return (
-    <Shell auctionBudget={{committed:total,masked:!!state.streamMode&&!peek}} bar={<AuctionBar vagas={pregaoLimpo && canBid ? bidLimit : undefined} ajuda={pregaoLimpo} />}>
+    <Shell auctionBudget={{committed:total,masked:streamEsconde&&!peek}} bar={<AuctionBar vagas={pregaoLimpo && canBid ? bidLimit : undefined} ajuda={pregaoLimpo} />}>
       {careerVisualV2(state)?<CareerAuctionHint stage={state.reserveAuction?'reservas':'lance'} slots={bidLimit} bidTotal={total}/>:sport !== 'basquete' && <NarradorDica fase="envelope" texto="✉️ Escreve teu lance ESCONDIDO — ninguém vê o de ninguém! Quem der mais, leva no martelo. E se segura: são 5 posições pra encher o time. 💰" />}
       {/* 🎓 O ENSINO. Com o pregão limpo as regras saem da frente das cartas — mas
           QUEM ESTÁ COMEÇANDO vê tudo aqui, uma vez, no começo da partida/carreira,
@@ -5656,7 +5660,7 @@ function Envelope() {
 
       {/* 🔨 PREGÃO LIMPO: este quadro é REDUNDANTE — a própria carta já mostra
           "mín 🔒 7" logo em cima da caixa do lance. A explicação foi pro ❓. */}
-      {!pregaoLimpo && !state.streamMode && canBid && cards.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
+      {!pregaoLimpo && !streamEsconde && canBid && cards.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
         <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5 ov3-surface" style={{ background: '#FFF3D6', boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p className="text-[11px] font-bold text-black/75">🔒 O número esmaecido é o <b>piso</b> do jogador — <b>não é lance</b>. Só vira lance quando você aperta <b>+</b> (aí fica preto). Abaixo do piso fica vermelho e é anulado.</p>
         </div>
@@ -5674,7 +5678,7 @@ function Envelope() {
           // 🎥 stream escondido: enquanto NÃO apertar "Ver meus lances", TUDO na
           // linha fica idêntico (mesmo cadeado, + sempre aceso) pra câmera não
           // denunciar em quem/quanto. Com o peek, volta a ser um jogo normal.
-          const masked = state.streamMode && !peek
+          const masked = streamEsconde && !peek
           // de quem é esse jogador listado (carreira): marca sutil na cor do técnico
           const sellerId = (c as { seller?: number }).seller
           const sellerM = sellerId != null ? state.managers.find(m => m.id === sellerId) : undefined
@@ -5741,13 +5745,13 @@ function Envelope() {
       </div>
 
       <AuctionSlot name="summary">
-      {state.careerOnline && total>0 && (!state.streamMode||peek) && <CompromissoCarreira
+      {state.careerOnline && total>0 && (!streamEsconde||peek) && <CompromissoCarreira
         custo={total}
         salarioNovo={Object.entries(bids).reduce((sum,[id,v])=>{const c=state.currentCards.find(c=>c.id===id);return sum+(tecMesa?Math.round(v/10):c?salaryOfCard({...c,paid:v,via:'leilao'}):0)},0)}
         salarioSubstituido={tecMesa?Math.round((state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0)/10):0}
         multa={tecMesa?(state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0):0}
         manager={you} />}
-      {state.streamMode && canBid && (
+      {streamEsconde && canBid && (
         <Box bg="#111" className="p-2.5 text-center space-y-2">
           <p className="font-black text-white text-xs" style={OSWALD}>{L('🎥 MODO STREAM — os valores ficam ocultos até o martelo. Manda ver no dedo! 🔒', '🎥 STREAM MODE — amounts stay hidden until the hammer. Go for it! 🔒')}</p>
           {/* pra quem NÃO está filmando: dá pra ver os próprios lances (só no seu aparelho) */}
@@ -5758,7 +5762,7 @@ function Envelope() {
       )}
       {minhaVez && !state.espectador && (
       <Box bg="#fff" className="ll-auction-seal p-3 flex items-center justify-between">
-        <p className="font-black text-black" style={OSWALD}>{L('ENVELOPE', 'ENVELOPE')}: {state.streamMode && !peek ? '🔒' : total} / {you.money}</p>
+        <p className="font-black text-black" style={OSWALD}>{L('ENVELOPE', 'ENVELOPE')}: {streamEsconde && !peek ? '🔒' : total} / {you.money}</p>
         <Btn onClick={seal} bg={RED}>
           <span className="text-white">{L('LACRAR', 'SEAL')} 🔒</span>
         </Btn>
@@ -5792,7 +5796,7 @@ function Envelope() {
         const room = you.money - others // teto que cabe pra ESTA carta
         const cName = c.id === state.surpriseId ? L('🎁 Jogador Surpresa', '🎁 Mystery Player')
           : c.id === state.mudoId ? `${ENIGMA_EMOJI} ${L(`Jogador ${ENIGMA_NOME.pt}`, `${ENIGMA_NOME.en} Player`)}` : c.name
-        const masked = state.streamMode && !peek
+        const masked = streamEsconde && !peek
         const typed = parseInt(typeVal || '0', 10)
         const min = Math.max(1, floor)
         const valid = typed >= min && typed <= room
@@ -5838,7 +5842,7 @@ function Envelope() {
               {!masked && typeVal !== '' && typed > room && <p className="text-[11px] font-black text-red-600 mt-1.5">💰 Passou do que cabe — máximo {room}.</p>}
               {!masked && typeVal !== '' && floor > 0 && typed > 0 && typed < floor && <p className="text-[11px] font-black text-red-600 mt-1.5">🔒 Abaixo do mínimo — mín {floor}.</p>}
               {masked && typeVal !== '' && !valid && <p className="text-[11px] font-black text-red-600 mt-1.5">{L('🔒 Esse valor não vale (fora do limite).', '🔒 That amount is not allowed (out of range).')}</p>}
-              {state.streamMode && (
+              {streamEsconde && (
                 <button onClick={() => setPeek(p => !p)} className="w-full mt-2 border-2 border-black rounded-lg py-1.5 font-black text-xs" style={{ background: peek ? GOLD : INK, color: peek ? '#000' : '#fff', ...OSWALD }}>
                   {peek ? L('🙈 Esconder (voltar pra câmera)', '🙈 Hide (back to camera)') : L('👁️ Mostrar só pra mim', '👁️ Show only to me')}
                 </button>
