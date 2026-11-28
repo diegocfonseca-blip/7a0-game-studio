@@ -10,8 +10,8 @@ for (const tela of ['criar', 'criar-v01', 'espera']) {
   const ctx = await b.newContext({ viewport: { width: 420, height: 900 }, deviceScaleFactor: 2 })
   await ctx.addInitScript(() => { try { localStorage.setItem('bl_lang', 'pt'); localStorage.setItem('esc-co2-cfg', JSON.stringify({ sala: 's1', bots: 2, modo: 'dinamica', tempos: { pausa: 60, rodada: 60 } })) } catch {} })
   const p = await ctx.newPage(); p.on('pageerror', e => console.error('💥', e.message))
-  const sala = { id: 's1', codigo: 'F4B04C', nome: 'Fut e Diego', dono: 'u0', vice: null, versao: '', temporada: 0, rodada: 0, fase: 'espera', prazo: null, inicio_rodada: null, auto: false, velocidade: 1, pausado: false, comandante: null }
-  await p.route('**/rest/v1/esc_carr_sala?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('mundo') ? { mundo: null } : sala) }))
+  const sala = { id: 's1', codigo: 'F4B04C', nome: 'Fut e Diego', dono: 'u0', vice: null, versao: '', temporada: 1, rodada: 0, fase: 'espera', prazo: null, inicio_rodada: null, auto: false, velocidade: 1, pausado: false, comandante: null }
+  await p.route('**/rest/v1/esc_carr_sala?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('mundo') ? { mundo: {} } : sala) }))
   await p.route('**/rest/v1/esc_carr_clube?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ sala: 's1', assento: 0, user_id: 'u0', nome: 'Neymarzetti', pronto_rodada: null, na_sala_em: null }, { sala: 's1', assento: 1, user_id: 'u1', nome: 'Futpoint FC', pronto_rodada: null, na_sala_em: null }]) }))
   await p.route('**/rest/v1/rpc/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: r.request().url().includes('pode_criar') ? 'true' : r.request().url().includes('pedido') || r.request().url().includes('saidas') ? '[]' : '"ok"' }))
   await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })

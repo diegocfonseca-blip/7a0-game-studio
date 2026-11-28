@@ -3590,7 +3590,7 @@ export function EscLobby() {
       if (filtroSala === 'clubes') return !!g?.clubes
       return !!g?.duplasMode
     })
-    const painelCarreiraTeste = co2On ? <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} /> : null
+    const painelCarreiraTeste = co2On ? <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} onAbre={id => setCo2Espera(id)} /> : null
     const blocoCarreiras = (<>
       {/* 🌐 CARREIRA ONLINE v2 (19/10) — só nas contas do Diego; caminho PRÓPRIO, nada das salas daqui */}
       {!onlineHub && painelCarreiraTeste}

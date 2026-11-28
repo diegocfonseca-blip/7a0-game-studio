@@ -113,6 +113,17 @@ export async function co2LeMundo(): Promise<Co2Mundo | null> {
     return mundo
   } catch { if(contextoAtual(ctx) && leitura === leituraMundo)retentaLeitura('mundo',co2LeMundo); return null }
 }
+/** 🏁 28/11: a carreira JÁ COMEÇOU? O banco cria toda sala com temporada = 1 (padrão da coluna), então a temporada não diz se
+ *  houve largada — quem diz é o `mundo.ordem`, gravado só no START. true/false = resposta do banco; null = não deu pra saber
+ *  (aí a tela NÃO oferece começar, pra nunca recomeçar uma carreira por engano). */
+export async function co2JaComecou(salaId: string): Promise<boolean | null> {
+  try {
+    const { data, error } = await supabase.from('esc_carr_sala').select('mundo').eq('id', salaId).maybeSingle()
+    if (error || !data) return null
+    const d = (data as { mundo?: { ordem?: unknown } | null }).mundo
+    return Array.isArray(d?.ordem) && d!.ordem.length > 0
+  } catch { return null }
+}
 /** null = consulta falhou; [] = consulta bem-sucedida sem clubes. Nunca simular uma falha como uma lista vazia. */
 export async function co2LeGavetasConferidas(): Promise<Co2Clube[] | null> {
   const sala = canalSala, ctx = co2Contexto()
