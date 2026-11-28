@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## Pregão aberto público — 28/11/2026
+
+Após aprovar os vídeos de celular e computador, Diego autorizou expressamente: **“Pode publicar pra todos já tudo desktop e celular”**. A apresentação aprovada de uma/duas cartas passa a ser pública no pregão normal de futebol: virada na própria carta, carimbo do comprador, miniatura voando para as três últimas compras e próxima carta automática. Campinho aberto; celular com compras acima do campo, PC com faixa abaixo das mesas. Reutilizar Shell/CollectibleCard/YourPitch e ações/relógio da sala existentes. Não liberar por tabela prévias privadas nem redesenhar NBA, Vice City, pacotes, Kings ou Pokémon. Motor, identidade, economia e saves preservados. Escopo, verificações e reversão em `docs/auditorias/pregao-visual-publico-20261128.md`.
+
 ## Brasil Oficial — travamentos, correção local (28/11/2026)
 
 Diego pediu investigar relatos gerais, sem conta/etapa identificadas. Correção isolada: metadados M2/calendário/físico sem clonar elenco; cache curto de seis alturas da simulação por entradas; retomada de decisões capturada por confronto, para tática nova não fechar o painel/soltar pausa. Preservar resultados, regras, OVR, economia e saves; sem alteração de servidor ou da prévia Co2 pendente. Relatório/provas em `docs/auditorias/travas-brasil-oficial-20261128.md`. Não afirmar causa exata dos relatos sem reprodução do save afetado nem FPS físico. Ainda não publicado; não misturar com a aprovação visual Co2 do pedido anterior.
@@ -441,6 +445,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
    leem.
 
 ## 💛 Gostos do Diego (aprendidos na prática — respeitar)
+- **⚡📺 28/11: PARTIDA RÁPIDA = MESMO VISUAL DAS SALAS ONLINE + CAMPO 2D DE GRAÇA PRA TODOS (até sem conta).** Live do Dennoso: *"deixe igual o visual das salas online"* → *"Sim"* pro 2D grátis. Revoga o "2D da Partida Rápida do ⭐ Craque Salas pra cima" de 05/11; o **Manual segue pago**. Régua `rapida2DGratis` (campo2d-modo.ts) e `rapidaOffline` (football-match-pilot-policy.ts).
 - **🧭 27/11: TODO JOGO VOLTA PRA CENTRAL E PERGUNTA DE NOVO (placar · 2D · 3D).** *"Quero q todo jogo… volte pra central pra escolher novamente"*. A escolha vale só pra AQUELE jogo; nunca lembrar 2D/3D pro jogo seguinte nem começar direto no estádio.
 - **🔓 27/11: LIBERTADORES/CHAMPIONS/MUNDIAL DESDE A T1, NA TRADICIONAL E NA ONLINE.** *"inclusive na tradicional também, não quero mais que seja só na 40… de início já"*. Revoga o "T40" dos internacionais de clubes (inclusive a nota "não mudar T40" da Copa de 26/11). Régua única `intlDesdeDe` (career-international.ts); o Brasil Oficial segue na 40 (lá a Libertadores é a real e ele não pediu). Champions continua abrindo só depois de ganhar a Libertadores. 🔒 **Mesmo dia: "faça tudo mas só p minha conta e do Futpoint"** — na tradicional a T1 vale só pras contas de `INTL_T1_TESTERS` (sport.ts; os outros seguem na 40, pra todos = `INTL_T1_GERAL = true`), e a carreira online (`CO2_TESTERS` + `esc_carr_pode_criar` no banco) ganhou o Futpoint (gfpicolo13).
 - **🚪 27/11: CARREIRA ONLINE — UMA SÓ SEM PLANO, E QUEM SAI DEIXA O CLUBE PRA MÁQUINA.** Criar = só com plano. Sem plano entra de graça (só antes de começar) em UMA carreira; pra entrar noutra, sai da primeira (aviso com o botão). Começada = plano + pedido aceito, entra na virada no lugar de um bot da Série D. Quem sai não volta; os outros são avisados e, na virada, o clube vira bot com o elenco e tudo. Tudo explicado pra quem entra (`Co2Painel`).

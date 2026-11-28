@@ -22,7 +22,7 @@ import estadioCerArt from './img/online-estadio-v25.webp'
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type CompId } from './competicoes-visual' // 🏆 túnel da final e festa do campeão (23/10)
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
-import { useCampo2DLigado, useQuadra2DLigada, bbSemQuadra, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
+import { useCampo2DLigado, useQuadra2DLigada, bbSemQuadra, trocaCampo2D, marcaPago2D, useCampoNaTela, rapida2DGratis } from './campo2d-modo'
 import { DisputaShootoutCampo } from './campo2d-shootout' // 👑🥅 a conta do tempo do shootout da Kings
 import { usePenaltisCampo } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
 import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
@@ -54,7 +54,7 @@ import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, 
 import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
-import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua, agenciaPendenteEua, trocaEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
+import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua, agenciaPendenteEua, trocaEua, useEscTalvez } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
 import { luvaRenovacaoEua, EUA_RENOVA_ANOS } from './eua-agencia' // 🏀✍️ agência livre do EUA Oficial
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
@@ -1076,7 +1076,7 @@ export function HoldButton({ onStep, disabled = false, className = '', style, ch
 
 const MobileAuctionHeaderContext = createContext(false)
 
-export function Shell({ children, bar, presentationHeader, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget, presentationClock }: { presentationHeader?:React.ReactNode; presentationClock?:MatchPresentationClock|null; children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
+export function Shell({ children, bar, presentationHeader, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget, presentationClock, pregaoPresentation = false }: { pregaoPresentation?: boolean; presentationHeader?:React.ReactNode; presentationClock?:MatchPresentationClock|null; children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
   const pregaoNovoConta = usePregaoNovo() // 🔨 26/11: o pregão de cara nova (layout compacto no PC) — na conta do Diego, as duas mesas também
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
@@ -1125,7 +1125,7 @@ export function Shell({ children, bar, presentationHeader, hideExit = false, cla
   const privateCareerShell = (previewAccount || publicCareerVisual(state)) && state.sport !== 'basquete' && state.careerOnline
   const desktopWidth = useTelaPC()
   const shellManager=state.managers[state.youIdx]
-  const auctionDesktop = !!shellManager && desktopWidth && ['auction','monte','cerimonia'].includes(state.screen)
+  const auctionDesktop = !pregaoPresentation && !!shellManager && desktopWidth && ['auction','monte','cerimonia'].includes(state.screen)
   const auctionMobile = !!shellManager && !!bar && !desktopWidth && state.screen === 'auction'
   const onlineNavigation=(destination:OnlineDestination)=>{requestOnlineDestination(destination);backToMenu()}
   const auctionTitle=state.phase==='holandes'?tr('Tocaia','Ambush'):state.phase==='pregao'?tr('Pregão aberto','Open auction'):state.euAberto?tr('Envelope único','Single envelope'):tr('Envelope cego','Sealed bid')
@@ -1156,7 +1156,7 @@ export function Shell({ children, bar, presentationHeader, hideExit = false, cla
     <MatchPresentationClockContext.Provider value={presentationClock??null}><OwnerOnlineProvider enabled={ownerVisual} state={state} matchAd={<GiroDaRodada cinema doJogo/>}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
     <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}${viceSala ? ' vice-sala' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {viceSala && <><style>{VICE_TEMA_CSS + VICE_SALA_CSS}</style><ViceSalaDecor /></>}
-      {presentationHeader ?? (ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>)}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
+      {presentationHeader ?? ((ownerVisual||pregaoPresentation)&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>)}{!ownerVisual&&!pregaoPresentation&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
       {bar && !auctionDesktop && (
         <div className={`ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5${auctionMobile ? ' ll-auction-mobile-bar' : ''}`} style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : auctionMobile ? '#fffaf0' : '#fff', color: INK }}>
           {isReserveAuction && (
@@ -7156,9 +7156,11 @@ export function useStreamSimMode(): [boolean, () => void] {
 // lugar do toggle Auto/Manual — leva pra tela de Apoie (igual à carreira).
 export function QuickManualLock() {
   const tem2d = useTem2D()
-  const com2d = useCampo2DLiberado() && !tem2d && getSport() !== 'basquete' // 🏀 o Campo 2D é de futebol: no basquete o cadeado fala só do Manual //📺 com o 2D liberado, o cadeado diz que destrava OS DOIS (Diego 20/10) — menos pra quem já tem o 2D (Craque Salas)
-  return (
-    <div style={{ marginBottom: 10 }}>
+  const rapida = rapida2DGratis(useEscTalvez()?.state) // ⚡ 28/11: na Partida Rápida o 2D é grátis — o cadeado fala só do Manual
+  const com2d = useCampo2DLiberado() && !tem2d && !rapida && getSport() !== 'basquete' // 🏀 o Campo 2D é de futebol: no basquete o cadeado fala só do Manual //📺 com o 2D liberado, o cadeado diz que destrava OS DOIS (Diego 20/10) — menos pra quem já tem o 2D (Craque Salas)
+  const ownerVisual = useOwnerLayout() // ⚡ 28/11: na Partida Rápida com o visual das salas, o cadeado fica em "SEU JOGO" (onde a sala mostra Placar/Campo 2D)
+  const lock = (
+    <div style={{ marginBottom: ownerVisual ? 0 : 10 }}>
       <ApoieButton startScreen="manual" trigger={open => (
         <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'Oswald, sans-serif' }}>
           <span>{com2d ? tr(`🎮 Manual + 📺 ${getSport() === 'basquete' ? 'Quadra 2D' : 'Campo 2D'}`, `🎮 Manual + 📺 ${getSport() === 'basquete' ? '2D court' : '2D pitch'}`) : tr('Acelerar e pular', 'Speed up and skip')}</span>
@@ -7167,6 +7169,7 @@ export function QuickManualLock() {
       )} />
     </div>
   )
+  return ownerVisual && com2d ? <OwnerSlot name="view">{lock}</OwnerSlot> : lock
 }
 // 📺 o botão do CAMPO 2D mora junto do Manual em TODO controle de partida (Diego 20/10: *"botão manual e campo 2D"* e
 // *"serve para tudo"*). Fora da sala online a escolha é do aparelho e vale pra toda competição; na sala online quem decide
@@ -7180,7 +7183,7 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
   const ownerVisual=useOwnerLayout()
   // 💳 o 2D vem junto do Manual (o mesmo direito): conferido aqui, lembrado no aparelho (`marcaPago2D`)
   const pagou2d = useTem2D() // 05/11: do ⭐ Craque Salas pra cima (o Manual é só do Completo pra cima)
-  const temDireito = pagou2d || !!state.careerOnline // 🏆 07/11: na carreira o 2D é de graça (o Manual segue pago)
+  const temDireito = pagou2d || !!state.careerOnline || rapida2DGratis(state) // 🏆 07/11: na carreira o 2D é de graça (o Manual segue pago) · ⚡ 28/11: na Partida Rápida também
   useEffect(() => {
     if (pagou2d) { marcaPago2D(true); return }
     const tm = setTimeout(() => marcaPago2D(false), 6000) // (a resposta do banco demora: só tira depois de ter certeza)

@@ -27,7 +27,7 @@ export function useOwnerOnlineVisual(state:Parameters<typeof ownerOnlineScope>[0
 
 type Slot='view'|'kings'|'tactic'|'controls'|'ad'|'tabs'|'lineup'|'summary'|'rivals'|'next-rival'|'leaders'|'rival-preview'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
 type Targets=Partial<Record<Slot,HTMLDivElement|null>>
-type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>&{roomId?:string;nbaSala?:EscState['nbaSala'];sport?:string;screen?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;pokeLiga?:unknown;isHost?:boolean}
+type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>&{roomId?:string;nbaSala?:EscState['nbaSala'];sport?:string;screen?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;pokeLiga?:unknown;isHost?:boolean;copaSala?:boolean;dinastia?:boolean}
 type Layout={accountName?:string;state?:OwnerState;enabled:boolean;pilot:boolean;pilotAvailable:boolean;matchAd:ReactNode;togglePilot:()=>void;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
 const noop=()=>{}
 const Context=createContext<Layout>({enabled:false,pilot:false,pilotAvailable:false,matchAd:null,togglePilot:noop,primary:null,claim:noop,release:noop,target:noop,targets:{}})

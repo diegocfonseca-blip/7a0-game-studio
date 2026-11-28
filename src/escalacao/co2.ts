@@ -113,6 +113,17 @@ export async function co2LeMundo(): Promise<Co2Mundo | null> {
     return mundo
   } catch { if(contextoAtual(ctx) && leitura === leituraMundo)retentaLeitura('mundo',co2LeMundo); return null }
 }
+/** 🏁 28/11: a carreira JÁ COMEÇOU? O banco cria toda sala com temporada = 1 (padrão da coluna), então a temporada não diz se
+ *  houve largada — quem diz é o `mundo.ordem`, gravado só no START. true/false = resposta do banco; null = não deu pra saber
+ *  (aí a tela NÃO oferece começar, pra nunca recomeçar uma carreira por engano). */
+export async function co2JaComecou(salaId: string): Promise<boolean | null> {
+  try {
+    const { data, error } = await supabase.from('esc_carr_sala').select('mundo').eq('id', salaId).maybeSingle()
+    if (error || !data) return null
+    const d = (data as { mundo?: { ordem?: unknown } | null }).mundo
+    return Array.isArray(d?.ordem) && d!.ordem.length > 0
+  } catch { return null }
+}
 /** null = consulta falhou; [] = consulta bem-sucedida sem clubes. Nunca simular uma falha como uma lista vazia. */
 export async function co2LeGavetasConferidas(): Promise<Co2Clube[] | null> {
   const sala = canalSala, ctx = co2Contexto()
@@ -255,13 +266,20 @@ export async function co2PodeCriar(): Promise<boolean> {
   const { data } = await co2Rpc('esc_carr_pode_criar')
   return data === true
 }
-export async function co2Criar(nome: string, clube: string, baralho: 'br' | 'todos' = 'todos'): Promise<{ id?: string; codigo?: string; erro?: string }> {
-  const { data, error } = await co2Rpc('esc_carr_criar', { p_nome: nome, p_clube: clube, p_baralho: baralho, p_versao: '' })
+export async function co2Criar(nome: string, clube: string, baralho: 'br' | 'todos' = 'todos', senha = ''): Promise<{ id?: string; codigo?: string; erro?: string }> {
+  // 🔒 28/11 (Diego: "tem que entrar com senha"): a carreira nasce com senha (o banco guarda só o resumo, numa tabela fechada)
+  const { data, error } = await co2Rpc('esc_carr_criar2', { p_nome: nome, p_clube: clube, p_baralho: baralho, p_versao: '', p_senha: senha })
   if (error) return { erro: error.message }
   return data as { id?: string; codigo?: string; erro?: string }
 }
-export async function co2Entrar(codigo: string, clube: string): Promise<{ id?: string; erro?: string; pedido?: boolean; status?: string; outra_sala?: string; outra_nome?: string }> {
-  const { data, error } = await co2Rpc('esc_carr_entrar', { p_codigo: codigo, p_clube: clube })
+/** 🏟️ 28/11: na largada, quem está na SALA de espera (game_rooms) vira clube da carreira. Só o dono; `pulados` = quem não pôde (sem plano e já noutra carreira). */
+export async function co2DaSala(salaId: string, roomId: string): Promise<{ ok?: boolean; adicionados?: number; pulados?: string[]; erro?: string }> {
+  const { data, error } = await supabase.rpc('esc_carr_da_sala', { p_sala: salaId, p_room: roomId })
+  if (error) return { erro: error.message }
+  return data as { ok?: boolean; adicionados?: number; pulados?: string[]; erro?: string }
+}
+export async function co2Entrar(codigo: string, clube: string, senha = ''): Promise<{ id?: string; erro?: string; pedido?: boolean; status?: string; outra_sala?: string; outra_nome?: string }> {
+  const { data, error } = await co2Rpc('esc_carr_entrar2', { p_codigo: codigo, p_clube: clube, p_senha: senha })
   if (error) return { erro: error.message }
   return data as { id?: string; erro?: string; pedido?: boolean; status?: string; outra_sala?: string; outra_nome?: string }
 }

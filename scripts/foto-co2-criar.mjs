@@ -6,12 +6,14 @@ const OUT = arg('out', 'scripts/mockups'), PORTA = '5266'
 const vite = spawn('npx', ['vite', '--port', PORTA], { env: { ...process.env, DEPLOY_BASE: '/' }, stdio: 'ignore', detached: true })
 for (let i = 0; i < 60; i++) { try { const r = await fetch(`http://localhost:${PORTA}/`); if (r.ok) break } catch { /* subindo */ } await new Promise(r => setTimeout(r, 500)) }
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-for (const tela of ['criar', 'criar-v01', 'espera']) {
-  const ctx = await b.newContext({ viewport: { width: 420, height: 900 }, deviceScaleFactor: 2 })
+const TELAS = process.argv.includes('--espera') ? ['espera', 'espera-pc'] : ['criar', 'criar-v01', 'espera']
+for (const tela0 of TELAS) {
+  const tela = tela0 === 'espera-pc' ? 'espera' : tela0
+  const ctx = await b.newContext({ viewport: { width: tela0 === 'espera-pc' ? 1366 : 420, height: 900 }, deviceScaleFactor: tela0 === 'espera-pc' ? 1 : 2 })
   await ctx.addInitScript(() => { try { localStorage.setItem('bl_lang', 'pt'); localStorage.setItem('esc-co2-cfg', JSON.stringify({ sala: 's1', bots: 2, modo: 'dinamica', tempos: { pausa: 60, rodada: 60 } })) } catch {} })
   const p = await ctx.newPage(); p.on('pageerror', e => console.error('💥', e.message))
-  const sala = { id: 's1', codigo: 'F4B04C', nome: 'Fut e Diego', dono: 'u0', vice: null, versao: '', temporada: 0, rodada: 0, fase: 'espera', prazo: null, inicio_rodada: null, auto: false, velocidade: 1, pausado: false, comandante: null }
-  await p.route('**/rest/v1/esc_carr_sala?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('mundo') ? { mundo: null } : sala) }))
+  const sala = { id: 's1', codigo: 'F4B04C', nome: 'Fut e Diego', dono: 'u0', vice: null, versao: '', temporada: 1, rodada: 0, fase: 'espera', prazo: null, inicio_rodada: null, auto: false, velocidade: 1, pausado: false, comandante: null }
+  await p.route('**/rest/v1/esc_carr_sala?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('mundo') ? { mundo: {} } : sala) }))
   await p.route('**/rest/v1/esc_carr_clube?**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ sala: 's1', assento: 0, user_id: 'u0', nome: 'Neymarzetti', pronto_rodada: null, na_sala_em: null }, { sala: 's1', assento: 1, user_id: 'u1', nome: 'Futpoint FC', pronto_rodada: null, na_sala_em: null }]) }))
   await p.route('**/rest/v1/rpc/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: r.request().url().includes('pode_criar') ? 'true' : r.request().url().includes('pedido') || r.request().url().includes('saidas') ? '[]' : '"ok"' }))
   await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
@@ -34,11 +36,21 @@ for (const tela of ['criar', 'criar-v01', 'espera']) {
       const Layout = p => h(O.OnlineCreateLayout, { enabled: true, modes: h('div', { style: { padding: 10, border: '3px solid #000', borderRadius: 14, background: '#fff', fontFamily: 'Oswald' } }, '1 · O JOGO (cartões)'), rows: p.rows, summaries: p.summaries, name: p.name, button: p.button, rotulo: 'SUA CARREIRA', responsibility: null, errorKey: p.erro, error: null, notice: p.notice }, h('div', { className: 'cs-claro space-y-3' }, p.children))
       createRoot(root).render(h(S.EscProvider, null, h(T.Co2Criar, { nomeClube: 'Neymarzetti', Secao: O.OnlineCreateSection, Opcoes, Layout, primeiro: 2, onAbre(){} })))
     } else if (${JSON.stringify(tela)} === 'criar') createRoot(root).render(h(S.EscProvider, null, h(T.Co2Criar, { nomeClube: 'Neymarzetti', Secao, Opcoes, primeiro: 2, onAbre(){} })))
-    else { createRoot(root).render(h(S.EscProvider, null, h(T.Co2Espera, { salaId: 's1', onSair(){} }))); await new Promise(r=>setTimeout(r,1500)); C._bancadaCo2({ uid: 'u0', aqui: ['u0'] }) }
+    else {
+      // 🏟️ 28/11: a sala de espera dentro do MESMO molde da sala de espera das salas online (igual ao lobby monta)
+      const O = await import('/src/escalacao/owner-online-visual.tsx')
+      root.style.cssText = 'background:#0b120e;min-height:100vh'
+      const st = { managers: [], youIdx: 0, quickCopa: null, onlineMode: 'online', screen: 'lobby' }
+      createRoot(root).render(h(S.EscProvider, null, h(O.OwnerOnlineProvider, { enabled: true, state: st, accountName: 'Neymarzetti' },
+        h('div', { className: 'ov3 ov3-waiting tela-cheia flex flex-col px-5 py-10 relative online-room-art ll-desktop-approved' },
+          h(O.OwnerOnlineHeader, { name: 'Neymarzetti', online: true, onHome(){}, onRooms(){} }),
+          h('div', { className: 'col-tela space-y-5' }, h(O.OwnerWaitingLayout, { hasRules: true, canTheme: false, chatEnabled: false }, h(T.Co2Espera, { salaId: 's1', onSair(){} })))))))
+      await new Promise(r=>setTimeout(r,1500)); C._bancadaCo2({ uid: 'u0', aqui: ['u0'] })
+    }
     await new Promise(r=>setTimeout(r,1500))
   })()`)
-  await p.screenshot({ path: `${OUT}/co2-${tela}.png`, fullPage: true })
-  console.log('📸', `${OUT}/co2-${tela}.png`)
+  await p.screenshot({ path: `${OUT}/co2-${tela0}.png`, fullPage: true })
+  console.log('📸', `${OUT}/co2-${tela0}.png`)
   await ctx.close()
 }
 await b.close()
