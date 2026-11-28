@@ -9560,6 +9560,34 @@ function reducerBase(state: EscState, action: Action): EscState {
       const before=state.careerMemory?.[m.id],after=rememberGame(before,game)
       return after&&after!==before?{...state,careerMemory:{...state.careerMemory,[m.id]:after}}:state
   }
+  // Persistir metadados não muda elenco, tática nem economia. Preserva as referências
+  // usadas pela simulação: clonar a carreira aqui reconstruía todas as ligas/copas.
+  if (action.type === 'GUARDA_M2') {
+    if (!state.careerOnline || state.onlineMode === 'online') return state
+    const t = state.seasonNo ?? 1, anteriores = state.m2Res ?? {}
+    const out: NonNullable<EscState['m2Res']> = {}
+    let mudou = false
+    for (const [k, v] of Object.entries(anteriores)) {
+      if (v[3] >= t - 1) out[k] = v
+      else mudou = true
+    }
+    for (const [k, v] of Object.entries(action.novos)) if (!out[k]) { out[k] = v; mudou = true }
+    return mudou ? { ...state, m2Res: out } : state
+  }
+  if (action.type === 'OFICIAL_CALENDARIO_FISICO') {
+    if (!gestaoAtiva(state) || action.season !== state.seasonNo) return state
+    const anterior = state.oficialFisica?.season === action.season ? state.oficialFisica : undefined
+    if (anterior && JSON.stringify(anterior.cal) === JSON.stringify(action.cal) && JSON.stringify(anterior.clubes) === JSON.stringify(action.clubes)) return state
+    return { ...state, oficialFisica: { ...anterior, season: action.season, cal: action.cal, clubes: action.clubes } }
+  }
+  if (action.type === 'OFICIAL_COPA_FISICA') {
+    if (!gestaoAtiva(state) || action.season !== state.seasonNo) return state
+    const anterior = state.oficialFisica?.season === action.season ? state.oficialFisica : { season: action.season, cal: {} }
+    const copas = { ...anterior.copas }
+    let mudou = false
+    for (const j of action.jogos) if (j.id && !copas[j.id] && Number.isInteger(j.r) && j.r >= 0 && j.r <= 38) { copas[j.id] = j; mudou = true }
+    return mudou ? { ...state, oficialFisica: { ...anterior, copas } } : state
+  }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
     case 'GO_LOBBY': { if(s.co2)s.co2=undefined; s.espectador = undefined; s.espHostUid = undefined; s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
@@ -12966,16 +12994,6 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerHalftime = hv
       return s
     }
-    case 'GUARDA_M2': {
-      // 💾 (21/10) os resultados do motor novo entram no save (sobe pra nuvem junto): celular e PC mostram o MESMO placar. Fica só a
-      // temporada atual e a anterior (o resto já virou história no arquivo da temporada).
-      if (!s.careerOnline || s.onlineMode === 'online') return s
-      const t = s.seasonNo ?? 1, out: NonNullable<EscState['m2Res']> = {}
-      for (const [k, v] of Object.entries(s.m2Res ?? {})) if (v[3] >= t - 1) out[k] = v
-      for (const [k, v] of Object.entries(action.novos)) if (!out[k]) out[k] = v
-      s.m2Res = out
-      return s
-    }
     case 'LIGA_RECEPCAO_M2': {
       const marco = marcoNovaRecepcaoM2(s, loggedEmail())
       if (marco) s.motor2RecepcaoDesde = marco
@@ -14177,19 +14195,6 @@ function reducerBase(state: EscState, action: Action): EscState {
       const prev = (s.agenciaEventos && s.agenciaEventos.season === action.season) ? s.agenciaEventos.rows : []
       s.agenciaEventos = { season: action.season, rows: [...prev, ...action.rows], eventosDone: true }
       return s
-    }
-    case 'OFICIAL_COPA_FISICA': {
-      if (!gestaoAtiva(s) || action.season !== s.seasonNo) return state
-      const anterior = s.oficialFisica?.season === action.season ? s.oficialFisica : {season:action.season,cal:{}}
-      const copas = {...anterior.copas}
-      let mudou = false
-      for (const j of action.jogos) if (j.id && !copas[j.id] && Number.isInteger(j.r) && j.r >= 0 && j.r <= 38) { copas[j.id] = j; mudou = true }
-      if (!mudou) return state
-      s.oficialFisica = {...anterior,copas}; return s
-    }
-    case 'OFICIAL_CALENDARIO_FISICO': {
-      if (!gestaoAtiva(s) || action.season !== s.seasonNo) return state
-      s.oficialFisica = { ...(s.oficialFisica?.season === action.season ? s.oficialFisica : {}), season: action.season, cal: action.cal, clubes: action.clubes }; return s
     }
     case 'SEED_CPU_SQUADS': {
       // materializa a ficha dos times de fundo (1x). Idempotente: se já existe,
