@@ -40,3 +40,8 @@
 .ov3-advance .ov3-next:not(:disabled):hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #000}
 .ov3-advance .ov3-next:not(:disabled):active{transform:translate(2px,2px);box-shadow:2px 2px 0 #000}
 @media(max-width:760px){.ov3-advance .ov3-next{font-size:14px;min-height:52px;padding:11px 12px;white-space:normal}}
+/* 28/11: a faixa RODADA · posição no topo do jogo, no computador, ficava presa numa coluna de 900px
+   centralizada (regra geral #root .max-w-xl) e não alinhava com as abas/tabela. Agora ocupa a largura do conteúdo. */
+#root .ov3 .ll-shell-bar>div{max-width:none}
+#root .ov3 .ll-shell-bar .fp-round-badge+span{margin-top:6px}
+#root .ov3 .ll-shell-bar .flex-col>.fp-round-badge{align-self:flex-start}
