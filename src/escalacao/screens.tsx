@@ -7153,8 +7153,9 @@ export function useStreamSimMode(): [boolean, () => void] {
 export function QuickManualLock() {
   const tem2d = useTem2D()
   const com2d = useCampo2DLiberado() && !tem2d && getSport() !== 'basquete' // 🏀 o Campo 2D é de futebol: no basquete o cadeado fala só do Manual //📺 com o 2D liberado, o cadeado diz que destrava OS DOIS (Diego 20/10) — menos pra quem já tem o 2D (Craque Salas)
-  return (
-    <div style={{ marginBottom: 10 }}>
+  const ownerVisual = useOwnerLayout() // ⚡ 28/11: na Partida Rápida com o visual das salas, o cadeado fica em "SEU JOGO" (onde a sala mostra Placar/Campo 2D)
+  const lock = (
+    <div style={{ marginBottom: ownerVisual ? 0 : 10 }}>
       <ApoieButton startScreen="manual" trigger={open => (
         <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'Oswald, sans-serif' }}>
           <span>{com2d ? tr(`🎮 Manual + 📺 ${getSport() === 'basquete' ? 'Quadra 2D' : 'Campo 2D'}`, `🎮 Manual + 📺 ${getSport() === 'basquete' ? '2D court' : '2D pitch'}`) : tr('Acelerar e pular', 'Speed up and skip')}</span>
@@ -7163,6 +7164,7 @@ export function QuickManualLock() {
       )} />
     </div>
   )
+  return ownerVisual ? <OwnerSlot name="view">{lock}</OwnerSlot> : lock
 }
 // 📺 o botão do CAMPO 2D mora junto do Manual em TODO controle de partida (Diego 20/10: *"botão manual e campo 2D"* e
 // *"serve para tudo"*). Fora da sala online a escolha é do aparelho e vale pra toda competição; na sala online quem decide

@@ -69,7 +69,7 @@ export function FootballOpponentBrowser({teams}:{teams:{id:number;name:string;pi
 }
 
 export function FootballTeamPanel({editable,children}:{editable:boolean;children:ReactNode}){
- return <OwnerSlot name="lineup"><section className="fp-team-panel" aria-label={tr('Sua escalação','Your lineup')}><header><small>{tr('SEU TIME','YOUR TEAM')}</small><h2>{tr('OS SEUS ONZE','YOUR STARTING ELEVEN')}</h2><p>{editable?tr('Troque titulares e formação pelas regras deste modo. Vale para o próximo jogo.','Change starters and formation under this mode’s rules. Applies to the next match.'):tr('Nesta sala os onze são fixos. Consulte os jogadores na aba Elenco.','The starting eleven is fixed in this room. View players in Squad.')}</p></header>{children}</section></OwnerSlot>
+ return <OwnerSlot name="lineup"><section className="fp-team-panel" aria-label={tr('Sua escalação','Your lineup')}><header><small>{tr('SEU TIME','YOUR TEAM')}</small><h2>{tr('OS SEUS ONZE','YOUR STARTING ELEVEN')}</h2><p>{editable?tr('Troque titulares e formação pelas regras deste modo. Vale para o próximo jogo.','Change starters and formation under this mode’s rules. Applies to the next match.'):tr('Os onze são fixos. Consulte os jogadores na aba Elenco.','The starting eleven is fixed. View players in Squad.')}</p></header>{children}</section></OwnerSlot>
 }
 export function FootballSummaryPlacement({children}:{children:ReactNode}){
  return useOwnerFootballPilot()?<OwnerSlot name="summary">{children}</OwnerSlot>:<>{children}</>
