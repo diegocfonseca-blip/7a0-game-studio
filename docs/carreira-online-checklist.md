@@ -74,7 +74,7 @@ Situação HOJE no online antigo: 🟢 funciona · 🟡 funciona mas preso no `y
 ## 🏢 Clube
 - [ ] 🟡 Estádio e obras (obras novas desligadas) [C]
 - [ ] 🔴 Estacionamento / Presidência / criador do presidente [C]
-- [ ] 🟢 SAF clássica (filial na D, empréstimo, comissão) — ✅ decidido 19/10: REGRA ANTIGA da SAF sozinha (`SELL_FILIAL`), nada da saf2 [C]
+- [x] 🚫 SAF — 28/11 Diego: *"Na carreira eu não quero SAF por enquanto"*. Fechada com aviso (substitui a decisão de 19/10 da SAF clássica).
 - [ ] 🟡 Loja do clube (preço das camisas) [C]
 - [ ] 🔴 Loja de planos/extras dentro da carreira [conta]
 
