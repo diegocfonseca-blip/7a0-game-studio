@@ -3,6 +3,7 @@
 // Só nas contas dele por enquanto (`useCarreiraOnline2`). Nada aqui encosta nas salas rápidas/Minhas Ligas.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { tr } from './lang'
+import { OwnerSlot } from './owner-online-visual' // 🏟️ 28/11: sala de espera da carreira = as peças da sala de espera das salas online
 import { useEsc, co2LeLocal, co2LeLocalInfo } from './store'
 import { unpack } from './netpack'
 import type { EscState } from './types'
@@ -43,6 +44,7 @@ export function Co2Painel({ nomeClube, onAbre, semCriar }: { nomeClube: string; 
   const [aviso, setAviso] = useState('')
   const [uma, setUma] = useState<{ sala: string; nome: string } | null>(null) // 🚪 sem plano, já está noutra carreira
   const [saindo, setSaindo] = useState(false)
+  const [senha, setSenha] = useState('') // 🔒 28/11: senha da carreira (entrar e criar)
   const recarrega = () => { void co2MinhasSalas().then(setSalas); void co2MeusPedidos().then(setPedidos) }
   useEffect(() => { recarrega(); void co2PodeCriar().then(setPodeCriar) }, [])
   // 🚪 27/11 (Diego): sem plano só dá pra estar em UMA carreira — sai da outra (o clube fica pra máquina) e já entra nesta
@@ -58,15 +60,16 @@ export function Co2Painel({ nomeClube, onAbre, semCriar }: { nomeClube: string; 
   }
   const criar = async () => {
     setErro('')
-    const r = await co2Criar(nome.trim() || tr('Carreira dos amigos', 'Friends career'), clube.trim())
-    if (r.erro || !r.id) { setErro(r.erro === 'nome' ? tr('Nome do clube com pelo menos 2 letras.', 'Club name needs at least 2 letters.') : tr('Não deu pra criar agora.', 'Could not create right now.')); return }
+    const r = await co2Criar(nome.trim() || tr('Carreira dos amigos', 'Friends career'), clube.trim(), 'todos', senha.trim())
+    if (r.erro || !r.id) { setErro(r.erro === 'senha_curta' ? tr('Escreva uma senha com pelo menos 3 letras ou números.', 'Write a password with at least 3 characters.') : r.erro === 'nome' ? tr('Nome do clube com pelo menos 2 letras.', 'Club name needs at least 2 letters.') : tr('Não deu pra criar agora.', 'Could not create right now.')); return }
     setAberta(r.id); recarrega()
   }
   const entrar = async () => {
     setErro('')
     setAviso('')
     setUma(null)
-    const r = await co2Entrar(codigo.trim(), clube.trim())
+    const r = await co2Entrar(codigo.trim(), clube.trim(), senha.trim())
+    if (r.erro === 'senha') { setErro(tr('Senha errada. Peça a senha pro dono da carreira.', 'Wrong password. Ask the career owner for it.')); return }
     if (r.erro === 'uma' && r.outra_sala) { setUma({ sala: r.outra_sala, nome: r.outra_nome ?? '—' }); return }
     // 🙋 27/11: carreira já começada = pedido pro dono (só com plano); entra na virada da temporada
     if (r.pedido) { setAviso(tr('✉️ Pedido enviado! A carreira já começou: quando o dono aceitar, você entra na virada da temporada, com o nome e o escudo do seu clube, no lugar de um clube da máquina da Série D (fica com os jogadores, o valor e o caixa dele).', '✉️ Request sent! The career has already started: once the owner accepts, you join at the season turnover, with your club\'s name and crest, taking a computer club\'s place in Série D (keeping its players, value and cash).')); recarrega(); return }
@@ -103,6 +106,7 @@ export function Co2Painel({ nomeClube, onAbre, semCriar }: { nomeClube: string; 
       )}
       <div style={{ display: 'flex', gap: 6 }}>
         <input style={campo} value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase().slice(0, 6))} placeholder={tr('Código da carreira', 'Career code')} />
+        <input style={{ ...campo, maxWidth: 120 }} value={senha} onChange={e => setSenha(e.target.value.slice(0, 20))} placeholder={tr('Senha', 'Password')} autoComplete="off" />
         <button onClick={() => void entrar()} style={{ ...botao('#fff'), width: 'auto', fontSize: 13, padding: '8px 12px', boxShadow: `2px 2px 0 ${INK}` }}>{tr('Entrar', 'Join')}</button>
       </div>
       <details style={{ marginTop: 6 }}>
@@ -205,9 +209,11 @@ type SecaoProps = { num: number; title: string; icon: string; sub?: string; chil
 /** 27/11: o "esqueleto" de Criar sala do lobby (blocos que abrem/fecham + faixa presa embaixo). Sem ele, o resumo vai no fim da página. */
 export type Co2LayoutProps = { name: string; rows: [string, string][]; summaries: Record<string, string>; button: React.ReactNode; notice: string; erro: string; children: React.ReactNode }
 type SegProps = { options: [string, string][]; value: string; onSet: (v: string) => void; selos?: Partial<Record<string, string>>; travados?: string[] }
-export function Co2Criar({ nomeClube, Secao, Opcoes, Layout, primeiro, onAbre }: { nomeClube: string; Secao: (p: SecaoProps) => React.ReactElement | null; Opcoes: (p: SegProps) => React.ReactElement | null; Layout?: (p: Co2LayoutProps) => React.ReactElement | null; primeiro: number; onAbre: (id: string) => void }) {
+export type Co2Criada = { id: string; codigo: string; nome: string; senha: string; cfg: Co2Cfg }
+export function Co2Criar({ nomeClube, Secao, Opcoes, Layout, primeiro, onAbre, onCriada }: { nomeClube: string; Secao: (p: SecaoProps) => React.ReactElement | null; Opcoes: (p: SegProps) => React.ReactElement | null; Layout?: (p: Co2LayoutProps) => React.ReactElement | null; primeiro: number; onAbre: (id: string) => void; /** 🏟️ 28/11: o lobby abre a SALA DE ESPERA normal (game_rooms) da carreira */ onCriada?: (c: Co2Criada) => void }) {
   const [nome, setNome] = useState('')
   const [clube, setClube] = useState(nomeClube)
+  const [senha, setSenha] = useState('') // 🔒 28/11 (Diego: "tem que entrar com senha")
   const [cfg, setCfg] = useState<Co2Cfg>(CFG_PADRAO)
   const [podeCriar, setPodeCriar] = useState<boolean | null>(null)
   const [erro, setErro] = useState('')
@@ -220,17 +226,18 @@ export function Co2Criar({ nomeClube, Secao, Opcoes, Layout, primeiro, onAbre }:
     if (indo) return
     setErro('')
     if (clube.trim().length < 2) { setErro(tr('Nome do clube com pelo menos 2 letras.', 'Club name needs at least 2 letters.')); return }
+    if (senha.trim().length < 3) { setErro(tr('Crie uma senha com pelo menos 3 letras ou números (bloco "A carreira").', 'Create a password with at least 3 characters ("The career" block).')); return }
     setIndo(true)
-    const r = await co2Criar(nomeFinal, clube.trim(), cfg.baralho ?? 'todos')
+    const r = await co2Criar(nomeFinal, clube.trim(), cfg.baralho ?? 'todos', senha.trim())
     setIndo(false)
-    if (r.erro || !r.id) { setErro(r.erro === 'nome' ? tr('Nome do clube com pelo menos 2 letras.', 'Club name needs at least 2 letters.') : tr('Não deu pra criar agora. Tenta de novo.', 'Could not create right now. Try again.')); return }
+    if (r.erro || !r.id) { setErro(r.erro === 'senha_curta' ? tr('Senha com pelo menos 3 letras ou números.', 'Password needs at least 3 characters.') : r.erro === 'nome' ? tr('Nome do clube com pelo menos 2 letras.', 'Club name needs at least 2 letters.') : tr('Não deu pra criar agora. Tenta de novo.', 'Could not create right now. Try again.')); return }
     guardaCfg(r.id, cfg)
-    onAbre(r.id)
+    if (onCriada) onCriada({ id: r.id, codigo: r.codigo ?? '', nome: nomeFinal, senha: senha.trim(), cfg }); else onAbre(r.id)
   }
   let n = primeiro
-  const chips = [tr('🪜 Tradicional', '🪜 Classic'), `🌐 ${nomeFinal}`, cfg.baralho === 'br' ? tr('🇧🇷 Só Brasil', '🇧🇷 Brazil only') : tr('🌎 BR + Europa + Mundo', '🌎 BR + Europe + World'), `🛡️ ${clube.trim() || nomeClube}`, cfg.bots ? `🤖 ${cfg.bots} bots` : tr('🤖 sem bots', '🤖 no bots'), cfg.modo === 'dinamica' ? tr('⚡ Dinâmica', '⚡ Dynamic') : tr('🧭 Livre', '🧭 Free'), tr('até 20 clubes', 'up to 20 clubs')]
-  const botaoCriar = podeCriar === false ? null : <button type="button" disabled={indo || podeCriar === null} onClick={() => void criar()} style={{ ...botao(GOLD), opacity: indo ? .7 : 1 }}><span>{indo ? tr('Criando…', 'Creating…') : tr('Criar carreira →', 'Create career →')}</span></button>
-  const travaTxt = tr('🔒 Criar carreira online é só pra quem tem plano. Você pode entrar na de um amigo pelo código, no último bloco.', '🔒 Creating an online career needs a plan. You can join a friend\'s with the code, in the last block.')
+  const chips = [tr('🪜 Tradicional', '🪜 Classic'), `🌐 ${nomeFinal}`, senha.trim() ? tr('🔒 com senha', '🔒 password set') : tr('🔒 falta a senha', '🔒 password missing'), cfg.baralho === 'br' ? tr('🇧🇷 Só Brasil', '🇧🇷 Brazil only') : tr('🌎 BR + Europa + Mundo', '🌎 BR + Europe + World'), `🛡️ ${clube.trim() || nomeClube}`, cfg.bots ? `🤖 ${cfg.bots} bots` : tr('🤖 sem bots', '🤖 no bots'), cfg.modo === 'dinamica' ? tr('⚡ Dinâmica', '⚡ Dynamic') : tr('🧭 Livre', '🧭 Free'), tr('até 20 clubes', 'up to 20 clubs')]
+  const botaoCriar = podeCriar === false ? null : <button type="button" disabled={indo || podeCriar === null} onClick={() => void criar()} style={{ ...botao(GOLD), opacity: indo ? .7 : 1 }}><span>{indo ? tr('Criando…', 'Creating…') : tr('Criar sala →', 'Create room →')}</span></button>
+  const travaTxt = tr('🔒 Criar carreira online é só pra quem tem plano. Você pode entrar na de um amigo pelo código e senha, em Testes e ferramentas.', '🔒 Creating an online career needs a plan. You can join a friend\'s with the code and password, in Tests and tools.')
   const secoes = <>
       {/* 🪜 27/11 (Diego: *"por enquanto somente carreira tradicional c clubes feitos pela galera… oficial Brasil e global somente futuramente"*) */}
       <Secao num={n++} title={tr('O modo', 'The mode')} icon="🪜" sub={tr('Que carreira vocês vão jogar', 'Which career you are playing')}>
@@ -241,6 +248,8 @@ export function Co2Criar({ nomeClube, Secao, Opcoes, Layout, primeiro, onAbre }:
       <Secao num={n++} title={tr('A carreira', 'The career')} icon="🌐" sub={tr('O nome da carreira e o do seu clube', 'The career name and your club name')}>
         <div><p style={rot}>{tr('Nome da carreira', 'Career name')}</p><input style={campo} value={nome} onChange={e => setNome(e.target.value.slice(0, 40))} placeholder={nomeFinal} /></div>
         <div><p style={rot}>{tr('Seu clube', 'Your club')}</p><input style={campo} value={clube} onChange={e => setClube(e.target.value.slice(0, 24))} placeholder={tr('Nome do seu clube', 'Your club name')} /></div>
+        <div><p style={rot}>🔒 {tr('Senha da carreira', 'Career password')}</p><input style={campo} value={senha} onChange={e => setSenha(e.target.value.slice(0, 20))} placeholder={tr('Ex.: turma10', 'E.g. crew10')} autoComplete="off" />
+          <p style={{ fontWeight: 700, fontSize: 11, margin: '4px 0 0', color: '#6b6250' }}>{tr('Quem for entrar precisa do código e desta senha. Mande os dois pros amigos.', 'Whoever joins needs the code and this password. Send both to your friends.')}</p></div>
       </Secao>
       <Secao num={n++} title={tr('O baralho', 'The deck')} icon="🃏" sub={tr('De onde vêm as cartas do leilão', 'Where the auction cards come from')}>
         <Opcoes options={[['todos', tr('🌎 Brasil + Europa + Mundo', '🌎 Brazil + Europe + World')], ['br', tr('🇧🇷 Só Brasil', '🇧🇷 Brazil only')]]} value={cfg.baralho ?? 'todos'} onSet={v => setCfg(c => ({ ...c, baralho: v as 'br' | 'todos' }))} />
@@ -279,7 +288,7 @@ export function Co2Criar({ nomeClube, Secao, Opcoes, Layout, primeiro, onAbre }:
         {podeCriar === false ? (
           <p style={{ fontWeight: 800, fontSize: 12.5, color: '#FFD9D2', margin: 0 }}>🔒 {tr('Criar carreira online é só pra quem tem plano. Você pode entrar na de um amigo pelo código, aqui embaixo.', 'Creating an online career needs a plan. You can join a friend\'s with the code, below.')}</p>
         ) : (
-          <button type="button" disabled={indo || podeCriar === null} onClick={() => void criar()} style={{ ...botao(GOLD), opacity: indo ? .7 : 1 }}>{indo ? tr('Criando…', 'Creating…') : tr('🌐 Criar carreira →', '🌐 Create career →')}</button>
+          <button type="button" disabled={indo || podeCriar === null} onClick={() => void criar()} style={{ ...botao(GOLD), opacity: indo ? .7 : 1 }}>{indo ? tr('Criando…', 'Creating…') : tr('🌐 Criar sala →', '🌐 Create room →')}</button>
         )}
         {erro && <p style={{ fontWeight: 800, fontSize: 12, color: '#FFB4A6', margin: '8px 0 0' }}>{erro}</p>}
       </div>
@@ -290,7 +299,7 @@ export function Co2Criar({ nomeClube, Secao, Opcoes, Layout, primeiro, onAbre }:
 // ═══ SALA DE ESPERA ═════════════════════════════════════════════════════════════════════════════════════════════════
 const DIV_COR: Record<string, string> = { A: '#B8892B', B: '#3E8E4E', C: '#9A7B33', D: '#7A7460', V: '#6B5B3E' }
 
-export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => void }) {
+export function Co2Espera({ salaId, onSair, autoIniciar = false }: { salaId: string; onSair: () => void; /** 🏟️ 28/11: o dono apertou Começar na sala de espera normal → larga sozinho com o que escolheu ao criar */ autoIniciar?: boolean }) {
   const { dispatch } = useEsc()
   const sn = useCo2()
   const [erro, setErro] = useState('')
@@ -314,6 +323,12 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
     return () => { vivo = false }
   }, [salaId, comecouAgora, sala?.fase, sala?.temporada])
   const estreia = comecou === false
+  const autoFeito = useRef(false)
+  useEffect(() => {
+    if (!autoIniciar || autoFeito.current || !souDono || comecou !== false || indo || !sala || sn.clubes.length < 2) return
+    autoFeito.current = true
+    void comecar(cfg0?.modo ?? 'dinamica')
+  })
   const souDono = !!sala && sala.dono === sn.uid
   const donoAqui = !!sala && sn.aqui.includes(sala.dono)
   // 👑 26/11 (Diego: "pode tirar o vice"): só o DONO comanda — sem o dono, a carreira espera (regra da coroa)
@@ -386,23 +401,37 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
   if (!sala) return <div style={{ ...caixa(CREAM), padding: 16, textAlign: 'center', fontWeight: 800 }}>{tr('Abrindo a carreira…', 'Opening the career…')}</div>
   const clubes = [...sn.clubes].sort((a, b) => a.assento - b.assento)
   const nomeDono = clubes.find(c => c.user_id === sala.dono)?.nome ?? '—'
+  // 🏟️ 28/11 (Diego: "deve criar a sala normal, igual liga draft, igual sala rápido… mesmo fundo, mesmo padrão visual"): a sala de espera
+  // da carreira usa as MESMAS peças da sala de espera das salas online (OwnerWaitingLayout: cabeçalho, convite, técnicos, regras e o
+  // botão de começar). Fora desse molde (sem layout), as peças caem uma embaixo da outra.
+  const copiaCodigo = () => { try { void navigator.clipboard?.writeText(sala.codigo) } catch { /* sem área de transferência */ } }
+  const convite = () => {
+    const txt = tr(`Bora pra minha carreira online no Leilão Legends! Código ${sala.codigo} — a senha eu te passo. https://leilaolegends.com`, `Join my online career on Leilão Legends! Code ${sala.codigo} — I'll send you the password. https://leilaolegends.com`)
+    const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> }
+    if (nav.share) void nav.share({ text: txt }).catch(() => {}); else { try { void navigator.clipboard?.writeText(txt) } catch { /* ignora */ } }
+  }
   return (
-    <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ background: INK, borderRadius: 18, padding: '14px 16px' }}>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 18, margin: 0, color: '#fff', lineHeight: 1.15 }}>
-          <span style={{ color: GOLD }}>🌐 {tr('CARREIRA ONLINE', 'ONLINE CAREER')}</span>{comecou ? ` · ${tr('TEMPORADA', 'SEASON')} ${sala.temporada} · ${tr('RODADA', 'ROUND')} ${sala.rodada}` : ''}
-        </p>
-      </div>
-      {/* 📜 27/11 (Diego: *"com regras da carreira lá na sala igual fizemos tb c o draft liga"*) */}
-      <div style={{ ...caixa('#FFF7DB'), padding: 12 }}>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: '0 0 8px', textTransform: 'uppercase', color: INK }}>📜 {tr('Regras da carreira', 'Career rules')}</p>
+    <>
+      <OwnerSlot name="wait-heading"><div className="ll-wait-heading flex items-center gap-2.5 pt-1">
+        <div className="flex-1 min-w-0">
+          <p className="text-white font-black text-[19px] leading-tight truncate" style={OSWALD}>🌐 {sala.nome}</p>
+          <p className="text-white/60 text-[12px] font-bold">{souDono ? tr('carreira online · você é o dono 👑', 'online career · you are the owner 👑') : tr('carreira online · você é convidado', 'online career · you are a guest')}{comecou ? ` · ${tr('temporada', 'season')} ${sala.temporada} · ${tr('rodada', 'round')} ${sala.rodada}` : ''}</p>
+        </div>
+        <button onClick={copiaCodigo} aria-label={tr('Copiar código', 'Copy code')} className="shrink-0 rounded-xl border-[3px] border-black bg-white px-2.5 py-1 text-center active:translate-y-0.5" style={{ boxShadow: `3px 3px 0 ${INK}` }}>
+          <span className="block font-black text-[24px] leading-none text-black" style={{ ...OSWALD, letterSpacing: '.1em' }}>{sala.codigo}</span>
+          <span className="block text-[9px] font-black uppercase text-black/50">{tr('toque pra copiar', 'tap to copy')}</span>
+        </button>
+      </div></OwnerSlot>
+      {!comecou && <OwnerSlot name="wait-invite"><div className="online-invite rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)', boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>{tr('📣 Chame a galera', '📣 Call the crew')}</p>
+        <p className="text-white/80 text-[11px] font-medium leading-snug">{tr('Quem entra precisa do CÓDIGO e da SENHA que você criou. Manda os dois no zap.', 'Joining needs the CODE and the PASSWORD you created. Send both.')}</p>
+        <button onClick={convite} className="w-full border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>{tr('📤 Compartilhar convite', '📤 Share invite')}</button>
+      </div></OwnerSlot>}
+      <OwnerSlot name="wait-rules"><div className="ll-wait-rules rounded-xl border-2 px-3 py-3" style={{ background: '#FFF7DB', borderColor: INK }}>
         <Co2Regras cfg={souDono ? { bots, modo: comecou ? (sn.mundo?.modo ?? modoSel) : modoSel, tempos, baralho: cfg0?.baralho ?? 'todos' } : null} />
-      </div>
-      <div style={{ ...caixa(), padding: 16 }}>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 22, margin: 0, textTransform: 'uppercase', color: INK }}>{sala.nome}</p>
-        <p style={{ fontWeight: 800, fontSize: 12.5, margin: '2px 0 10px', color: 'rgba(0,0,0,.6)' }}>
-          {tr('Dono', 'Owner')}: {nomeDono} · {clubes.length} {tr('técnicos', 'managers')} · {tr('código', 'code')} <b style={{ color: INK }}>{sala.codigo}</b> · {tr('tudo salvo na nuvem do jogo', 'all saved in the game cloud')}
-        </p>
+      </div></OwnerSlot>
+      <OwnerSlot name="wait-people"><div className="online-attendance border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+        <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">{tr('Técnicos', 'Managers')} ({clubes.length}/20) · {tr('Dono', 'Owner')}: {nomeDono}</p>
         <div style={{ display: 'grid', gap: 7 }}>
           {clubes.map(c => {
             const chegou = sn.aqui.includes(c.user_id)
@@ -417,6 +446,9 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
           })}
         </div>
         <p style={{ fontWeight: 800, fontSize: 12, margin: '10px 0', color: 'rgba(0,0,0,.6)' }}>{tr('Quem não vier hoje joga com a última escalação. O clube continua guardado.', 'Whoever doesn\'t come today plays with their last lineup. The club stays saved.')}</p>
+      </div></OwnerSlot>
+      <OwnerSlot name="wait-start"><div className="co2-espera-start rounded-2xl border-[3px] border-black p-3" style={{ background: '#F4ECD6', boxShadow: `4px 4px 0 ${INK}`, color: INK }}>
+        <style>{'.ov3 .co2-espera-start p,.ov3 .co2-espera-start span{color:inherit}'}</style>
         {comecou === null && possoComandar && <p style={{ fontWeight: 800, fontSize: 12, textAlign: 'center', margin: 0 }}>{tr('Conferindo a carreira…', 'Checking the career…')}</p>}
         {comecou !== null && (sala.fase === 'espera' || estreia) && possoComandar && (
           estreia && clubes.length >= 2 ? (
@@ -456,9 +488,9 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
         {!souDono && (
           <button onClick={() => void sairDeVez()} style={{ marginTop: 2, width: '100%', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 800, fontSize: 11.5, color: '#B23B2E', cursor: 'pointer' }}>{tr('❌ Deixar esta carreira de vez', '❌ Quit this career for good')}</button>
         )}
-      </div>
+      </div></OwnerSlot>
       <Co2AvisoSaidas />
-    </div>
+    </>
   )
 }
 

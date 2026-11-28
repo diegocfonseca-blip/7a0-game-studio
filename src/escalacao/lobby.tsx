@@ -78,8 +78,8 @@ const AVISO_TROCA_LIGA = false
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useLigaVice, useLigaDraftLiberada, useMinhaLigaDraft, useRelampagoLiberado, useTurnoUnicoLiberado, useEuroLiberada, useAmericaLiberada, useLibertaSalaLiberada, useSuperMundialLiberado, CHAMPIONS_SALA_GERAL, useCarreiraOnline2, useCampo2DLiberado, useTroca2DSala, useSalasVisualNovo, useSalasListaNova, useSalasEsperaNova, useTelaPC, useCasaLucaLiberada } from './sport'
-import { Co2Painel, Co2Criar, Co2Espera, type Co2LayoutProps } from './co2-telas'
-import { co2Fechar } from './co2'
+import { Co2Painel, Co2Criar, Co2Espera, Co2Regras, type Co2LayoutProps, type Co2Criada, type Co2Cfg } from './co2-telas'
+import { co2Fechar, co2DaSala } from './co2'
 import { montaCarry, type EntradaLiga } from './liga-draft' // 📋 Liga Draft (19/10)
 import { PerfilPublico, contaValida, ComPerfil, MeusAmigos, marcaSalaEspera, useMeuRival, EVENTO_ENTRAR_SALA, EVENTO_PERFIL_ABERTO } from './amigos'
 import { TemaFundo, MiniTemaSala, temaValido, useTemasDaConta, releMeusTemas, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
@@ -960,6 +960,9 @@ export function EscLobby() {
   const [auctionSecs, setAuctionSecs] = useState(45) // ⏱️ tempo do leilão: 45 (padrão), outro nº, ou 0 = host avança no botão
   const [pwModal, setPwModal] = useState<RoomInfo | null>(null) // pedindo senha pra entrar
   const [co2Aberta, setCo2Aberta] = useState(false) // 🌐 27/11: o cartão CARREIRA ONLINE em "O jogo" está escolhido (os blocos dela aparecem embaixo)
+  const [co2Auto, setCo2Auto] = useState(false) // 🏟️ 28/11: o dono apertou Começar na sala de espera → a carreira larga sozinha
+  const [co2Indo, setCo2Indo] = useState(false)
+  const [co2Erro, setCo2Erro] = useState('')
   const [co2Espera, setCo2Espera] = useState<string | null>(null) // 🌐 27/11: a sala de espera da carreira online, como página
   const [pwEntry, setPwEntry] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
@@ -968,6 +971,13 @@ export function EscLobby() {
   const nGente = useRef(0)
   useEffect(() => { const n = players.length; if (phase === 'waiting' && nGente.current > 0 && n > nGente.current) playEntrou(); nGente.current = n }, [players.length]) // eslint-disable-line react-hooks/exhaustive-deps
   const [isHost, setIsHost] = useState(false)
+  // 🏟️ 28/11: sala de espera da CARREIRA ONLINE (sala normal do jogo, mode 'carreira2'). Quando o dono começa, a sala ganha
+  // `co2Iniciada` e cada convidado é levado pra carreira (vale pra qualquer conta que entrou na sala, não só as de teste).
+  const salaCo2Aqui = (room?.game_state?.mode as string | undefined) === 'carreira2'
+  useEffect(() => {
+    const g = room?.game_state as (GS & { co2Sala?: string; co2Iniciada?: boolean }) | undefined
+    if (phase === 'waiting' && (room?.game_state?.mode as string | undefined) === 'carreira2' && g?.co2Iniciada && g.co2Sala && !isHost && co2Espera !== g.co2Sala) setCo2Espera(g.co2Sala)
+  }, [room, phase, isHost, co2Espera])
   const [roomError, setRoomError] = useState('')
   const [bafoBarrado, setBafoBarrado] = useState<'entrar' | 'criar' | null>(null) // 🃏 21/11: sem cartas que fechem um time = não entra nem cria sala de Bafo (abre o banner explicando)
   const [limiteDia, setLimiteDia] = useState(false) // 🏟️ grátis já criou a sala do dia (14/10)
@@ -1994,6 +2004,23 @@ export function EscLobby() {
     setLoading(false)
   }
 
+  // 🏟️ 28/11 (Diego: "na hora que eu aperto criar, já aparece a sala criada… igual liga draft, igual sala rápido… tem que entrar com
+  // senha"): a carreira online espera numa SALA NORMAL do jogo — a mesma sala de espera de sempre (nomes com a cor de cada um,
+  // provocações, áudios, chat, tema). A sala leva a marca `mode: 'carreira2'` + o id da carreira; na largada, quem estiver nela vira
+  // clube da carreira (`esc_carr_da_sala`) e todo mundo é levado pra carreira. A senha é a MESMA da carreira.
+  async function criaSalaCo2(c: Co2Criada) {
+    if (!user) return
+    setLoading(true); setRoomError('')
+    try {
+      let code = randCode()
+      for (let i = 0; i < 5; i++) { const { data } = await supabase.from('game_rooms').select('id').eq('code', code).maybeSingle(); if (!data) break; code = randCode() }
+      const gs = { __game: tagAtual(), mode: 'carreira2', roomName: cutName(c.nome), formation: '4-3-3', locked: true, pwHash: hashPw(c.senha.trim().toLowerCase()), co2Sala: c.id, co2Codigo: c.codigo, co2Cfg: c.cfg }
+      await registraAparelho().catch(() => {})
+      const { data: rd, error } = await supabase.rpc('esc_criar_sala_segura', { p_id: novoIdCriacao(), p_code: code, p_max_players: 20, p_game_state: gs, p_nome: nameOf() })
+      if (error || !rd) { setRoomError(tr('A carreira foi criada, mas a sala de espera não abriu. Tente de novo em Testes e ferramentas (código ', 'The career was created, but the waiting room did not open. Try again in Tests and tools (code ') + c.codigo + ').'); setCo2Espera(c.id); return }
+      saveRoom((rd as RoomInfo).id); setRoom(rd as RoomInfo); setIsHost(true); setPhase('waiting'); setCo2Aberta(false)
+    } finally { setLoading(false) }
+  }
   async function createRoom() {
     if (!user || criacaoRef.current) return
     const operacao=new CriacaoSala();criacaoRef.current=operacao
@@ -2043,7 +2070,7 @@ export function EscLobby() {
       // pra sempre e a tela final ainda salva — então por 3h a partida encerrada
       // contava como sala viva e ele não conseguia abrir a próxima.
       const abertas = ((minhas ?? []) as { code: string; mode: string | null; screen: string | null }[])
-        .filter(r => r.mode !== 'liga' && r.mode !== 'carreira' && r.screen !== 'end')
+        .filter(r => r.mode !== 'liga' && r.mode !== 'carreira' && r.mode !== 'carreira2' && r.screen !== 'end') // 🏟️ 28/11: sala de espera da carreira online não conta
       if (abertas.length >= 2) {
         // 🚪 O CAMINHO PRA DESTRAVAR, ALI MESMO (bug que o Diego relatou 24/08:
         // *"o usuário não estava mais com sala aberta e apareceu esse erro"*).
@@ -3721,11 +3748,20 @@ export function EscLobby() {
 
       {/* 📋 05/11: grátis já está numa Liga Draft e tentou entrar em outra → sai da 1ª (sim) ou fica (não) */}
       {/* 🌐 27/11: o painel da CARREIRA ONLINE aberto pelo cartão de "O jogo" (o mesmo painel de antes, que ficava escondido em Testes e ferramentas) */}
-      {co2Espera && co2On && (
-        <div className="fixed inset-0 z-[9998] overflow-y-auto" style={{ background: CREAM }}>
-          <div className="max-w-xl mx-auto p-4">
-            <Co2Espera salaId={co2Espera} onSair={() => { co2Fechar(); setCo2Espera(null) }} />
-          </div>
+      {co2Espera && (co2On || salaCo2Aqui) && (
+        // 🏟️ 28/11 (Diego: "deve criar a sala normal… mesmo fundo, mesmo padrão visual"): a carreira espera na MESMA sala de espera
+        // das salas online (fundo, cabeçalho, convite, técnicos, regras ao lado e o botão de começar)
+        <div className="fixed inset-0 z-[9998] overflow-y-auto" style={{ background: '#0b120e' }}>
+          <OwnerOnlineProvider enabled state={{ managers: [], youIdx: 0, quickCopa: null, onlineMode: 'online', screen: 'lobby' } as unknown as Parameters<typeof OwnerOnlineProvider>[0]['state']} accountName={nameOf()}>
+            <div className="ov3 ov3-waiting tela-cheia flex flex-col px-5 py-10 relative online-room-art ll-desktop-approved">
+              <OwnerOnlineHeader name={nameOf()} online onHome={() => { co2Fechar(); setCo2Espera(null) }} onRooms={() => { co2Fechar(); setCo2Espera(null); setTab('open'); setPhase('menu') }} />
+              <div className="col-tela space-y-5">
+                <OwnerWaitingLayout hasRules canTheme={false} chatEnabled={false}>
+                  <Co2Espera salaId={co2Espera} autoIniciar={co2Auto} onSair={() => { co2Fechar(); setCo2Espera(null); setCo2Auto(false) }} />
+                </OwnerWaitingLayout>
+              </div>
+            </div>
+          </OwnerOnlineProvider>
         </div>
       )}
       {trocaDraft && (
@@ -4417,7 +4453,7 @@ export function EscLobby() {
           <style>{CRIAR_CLARO_CSS}</style>
           <div className="cs-claro space-y-3" style={!createV01 && desk ? { maxWidth: 760, margin: '0 auto' } : undefined}>
             {!createV01 && modeChooser}
-            <Co2Criar nomeClube={stripEmoji(nameOf()).trim()} Secao={Section} Opcoes={Seg as unknown as Parameters<typeof Co2Criar>[0]['Opcoes']} Layout={co2Layout} primeiro={criar2 ? 2 : 1} onAbre={id => setCo2Espera(id)} />
+            <Co2Criar nomeClube={stripEmoji(nameOf()).trim()} Secao={Section} Opcoes={Seg as unknown as Parameters<typeof Co2Criar>[0]['Opcoes']} Layout={co2Layout} primeiro={criar2 ? 2 : 1} onAbre={id => setCo2Espera(id)} onCriada={c => void criaSalaCo2(c)} />
           </div>
           </ClaroCtx.Provider>
           )
@@ -5577,6 +5613,20 @@ export function EscLobby() {
     // é cada um escolher a seleção e convocar os 11. Por isso ela tem painel
     // próprio e NÃO mostra o botão de começar o leilão.
     const ehMundoSala = room.game_state?.mode === 'mundo'
+    const ehCo2Sala = (room.game_state?.mode as string | undefined) === 'carreira2' && !!(room.game_state as GS & { co2Sala?: string }).co2Sala // 🏟️ 28/11: sala de espera da carreira online
+    const comecaCo2Sala = async () => {
+      const gsC = room.game_state as GS & { co2Sala?: string }
+      if (!gsC.co2Sala || co2Indo) return
+      setCo2Indo(true); setCo2Erro('')
+      try {
+        const r = await co2DaSala(gsC.co2Sala, room.id)
+        if (r.erro || !r.ok) { setCo2Erro(r.erro === 'comecou' ? tr('Essa carreira já começou.', 'This career already started.') : tr('Não deu pra começar agora. Tenta de novo.', 'Could not start right now. Try again.')); return }
+        if (r.pulados?.length) window.alert(tr(`Ficaram de fora (sem plano e já estão em outra carreira online): ${r.pulados.join(', ')}.`, `Left out (no plan and already in another online career): ${r.pulados.join(', ')}.`))
+        // avisa a sala inteira: todo mundo vai pra carreira (a sala de espera fica de lado)
+        await supabase.from('game_rooms').update({ game_state: { ...room.game_state, co2Iniciada: true } }).eq('id', room.id)
+        setCo2Auto(true); setCo2Espera(gsC.co2Sala)
+      } finally { setCo2Indo(false) }
+    }
     const copaFicha = (room.game_state as GS)?.copaMundo ?? null
     const minhaCopa = (players.find(p => p.user_id === user?.id)?.copa ?? null) as CopaPick | null
     const copaProntos = players.filter(p => copaPickOk(p.copa)).map(p => ({ nome: stripEmoji(p.manager_name).trim() || tr('Técnico', 'Manager'), pais: (p.copa as CopaPick).pais }))
@@ -5650,7 +5700,7 @@ export function EscLobby() {
     // 🗂️ visual novo (só na conta do Diego): os selos das regras da sala numa linha só, lidos do game_state que já está na mão
     const gsSala = (room.game_state as GS & { holandes?: boolean; duplasMode?: boolean; mundoNaLiga?: boolean; regionalNaLiga?: string })
     const regLbl = gsSala?.regionalNaLiga
-    const selosSala: string[] = salasEspera && !ehMundoSala && !elencoOn ? [
+    const selosSala: string[] = salasEspera && !ehMundoSala && !elencoOn && !ehCo2Sala ? [
       (gsSala as GS & { envUnico?: boolean })?.envUnico ? tr('⚡ Envelope único', '⚡ Single envelope') : (gsSala as GS & { vice?: boolean })?.vice ? '🌴 Vice City' : gsSala?.pregaoAberto ? tr('🔨 Pregão aberto', '🔨 Open auction') : gsSala?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid'),
       regLbl === 'champions' ? tr('⭐ Liga + Champions', '⭐ League + Champions') : regLbl === 'mundial' ? tr('🌍 Liga + Super Mundial', '🌍 League + Super Club World Cup')
         : regLbl === 'liberta' ? tr('🏆 Liga + Libertadores', '🏆 League + Libertadores')
@@ -5683,6 +5733,9 @@ export function EscLobby() {
             <span className="block text-[9px] font-black uppercase text-black/50">{tr('toque pra copiar', 'tap to copy')}</span>
           </button>
         </div></OwnerSlot>
+        {ehCo2Sala && <OwnerSlot name="wait-rules"><div className="ll-wait-rules rounded-xl border-2 px-3 py-3" style={{ background: '#FFF7DB', borderColor: INK, color: INK }}>
+          <Co2Regras cfg={(room.game_state as GS & { co2Cfg?: Co2Cfg }).co2Cfg ?? null} />
+        </div></OwnerSlot>}
         {selosSala.length > 0 && (
           <OwnerSlot name="wait-rules"><div className="ll-wait-rules rounded-xl border-2 px-2 py-2" style={{ background: 'rgba(255,255,255,.08)', borderColor: 'rgba(255,255,255,.25)' }}>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -6400,6 +6453,16 @@ export function EscLobby() {
           void supabase.from('room_players').update({ bafo: { ...eu, pronto: false, conv: { t0: Date.now() } } }).eq('room_id', room.id).eq('user_id', user.id).then(() => {}, () => {})
         }
         if (ehMundoSala) return null // 🌍 a Copa tem o botão dela no painel de cima
+        // 🏟️ 28/11: sala de espera da CARREIRA ONLINE — o botão é o de começar a carreira (quem está na sala vira clube dela)
+        if (ehCo2Sala) {
+          if (!isHost) return <p className="text-white/60 text-sm font-bold text-center py-3">{tr('🌐 Aguardando o dono começar a carreira…', '🌐 Waiting for the owner to start the career…')}</p>
+          const doisOuMais = players.length >= 2
+          return <>
+            <Big onClick={() => void comecaCo2Sala()} disabled={!doisOuMais || co2Indo} color={doisOuMais ? GREEN : '#ccc'} fundo={doisOuMais && temaSala ? temaSala.botao : undefined}><span style={{ color: doisOuMais ? (temaSala ? temaSala.botaoTxt : '#fff') : '#000' }}>{!doisOuMais ? tr('⏳ Chame pelo menos 1 amigo', '⏳ Invite at least 1 friend') : co2Indo ? tr('Começando…', 'Starting…') : tr('🌐 Começar a carreira!', '🌐 Start the career!')}</span></Big>
+            <p className="text-white/60 text-[11.5px] font-bold text-center leading-snug mt-1.5 px-2">{tr('Quem estiver na sala quando você apertar entra na carreira, com o nome do seu clube. Depois de começar, só com plano e pedido aceito.', 'Whoever is in the room when you press joins the career with their club name. After it starts, only with a plan and an accepted request.')}</p>
+            {co2Erro && <p className="text-[11.5px] font-black text-center mt-1" style={{ color: '#FF9A88' }}>{co2Erro}</p>}
+          </>
+        }
         // ⭐ VICE DA LIGA (19/10): mockup `scripts/mockups/liga-vice.png`
         if (ligaViceOn && ligaOnSala && room.liga_vice && user) {
           const souVice = room.liga_vice === user.id
